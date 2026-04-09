@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/container";
+import { buildingManagementItems } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "건물관리",
   description: "수선유지 및 하자보수",
 };
-
-const items = ["설비", "전기", "목공", "소방", "청소"];
 
 export default function BuildingManagementPage() {
   return (
@@ -20,13 +19,19 @@ export default function BuildingManagementPage() {
       </header>
 
       <ul className="mt-6">
-        {items.map((item) => (
-          <li
-            key={item}
-            className="flex items-center gap-3 border-b border-[#E5E7EB] py-[14px] text-[16px] text-[#111111]"
-          >
-            <span className="text-[#6B7280]">—</span>
-            <span>{item}</span>
+        {buildingManagementItems.map((item) => (
+          <li key={item.title} className="border-b border-[#E5E7EB] py-5">
+            <div className="flex items-start gap-3">
+              <span className="mt-1 text-[#6B7280]">—</span>
+              <div>
+                <h2 className="text-[16px] font-medium text-[#111111]">
+                  {item.title}
+                </h2>
+                <p className="mt-1 text-[14px] text-[#6B7280] leading-[1.6]">
+                  {item.description}
+                </p>
+              </div>
+            </div>
           </li>
         ))}
       </ul>

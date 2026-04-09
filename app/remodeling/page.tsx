@@ -20,11 +20,11 @@ export default function RemodelingPage() {
         <div className="mt-6 border-t border-[#E5E7EB]" />
       </header>
 
-      <section className="mt-8 space-y-10">
+      <section className="mt-8 space-y-8 md:space-y-12">
         {remodelingCases.map((item) => (
           <div
             key={item.id}
-            className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-6"
+            className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-6"
           >
             <figure>
               <div className="aspect-[4/3] border border-[#E5E7EB] overflow-hidden bg-[#F9FAFB]">
@@ -35,18 +35,17 @@ export default function RemodelingPage() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <figcaption className="mt-2 text-[12px] uppercase tracking-wider text-[#6B7280]">
+              <figcaption className="mt-2 text-[10px] md:text-[12px] uppercase tracking-wider text-[#6B7280]">
                 BEFORE {item.id}
               </figcaption>
             </figure>
 
-            <div
+            <span
               aria-hidden="true"
-              className="flex items-center justify-center text-[16px] text-[#111111]"
+              className="text-[14px] md:text-[18px] text-[#111111] pb-5"
             >
-              <span className="md:hidden">↓</span>
-              <span className="hidden md:inline">→</span>
-            </div>
+              →
+            </span>
 
             <figure>
               <div className="aspect-[4/3] border border-[#E5E7EB] overflow-hidden bg-[#F9FAFB]">
@@ -57,7 +56,7 @@ export default function RemodelingPage() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <figcaption className="mt-2 text-[12px] uppercase tracking-wider text-[#6B7280]">
+              <figcaption className="mt-2 text-[10px] md:text-[12px] uppercase tracking-wider text-[#6B7280]">
                 AFTER {item.id}
               </figcaption>
             </figure>

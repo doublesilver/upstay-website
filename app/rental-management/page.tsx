@@ -1,18 +1,11 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/container";
+import { rentalManagementItems } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "임대관리",
   description: "임대 운영 전반 관리",
 };
-
-const items = [
-  "공실관리",
-  "입퇴실 시 입주자 및 시설물 관리",
-  "월세·관리비·공과금 정산 및 수납 독촉",
-  "민원 접수 및 처리",
-  "악성 연체자 소송 집행 · 재판 · 강제 퇴실",
-];
 
 export default function RentalManagementPage() {
   return (
@@ -26,13 +19,19 @@ export default function RentalManagementPage() {
       </header>
 
       <ul className="mt-6">
-        {items.map((item) => (
-          <li
-            key={item}
-            className="flex items-start gap-3 border-b border-[#E5E7EB] py-[14px] text-[16px] text-[#111111]"
-          >
-            <span className="text-[#6B7280] shrink-0">—</span>
-            <span>{item}</span>
+        {rentalManagementItems.map((item) => (
+          <li key={item.title} className="border-b border-[#E5E7EB] py-5">
+            <div className="flex items-start gap-3">
+              <span className="mt-1 text-[#6B7280] shrink-0">—</span>
+              <div>
+                <h2 className="text-[16px] font-medium text-[#111111]">
+                  {item.title}
+                </h2>
+                <p className="mt-1 text-[14px] text-[#6B7280] leading-[1.6]">
+                  {item.description}
+                </p>
+              </div>
+            </div>
           </li>
         ))}
       </ul>
