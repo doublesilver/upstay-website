@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/container";
+import { ServiceSections } from "@/components/service-sections";
 import { remodelingCases } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -31,12 +32,12 @@ export default function RemodelingPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.before}
-                  alt={`Before ${item.id}`}
+                  alt="Before"
                   className="w-full h-full object-cover"
                 />
               </div>
               <figcaption className="mt-2 text-[10px] md:text-[12px] uppercase tracking-wider text-[#6B7280]">
-                BEFORE {item.id}
+                BEFORE
               </figcaption>
             </figure>
 
@@ -52,17 +53,21 @@ export default function RemodelingPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.after}
-                  alt={`After ${item.id}`}
+                  alt="After"
                   className="w-full h-full object-cover"
                 />
               </div>
               <figcaption className="mt-2 text-[10px] md:text-[12px] uppercase tracking-wider text-[#6B7280]">
-                AFTER {item.id}
+                AFTER
               </figcaption>
             </figure>
           </div>
         ))}
       </section>
+
+      <div className="mt-16">
+        <ServiceSections />
+      </div>
     </Container>
   );
 }
