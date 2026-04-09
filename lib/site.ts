@@ -1,21 +1,25 @@
 export const siteConfig = {
-  brandName: "업스테이",
-  title: "업스테이 | 리모델링 · 건물관리 · 임대관리",
+  brandName: "UPSTAY",
+  koreanName: "업스테이",
+  title: "업스테이 UPSTAY | 리모델링 · 건물관리 · 임대관리",
   description:
-    "업스테이는 리모델링, 건물관리, 임대관리 업무를 정돈된 구조로 소개하는 모바일 중심 기업형 홈페이지입니다.",
+    "업스테이는 리모델링, 건물관리, 임대관리를 한 번에 제공하는 부동산 토털 관리 서비스입니다.",
 };
 
 export const navItems = [
   { label: "리모델링", href: "/remodeling" },
-  { label: "건물관리", href: "/#building-management" },
-  { label: "임대관리", href: "/#leasing-management" },
+  { label: "건물관리", href: "/building-management" },
+  { label: "임대관리", href: "/rental-management" },
 ];
 
 export const companyInfo = {
   name: "업스테이",
-  englishName: "upstay",
+  englishName: "UPSTAY",
   ceo: "안민혁",
   address: "강남구 학동로 26길 82 (논현동 1517-26번지) 1층",
   businessNumber: "000-00-00000",
   phone: "010-3168-0624",
 };
+
+// TODO: 실제 카카오톡 채널 URL로 교체
+export const KAKAO_URL = "https://pf.kakao.com/";

@@ -1,44 +1,43 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
+import { KakaoButton } from "@/components/kakao-button";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://upstay.vercel.app"),
   title: {
     default: siteConfig.title,
-    template: `%s | ${siteConfig.brandName}`,
+    template: `%s | ${siteConfig.koreanName}`,
   },
   description: siteConfig.description,
   openGraph: {
     title: siteConfig.title,
     description: siteConfig.description,
-    siteName: siteConfig.brandName,
+    siteName: siteConfig.koreanName,
     locale: "ko_KR",
     type: "website",
-    url: "https://upstay.vercel.app",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.title,
-    description: siteConfig.description,
   },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ko">
-      <body>
-        <div className="page-shell">
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </div>
+      <head>
+        <link
+          rel="stylesheet"
+          as="style"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
+        />
+      </head>
+      <body className="bg-white text-[#111111]">
+        <Header />
+        <main className="min-h-[calc(100vh-56px)]">{children}</main>
+        <Footer />
+        <KakaoButton />
       </body>
     </html>
   );
