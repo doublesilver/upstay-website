@@ -53,7 +53,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="snap-y snap-mandatory h-[calc(100dvh-64px)] overflow-y-auto">
+    <div className="snap-y snap-proximity h-[calc(100dvh-64px)] overflow-y-auto">
       {/* 1화면: 리모델링 */}
       <section className="snap-start h-[calc(100dvh-64px)] overflow-hidden">
         <Container className="pt-6 pb-8 md:pt-10 md:pb-12 h-full flex flex-col">
@@ -117,7 +117,7 @@ export default function HomePage() {
       </section>
 
       {/* 2화면: 서비스 세로 + 푸터 */}
-      <section className="snap-start h-[calc(100dvh-64px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between">
+      <section className="snap-start min-h-[calc(100dvh-64px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between">
         <Container className="py-6 md:py-8 w-full flex-1 flex items-center">
           <div className="w-full">
             <ServiceSections />
