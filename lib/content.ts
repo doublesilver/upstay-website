@@ -20,7 +20,17 @@ export const remodelingCases = [
   },
 ];
 
-// 임시 설명 — 실제 서비스 소개 문구로 교체 예정
+export const remodelingServiceItems = [
+  { title: "주방", description: "싱크대·타일·후드 교체" },
+  { title: "욕실", description: "방수·타일·위생기구 교체" },
+  { title: "베란다", description: "확장·샷시·방수 공사" },
+  { title: "현관", description: "중문·신발장·타일 시공" },
+  { title: "천장", description: "몰딩·조명·텍스 교체" },
+  { title: "도배", description: "벽지·페인트·곰팡이 처리" },
+  { title: "바닥", description: "장판·마루·타일 시공" },
+  { title: "기타", description: "구멍보수·샷시·몰딩 등" },
+];
+
 export const buildingManagementItems = [
   {
     title: "설비",

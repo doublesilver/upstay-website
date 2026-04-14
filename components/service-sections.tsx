@@ -1,4 +1,8 @@
-import { buildingManagementItems, rentalManagementItems } from "@/lib/content";
+import {
+  buildingManagementItems,
+  rentalManagementItems,
+  remodelingServiceItems,
+} from "@/lib/content";
 
 type Item = { title: string; description: string };
 
@@ -38,7 +42,12 @@ function ServiceSection({
 
 export function ServiceSections() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+      <ServiceSection
+        title="리모델링"
+        caption="공사에 관한 모든 것"
+        items={remodelingServiceItems}
+      />
       <ServiceSection
         title="건물관리"
         caption="수선 · 유지 · 하자보수"
