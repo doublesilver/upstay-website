@@ -6,10 +6,9 @@ import { navItems, KAKAO_URL, PHONE_URL, SLOGAN } from "@/lib/site";
 export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB]">
-      {/* 모바일: 컴팩트 1줄 / 데스크탑: 넉넉하게 */}
       <Container className="h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4">
         {/* 로고 */}
-        <Link href="/" className="shrink-0 h-full py-2">
+        <Link href="/" className="shrink-0 h-full py-1 md:py-2">
           <Image
             src="/logo.png"
             alt="업스테이 UPSTAY"
@@ -31,9 +30,7 @@ export function Header() {
                 key={item.href}
                 className="flex items-center gap-3 md:gap-7"
               >
-                {i > 0 && (
-                  <span className="text-[#E5E7EB] hidden md:inline">|</span>
-                )}
+                {i > 0 && <span className="text-[#E5E7EB]">|</span>}
                 <Link
                   href={item.href}
                   className="text-[11px] md:text-[14px] font-medium text-[#111111] hover:text-[#6B7280] transition-colors whitespace-nowrap"
@@ -48,16 +45,16 @@ export function Header() {
           </p>
         </div>
 
-        {/* 전화 + 카카오 아이콘 */}
+        {/* 전화 + 카카오 아이콘 — 모바일: 네모, 데스크탑: 원형 */}
         <div className="flex items-center gap-1.5 md:gap-2.5 shrink-0">
           <a
             href={PHONE_URL}
             aria-label="전화 문의"
-            className="flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full hover:bg-[#F3F4F6] transition-colors"
+            className="flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-md md:rounded-full border border-[#E5E7EB] md:border-0 hover:bg-[#F3F4F6] transition-colors"
           >
             <svg
-              width="18"
-              height="18"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="#111111"
@@ -75,11 +72,11 @@ export function Header() {
             target="_blank"
             rel="noreferrer"
             aria-label="카카오톡 문의"
-            className="flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-[#FEE500] hover:brightness-95 transition"
+            className="flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-md md:rounded-full bg-[#FEE500] hover:brightness-95 transition"
           >
             <svg
-              width="16"
-              height="16"
+              width="15"
+              height="15"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"

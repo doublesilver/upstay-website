@@ -85,5 +85,11 @@ function initSchema(db: Database.Database) {
       "사례 3",
       3,
     );
+    insert.run(
+      "https://images.unsplash.com/photo-1533779283484-8ad4940aa3a8?auto=format&fit=crop&w=1200&h=900&q=80",
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&h=900&q=80",
+      "사례 4",
+      4,
+    );
   }
 }

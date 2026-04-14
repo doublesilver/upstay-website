@@ -122,7 +122,7 @@ export default function HomePage() {
               </div>
 
               {/* 데스크탑 레이아웃: 3열 Before↓After */}
-              <div className="hidden md:grid md:grid-cols-3 gap-5 h-full overflow-hidden">
+              <div className="hidden md:grid md:grid-cols-4 gap-5 h-full overflow-hidden">
                 {cases.map((c) => (
                   <div key={c.id} className="space-y-1.5">
                     <figure>

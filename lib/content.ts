@@ -18,6 +18,11 @@ export const remodelingCases = [
     before: unsplash("photo-1502672260266-1c1ef2d93688"),
     after: unsplash("photo-1600585154340-be6161a56a0c"),
   },
+  {
+    id: "04",
+    before: unsplash("photo-1533779283484-8ad4940aa3a8"),
+    after: unsplash("photo-1600566753190-17f0baa2a6c3"),
+  },
 ];
 
 export const remodelingServiceItems = [
