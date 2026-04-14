@@ -32,13 +32,34 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
-  const { id, before_image, after_image, title, sort_order, show_on_main } =
-    await req.json();
+  const body = await req.json();
+  const { id, ...fields } = body;
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
+
+  const allowed = [
+    "before_image",
+    "after_image",
+    "before_image_wm",
+    "after_image_wm",
+    "title",
+    "sort_order",
+    "show_on_main",
+  ];
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  for (const key of allowed) {
+    if (key in fields) {
+      sets.push(`${key}=?`);
+      vals.push(fields[key]);
+    }
+  }
+  if (sets.length === 0) return Response.json({ ok: true });
+
   const db = getDb();
-  db.prepare(
-    "UPDATE remodeling_cases SET before_image=?, after_image=?, title=?, sort_order=?, show_on_main=? WHERE id=?",
-  ).run(before_image, after_image, title, sort_order, show_on_main, id);
+  vals.push(id);
+  db.prepare(`UPDATE remodeling_cases SET ${sets.join(", ")} WHERE id=?`).run(
+    ...vals,
+  );
   return Response.json({ ok: true });
 }
 

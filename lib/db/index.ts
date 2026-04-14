@@ -30,6 +30,8 @@ function initSchema(db: Database.Database) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       before_image TEXT NOT NULL DEFAULT '',
       after_image TEXT NOT NULL DEFAULT '',
+      before_image_wm TEXT NOT NULL DEFAULT '',
+      after_image_wm TEXT NOT NULL DEFAULT '',
       title TEXT NOT NULL DEFAULT '',
       sort_order INTEGER NOT NULL DEFAULT 0,
       show_on_main INTEGER NOT NULL DEFAULT 1,
