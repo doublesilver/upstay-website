@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="680" height="315" viewBox="0 0 680 315" xmlns="http://www.w3.org/2000/svg">
+  
+  <line x1="38" y1="200" x2="650" y2="200" stroke="#1a1a1a" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="58" y1="44" x2="58" y2="293" stroke="#1a1a1a" stroke-width="5.5" stroke-linecap="round"/>
+  <polyline points="48,44 58,22 68,44" fill="none" stroke="#1a1a1a" stroke-width="5.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="280" y1="108" x2="570" y2="22" stroke="#1a1a1a" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="638" y1="108" x2="348" y2="22" stroke="#1a1a1a" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="638" y1="108" x2="638" y2="293" stroke="#1a1a1a" stroke-width="4.5" stroke-linecap="round"/>
+  <text x="170" y="196" font-family="'Noto Sans CJK KR',sans-serif" font-size="110" font-weight="900" fill="#8B1A1A" text-anchor="middle">업</text>
+  <text x="364" y="158" font-family="'Noto Sans CJK KR',sans-serif" font-size="66" font-weight="900" fill="#1a1a1a" textLength="190" lengthAdjust="spacing">스테이</text>
+  <text x="364" y="196" font-family="'Noto Sans CJK KR',sans-serif" font-size="50" font-weight="700" fill="#1a1a1a" textLength="190" lengthAdjust="spacing">UP STAY</text>
+  <text x="58" y="278" font-family="'Noto Sans CJK KR',sans-serif" font-size="26" font-weight="500" fill="#1a1a1a" textLength="580" lengthAdjust="spacing">리모델링  |  건물관리  |  임대관리</text>
+</svg>

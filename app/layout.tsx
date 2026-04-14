@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     siteName: siteConfig.koreanName,
     locale: "ko_KR",
     type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
 };
 

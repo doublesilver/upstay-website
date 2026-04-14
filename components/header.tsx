@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { navItems, KAKAO_URL, PHONE_URL, SLOGAN } from "@/lib/site";
@@ -7,11 +8,15 @@ export function Header() {
     <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB]">
       <Container className="py-3 md:py-4 flex items-center justify-between gap-4">
         {/* 로고 */}
-        <Link
-          href="/"
-          className="text-[20px] md:text-[24px] font-bold tracking-tight text-[#111111] shrink-0"
-        >
-          UPSTAY
+        <Link href="/" className="shrink-0">
+          <Image
+            src="/logo.png"
+            alt="업스테이 UPSTAY"
+            width={120}
+            height={48}
+            className="h-10 md:h-12 w-auto"
+            priority
+          />
         </Link>
 
         {/* 네비게이션 + 슬로건 (가운데) */}
