@@ -6,15 +6,15 @@ import { navItems, KAKAO_URL, PHONE_URL, SLOGAN } from "@/lib/site";
 export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB]">
-      <Container className="py-3 md:py-4 flex items-center justify-between gap-4">
+      <Container className="h-16 md:h-20 flex items-center justify-between gap-4">
         {/* 로고 */}
-        <Link href="/" className="shrink-0">
+        <Link href="/" className="shrink-0 h-full py-2">
           <Image
             src="/logo.png"
             alt="업스테이 UPSTAY"
-            width={120}
-            height={48}
-            className="h-10 md:h-12 w-auto"
+            width={200}
+            height={80}
+            className="h-full w-auto"
             priority
           />
         </Link>
