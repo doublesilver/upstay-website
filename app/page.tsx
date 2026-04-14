@@ -72,15 +72,15 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="snap-y snap-mandatory h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-y-auto">
-      {/* 1화면: 사례보기 */}
-      <section className="snap-start h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
-        <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
-          <div className="flex items-center justify-between shrink-0 mb-3 md:mb-4">
+    <div>
+      {/* 사례보기 섹션 */}
+      <section className="py-6 md:py-10">
+        <Container>
+          <div className="flex items-center justify-between mb-4 md:mb-5">
             <h2 className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111]">
               {config.remodeling_section_title || "사례보기"}
             </h2>
-            <p className="text-[10px] md:text-[13px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
+            <p className="hidden md:block text-[13px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
               BEFORE → AFTER →
             </p>
             <Link
@@ -91,7 +91,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto space-y-3 md:space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {cases.map((c) => (
               <div
                 key={c.id}
@@ -140,15 +140,15 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* 2화면: 서비스 + 푸터 */}
-      <section className="snap-start h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
-        <Container className="py-4 md:py-8 w-full flex-1 flex items-center">
-          <div className="w-full">
-            <ServiceSections config={config} />
-          </div>
+      {/* 서비스 소개 섹션 */}
+      <section className="py-6 md:py-10 bg-[#F9FAFB] border-t border-[#E5E7EB]">
+        <Container>
+          <ServiceSections config={config} />
         </Container>
-        <Footer />
       </section>
+
+      {/* 푸터 */}
+      <Footer />
 
       {/* 공지사항 팝업 */}
       {showPopup && announcements.length > 0 && (
