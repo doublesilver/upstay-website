@@ -35,6 +35,13 @@ export default function HomePage() {
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  useEffect(() => {
     fetch("/api/remodeling")
       .then((r) => r.json())
       .then((data) => {
