@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Container } from "@/components/container";
 import { ServiceSections } from "@/components/service-sections";
+import { remodelingCases as staticCases } from "@/lib/content";
 
 interface RemodelingCase {
   id: number;
@@ -19,17 +20,30 @@ interface Announcement {
   created_at: string;
 }
 
+const fallbackCases: RemodelingCase[] = staticCases.map((c, i) => ({
+  id: i + 1,
+  before_image: c.before,
+  after_image: c.after,
+  title: `사례 ${c.id}`,
+}));
+
 export default function HomePage() {
-  const [cases, setCases] = useState<RemodelingCase[]>([]);
+  const [cases, setCases] = useState<RemodelingCase[]>(fallbackCases);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
   useEffect(() => {
     fetch("/api/remodeling")
       .then((r) => r.json())
-      .then(setCases);
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) setCases(data);
+      })
+      .catch(() => {});
     fetch("/api/announcements")
       .then((r) => r.json())
-      .then(setAnnouncements);
+      .then((data) => {
+        if (Array.isArray(data)) setAnnouncements(data);
+      })
+      .catch(() => {});
   }, []);
 
   return (

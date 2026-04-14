@@ -42,22 +42,22 @@ export const buildingManagementItems = [
 export const rentalManagementItems = [
   {
     title: "공실관리",
-    description: "공실 상태 점검과 다음 임차 준비",
+    description: "상태 점검 및 다음 임차 준비",
   },
   {
-    title: "입퇴실 시 입주자 및 시설물 관리",
-    description: "입주·퇴실 시 시설물 상태 확인 및 인계 절차",
+    title: "입퇴실 관리",
+    description: "시설물 확인 및 인계 절차",
   },
   {
-    title: "월세·관리비·공과금 정산 및 수납 독촉",
-    description: "정기 수납 관리와 미납 건 대응",
+    title: "수납 관리",
+    description: "월세·관리비·공과금 정산 및 독촉",
   },
   {
-    title: "민원 접수 및 처리",
-    description: "임차인 요청·불편 사항 접수 및 해결",
+    title: "민원 처리",
+    description: "임차인 요청·불편 사항 해결",
   },
   {
-    title: "악성 연체자 소송 집행 · 재판 · 강제 퇴실",
-    description: "법적 절차 지원 및 강제집행",
+    title: "연체 대응",
+    description: "소송·재판·강제 퇴실 법적 절차",
   },
 ];
