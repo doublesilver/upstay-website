@@ -76,10 +76,13 @@ export default function HomePage() {
       {/* 1화면: 사례보기 */}
       <section className="snap-start h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
-          <div className="flex items-baseline gap-3 shrink-0 mb-3 md:mb-4">
+          <div className="flex items-center justify-between shrink-0 mb-3 md:mb-4">
             <h2 className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111]">
               {config.remodeling_section_title || "사례보기"}
             </h2>
+            <p className="text-[10px] md:text-[13px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
+              BEFORE → AFTER →
+            </p>
             <Link
               href="/remodeling"
               className="text-[11px] md:text-[13px] text-[#6B7280] hover:text-[#111111] transition-colors"
@@ -89,10 +92,6 @@ export default function HomePage() {
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto space-y-3 md:space-y-4">
-            <p className="text-center text-[11px] md:text-[13px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
-              BEFORE → AFTER →
-            </p>
-
             {cases.map((c) => (
               <div
                 key={c.id}

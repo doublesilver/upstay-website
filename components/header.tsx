@@ -7,19 +7,19 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB]">
       <Container className="h-[56px] md:h-[80px] flex items-center justify-between gap-3 md:gap-4">
-        {/* 로고 */}
-        <Link href="/" className="shrink-0 h-full py-[1px]">
+        {/* 로고 — 전화+카카오 버튼 합친 너비와 동일 */}
+        <Link href="/" className="shrink-0">
           <Image
             src="/logo.png"
             alt="업스테이 UPSTAY"
             width={200}
             height={80}
-            className="h-full w-auto"
+            className="h-[36px] md:h-[48px] w-auto"
             priority
           />
         </Link>
 
-        {/* 네비게이션 + 슬로건 (가운데) */}
+        {/* 네비게이션 + 슬로건 */}
         <div className="flex-1 min-w-0 text-center">
           <nav
             aria-label="주요 메뉴"
@@ -40,21 +40,21 @@ export function Header() {
               </span>
             ))}
           </nav>
-          <p className="mt-[2px] text-[10px] md:text-[13px] text-[#9CA3AF] tracking-[0.12em] md:tracking-[0.32em]">
+          <p className="mt-[2px] text-[9px] md:text-[12px] text-[#9CA3AF] tracking-tight">
             {SLOGAN}
           </p>
         </div>
 
-        {/* 전화 + 카카오 아이콘 */}
-        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        {/* 전화(녹색) + 카카오 아이콘 */}
+        <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
           <a
             href={PHONE_URL}
             aria-label="전화 문의"
-            className="flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-md md:rounded-full border border-[#E5E7EB] md:border-0 hover:bg-[#F3F4F6] transition-colors"
+            className="flex h-9 w-9 md:h-11 md:w-11 items-center justify-center rounded-md md:rounded-full border border-[#E5E7EB] md:border-0 hover:bg-[#F3F4F6] transition-colors"
           >
             <svg
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="#22c55e"
@@ -72,11 +72,11 @@ export function Header() {
             target="_blank"
             rel="noreferrer"
             aria-label="카카오톡 문의"
-            className="flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-md md:rounded-full bg-[#FEE500] hover:brightness-95 transition"
+            className="flex h-9 w-9 md:h-11 md:w-11 items-center justify-center rounded-md md:rounded-full bg-[#FEE500] hover:brightness-95 transition"
           >
             <svg
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
