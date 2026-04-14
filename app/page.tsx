@@ -60,78 +60,122 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="snap-y snap-mandatory h-[calc(100dvh-64px)] overflow-y-auto">
+    <div className="snap-y snap-mandatory h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-y-auto">
       {/* 1화면: 리모델링 */}
-      <section className="snap-start h-[calc(100dvh-64px)] overflow-hidden">
-        <Container className="pt-6 pb-8 md:pt-10 md:pb-12 h-full flex flex-col">
-          {/* 공지사항 팝업은 아래에 렌더링 */}
-
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 md:p-5 flex-1 min-h-0 flex flex-col">
+      <section className="snap-start h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
+        <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col">
             <div className="flex items-baseline gap-3 shrink-0">
-              <h2 className="text-[18px] md:text-[22px] font-bold tracking-tight text-[#111111]">
+              <h2 className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111]">
                 리모델링
               </h2>
               <Link
                 href="/remodeling"
-                className="text-[12px] md:text-[13px] text-[#6B7280] hover:text-[#111111] transition-colors"
+                className="text-[11px] md:text-[13px] text-[#6B7280] hover:text-[#111111] transition-colors"
               >
                 더보기 →
               </Link>
             </div>
 
-            {/* 3열 세로: Before ↓ After */}
-            <div className="mt-4 flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 overflow-y-auto md:overflow-hidden">
-              {cases.map((c) => (
-                <div key={c.id} className="space-y-1.5">
-                  <figure>
-                    <figcaption className="mb-1 text-[10px] md:text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF]">
-                      BEFORE
-                    </figcaption>
-                    <div className="aspect-[3/2] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
-                      <Image
-                        src={c.before_image}
-                        alt={`${c.title} Before`}
-                        fill
-                        className="object-cover"
-                        sizes="(min-width: 768px) 33vw, 100vw"
-                        unoptimized
-                      />
-                    </div>
-                  </figure>
-                  <div className="text-center text-[13px] text-[#9CA3AF]">
-                    ↓
+            {/* 모바일: Before→After 가로 배치 세로 스크롤 / 데스크탑: 3열 세로 배치 */}
+            <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-y-auto">
+              {/* 모바일 레이아웃 */}
+              <div className="md:hidden space-y-4">
+                {cases.map((c) => (
+                  <div
+                    key={c.id}
+                    className="grid grid-cols-[1fr_auto_1fr] items-center gap-2"
+                  >
+                    <figure>
+                      <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
+                        <Image
+                          src={c.before_image}
+                          alt={`${c.title} Before`}
+                          fill
+                          className="object-cover"
+                          sizes="45vw"
+                          unoptimized
+                        />
+                      </div>
+                      <figcaption className="mt-1 text-[9px] uppercase tracking-wider text-[#9CA3AF]">
+                        BEFORE
+                      </figcaption>
+                    </figure>
+                    <span className="text-[12px] text-[#9CA3AF] pb-4">→</span>
+                    <figure>
+                      <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
+                        <Image
+                          src={c.after_image}
+                          alt={`${c.title} After`}
+                          fill
+                          className="object-cover"
+                          sizes="45vw"
+                          unoptimized
+                        />
+                      </div>
+                      <figcaption className="mt-1 text-[9px] uppercase tracking-wider text-[#111111]">
+                        AFTER
+                      </figcaption>
+                    </figure>
                   </div>
-                  <figure>
-                    <figcaption className="mb-1 text-[10px] md:text-[11px] font-medium uppercase tracking-wider text-[#111111]">
-                      AFTER
-                    </figcaption>
-                    <div className="aspect-[3/2] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
-                      <Image
-                        src={c.after_image}
-                        alt={`${c.title} After`}
-                        fill
-                        className="object-cover"
-                        sizes="(min-width: 768px) 33vw, 100vw"
-                        unoptimized
-                      />
+                ))}
+              </div>
+
+              {/* 데스크탑 레이아웃: 3열 Before↓After */}
+              <div className="hidden md:grid md:grid-cols-3 gap-5 h-full overflow-hidden">
+                {cases.map((c) => (
+                  <div key={c.id} className="space-y-1.5">
+                    <figure>
+                      <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF]">
+                        BEFORE
+                      </figcaption>
+                      <div className="aspect-[3/2] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
+                        <Image
+                          src={c.before_image}
+                          alt={`${c.title} Before`}
+                          fill
+                          className="object-cover"
+                          sizes="33vw"
+                          unoptimized
+                        />
+                      </div>
+                    </figure>
+                    <div className="text-center text-[13px] text-[#9CA3AF]">
+                      ↓
                     </div>
-                  </figure>
-                </div>
-              ))}
+                    <figure>
+                      <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#111111]">
+                        AFTER
+                      </figcaption>
+                      <div className="aspect-[3/2] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
+                        <Image
+                          src={c.after_image}
+                          alt={`${c.title} After`}
+                          fill
+                          className="object-cover"
+                          sizes="33vw"
+                          unoptimized
+                        />
+                      </div>
+                    </figure>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* 2화면: 서비스 세로 + 푸터 */}
-      <section className="snap-start h-[calc(100dvh-64px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
-        <Container className="py-6 md:py-8 w-full flex-1 flex items-center">
+      {/* 2화면: 서비스 + 푸터 */}
+      <section className="snap-start h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
+        <Container className="py-4 md:py-8 w-full flex-1 flex items-center">
           <div className="w-full">
             <ServiceSections />
           </div>
         </Container>
         <Footer />
       </section>
+
       {/* 공지사항 팝업 */}
       {showPopup && announcements.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
