@@ -8,6 +8,14 @@ interface WatermarkEditorProps {
   onCancel: () => void;
 }
 
+const PRESETS = [
+  { label: "중앙", x: 0.5, y: 0.5 },
+  { label: "좌상", x: 0.15, y: 0.12 },
+  { label: "우상", x: 0.85, y: 0.12 },
+  { label: "좌하", x: 0.15, y: 0.88 },
+  { label: "우하", x: 0.85, y: 0.88 },
+];
+
 export function WatermarkEditor({
   src,
   onSave,
@@ -37,13 +45,11 @@ export function WatermarkEditor({
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !baseImg) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     canvas.width = baseImg.width;
     canvas.height = baseImg.height;
-
     ctx.drawImage(baseImg, 0, 0);
 
     if (logoImg) {
@@ -51,7 +57,6 @@ export function WatermarkEditor({
       const logoH = (logoImg.height / logoImg.width) * logoW;
       const x = pos.x * baseImg.width - logoW / 2;
       const y = pos.y * baseImg.height - logoH / 2;
-
       ctx.globalAlpha = opacity;
       ctx.drawImage(logoImg, x, y, logoW, logoH);
       ctx.globalAlpha = 1;
@@ -62,25 +67,13 @@ export function WatermarkEditor({
     draw();
   }, [draw]);
 
-  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    setDragging(true);
-    updatePos(e);
-  };
-
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!dragging) return;
-    updatePos(e);
-  };
-
-  const handleCanvasMouseUp = () => setDragging(false);
-
   const updatePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     setPos({
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
+      x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+      y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
     });
   };
 
@@ -99,35 +92,59 @@ export function WatermarkEditor({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#E5E7EB]">
-          <h3 className="text-[16px] font-bold text-[#111]">워터마크</h3>
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#EBEBEB]">
+          <h3 className="text-[18px] font-bold text-[#111]">워터마크</h3>
           <button
             onClick={onCancel}
-            className="text-[#6B7280] hover:text-[#111] text-[20px]"
+            className="w-8 h-8 rounded-full hover:bg-[#F7F7F7] flex items-center justify-center text-[#999] hover:text-[#111] transition-all"
           >
-            ×
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 p-4 flex gap-4">
-          <div className="flex-1 min-w-0 flex items-center justify-center bg-[#F9FAFB] rounded-lg overflow-hidden">
+        <div className="flex-1 min-h-0 p-5 flex gap-5">
+          {/* 캔버스 */}
+          <div className="flex-1 min-w-0 flex items-center justify-center bg-[#FAFAFA] rounded-xl overflow-hidden">
             <canvas
               ref={canvasRef}
-              className="max-w-full max-h-[60vh] cursor-move"
-              onMouseDown={handleCanvasMouseDown}
-              onMouseMove={handleCanvasMouseMove}
-              onMouseUp={handleCanvasMouseUp}
-              onMouseLeave={handleCanvasMouseUp}
+              className="max-w-full max-h-[55vh] cursor-move"
+              onMouseDown={(e) => {
+                setDragging(true);
+                updatePos(e);
+              }}
+              onMouseMove={(e) => {
+                if (dragging) updatePos(e);
+              }}
+              onMouseUp={() => setDragging(false)}
+              onMouseLeave={() => setDragging(false)}
             />
           </div>
 
-          <div className="w-48 shrink-0 space-y-5">
+          {/* 컨트롤 패널 */}
+          <div className="w-56 shrink-0 space-y-6">
             <div>
-              <label className="block text-[12px] font-medium text-[#111] mb-1.5">
-                투명도: {Math.round(opacity * 100)}%
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-[13px] font-medium text-[#333]">
+                  투명도
+                </label>
+                <span className="text-[12px] text-[#999] bg-[#F7F7F7] rounded-md px-2 py-0.5">
+                  {Math.round(opacity * 100)}%
+                </span>
+              </div>
               <input
                 type="range"
                 min="0.05"
@@ -135,13 +152,19 @@ export function WatermarkEditor({
                 step="0.05"
                 value={opacity}
                 onChange={(e) => setOpacity(Number(e.target.value))}
-                className="w-full"
+                className="w-full accent-[#111]"
               />
             </div>
+
             <div>
-              <label className="block text-[12px] font-medium text-[#111] mb-1.5">
-                크기: {Math.round(scale * 100)}%
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-[13px] font-medium text-[#333]">
+                  크기
+                </label>
+                <span className="text-[12px] text-[#999] bg-[#F7F7F7] rounded-md px-2 py-0.5">
+                  {Math.round(scale * 100)}%
+                </span>
+              </div>
               <input
                 type="range"
                 min="0.05"
@@ -149,42 +172,58 @@ export function WatermarkEditor({
                 step="0.05"
                 value={scale}
                 onChange={(e) => setScale(Number(e.target.value))}
-                className="w-full"
+                className="w-full accent-[#111]"
               />
             </div>
-            <div className="text-[12px] text-[#6B7280]">
-              사진 위를 클릭하거나 드래그하여 워터마크 위치를 조정하세요.
+
+            <div>
+              <label className="text-[13px] font-medium text-[#333] mb-2 block">
+                위치 프리셋
+              </label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {PRESETS.map((p) => (
+                  <button
+                    key={p.label}
+                    onClick={() => setPos({ x: p.x, y: p.y })}
+                    className={`py-1.5 rounded-lg text-[12px] transition-all ${
+                      Math.abs(pos.x - p.x) < 0.05 &&
+                      Math.abs(pos.y - p.y) < 0.05
+                        ? "bg-[#111] text-white"
+                        : "bg-[#F7F7F7] text-[#666] hover:bg-[#EBEBEB]"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="pt-2 space-y-2">
-              <button
-                onClick={() => setPos({ x: 0.5, y: 0.5 })}
-                className="w-full border border-[#E5E7EB] rounded px-3 py-1.5 text-[12px] hover:bg-[#F9FAFB]"
-              >
-                중앙으로
-              </button>
-              <button
-                onClick={() => setPos({ x: 0.85, y: 0.9 })}
-                className="w-full border border-[#E5E7EB] rounded px-3 py-1.5 text-[12px] hover:bg-[#F9FAFB]"
-              >
-                우하단
-              </button>
-            </div>
+
+            <p className="text-[12px] text-[#BBB] leading-relaxed">
+              사진 위를 클릭하거나 드래그하여 워터마크 위치를 조정하세요
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-[#E5E7EB]">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#EBEBEB]">
           <button
             onClick={onCancel}
-            className="border border-[#E5E7EB] rounded px-4 py-1.5 text-[13px] hover:bg-[#F9FAFB]"
+            className="px-5 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
           >
             취소
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-[#111] text-white rounded px-4 py-1.5 text-[13px] font-medium hover:bg-[#333] disabled:opacity-50"
+            className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-40 transition-all"
           >
-            {saving ? "적용 중..." : "워터마크 적용"}
+            {saving ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                적용 중
+              </span>
+            ) : (
+              "워터마크 적용"
+            )}
           </button>
         </div>
       </div>

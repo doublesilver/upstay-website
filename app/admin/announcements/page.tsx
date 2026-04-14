@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { Toast } from "@/components/admin/toast";
 
 interface Announcement {
   id: number;
@@ -14,23 +15,26 @@ function getToken() {
   return sessionStorage.getItem("admin_token") || "";
 }
 
+function getHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getToken()}`,
+  };
+}
+
 export default function AnnouncementsAdminPage() {
   const [items, setItems] = useState<Announcement[]>([]);
   const [editing, setEditing] = useState<Announcement | null>(null);
-  const [msg, setMsg] = useState("");
+  const [toast, setToast] = useState("");
+  const [deleting, setDeleting] = useState<number | null>(null);
 
-  const getHeaders = () => ({
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getToken()}`,
-  });
-
-  const load = () => {
+  const load = useCallback(() => {
     fetch("/api/admin/announcements", { headers: getHeaders() })
       .then((r) => r.json())
       .then(setItems);
-  };
+  }, []);
 
-  useEffect(load, []);
+  useEffect(load, [load]);
 
   const handleSave = async () => {
     if (!editing) return;
@@ -41,17 +45,26 @@ export default function AnnouncementsAdminPage() {
       body: JSON.stringify(editing),
     });
     setEditing(null);
-    setMsg("저장되었습니다");
+    setToast(editing.id ? "수정되었습니다" : "등록되었습니다");
     load();
-    setTimeout(() => setMsg(""), 2000);
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("삭제하시겠습니까?")) return;
     await fetch("/api/admin/announcements", {
       method: "DELETE",
       headers: getHeaders(),
       body: JSON.stringify({ id }),
+    });
+    setDeleting(null);
+    setToast("삭제되었습니다");
+    load();
+  };
+
+  const handleToggleVisible = async (item: Announcement) => {
+    await fetch("/api/admin/announcements", {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ ...item, is_visible: item.is_visible ? 0 : 1 }),
     });
     load();
   };
@@ -66,132 +79,265 @@ export default function AnnouncementsAdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[20px] font-bold text-[#111]">공지사항 관리</h1>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-[26px] font-bold text-[#111] tracking-tight">
+            공지사항
+          </h1>
+          <p className="mt-1 text-[14px] text-[#888]">
+            메인 페이지 팝업으로 표시됩니다
+          </p>
+        </div>
         <button
           onClick={() => setEditing(newItem())}
-          className="bg-[#111] text-white rounded px-4 py-2 text-[13px] font-medium hover:bg-[#333] transition-colors"
+          className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
         >
           + 새 공지
         </button>
       </div>
 
-      {msg && <p className="text-[13px] text-green-600 mb-4">{msg}</p>}
-
+      {/* 편집 모달 */}
       {editing && (
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 mb-6 max-w-2xl">
-          <h2 className="text-[16px] font-medium mb-4">
-            {editing.id ? "공지 수정" : "새 공지 작성"}
-          </h2>
-
-          <label className="block text-[13px] font-medium text-[#111] mb-1">
-            제목
-          </label>
-          <input
-            type="text"
-            value={editing.title}
-            onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-            className="w-full border border-[#E5E7EB] rounded px-3 py-2 text-[14px] mb-3 outline-none focus:border-[#111]"
-          />
-
-          <label className="block text-[13px] font-medium text-[#111] mb-1">
-            내용
-          </label>
-          <textarea
-            value={editing.content}
-            onChange={(e) =>
-              setEditing({ ...editing, content: e.target.value })
-            }
-            rows={5}
-            className="w-full border border-[#E5E7EB] rounded px-3 py-2 text-[14px] mb-3 outline-none focus:border-[#111] resize-none"
-          />
-
-          <label className="flex items-center gap-2 text-[13px] mb-4">
-            <input
-              type="checkbox"
-              checked={editing.is_visible === 1}
-              onChange={(e) =>
-                setEditing({ ...editing, is_visible: e.target.checked ? 1 : 0 })
-              }
-            />
-            공개
-          </label>
-
-          <div className="flex gap-2">
-            <button
-              onClick={handleSave}
-              className="bg-[#111] text-white rounded px-5 py-2 text-[13px] font-medium hover:bg-[#333] transition-colors"
-            >
-              저장
-            </button>
-            <button
-              onClick={() => setEditing(null)}
-              className="border border-[#E5E7EB] rounded px-5 py-2 text-[13px] hover:bg-[#F9FAFB] transition-colors"
-            >
-              취소
-            </button>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div className="px-6 py-5 border-b border-[#EBEBEB]">
+              <h3 className="text-[18px] font-bold text-[#111]">
+                {editing.id ? "공지 수정" : "새 공지 작성"}
+              </h3>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-[13px] font-medium text-[#333] mb-2">
+                  제목
+                </label>
+                <input
+                  type="text"
+                  value={editing.title}
+                  onChange={(e) =>
+                    setEditing({ ...editing, title: e.target.value })
+                  }
+                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                  placeholder="공지 제목"
+                />
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-[#333] mb-2">
+                  내용
+                </label>
+                <textarea
+                  value={editing.content}
+                  onChange={(e) =>
+                    setEditing({ ...editing, content: e.target.value })
+                  }
+                  rows={5}
+                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)] resize-none"
+                  placeholder="공지 내용 (선택)"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditing({
+                      ...editing,
+                      is_visible: editing.is_visible ? 0 : 1,
+                    })
+                  }
+                  className={`relative w-11 h-6 rounded-full transition-colors ${
+                    editing.is_visible ? "bg-[#111]" : "bg-[#DDD]"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      editing.is_visible ? "translate-x-5" : ""
+                    }`}
+                  />
+                </button>
+                <span className="text-[13px] text-[#666]">
+                  {editing.is_visible ? "공개" : "비공개"}
+                </span>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-[#EBEBEB] flex justify-end gap-3">
+              <button
+                onClick={() => setEditing(null)}
+                className="px-5 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={!editing.title}
+                className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 transition-all"
+              >
+                저장
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
-        <table className="w-full text-[13px]">
-          <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium text-[#6B7280]">
-                제목
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-[#6B7280]">
-                공개
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-[#6B7280]">
-                작성일
-              </th>
-              <th className="text-right px-4 py-3 font-medium text-[#6B7280]">
-                관리
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => (
-              <tr
-                key={item.id}
-                className="border-b border-[#E5E7EB] last:border-0"
-              >
-                <td className="px-4 py-3">{item.title}</td>
-                <td className="px-4 py-3">{item.is_visible ? "O" : "X"}</td>
-                <td className="px-4 py-3 text-[#6B7280]">
-                  {item.created_at?.slice(0, 10)}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => setEditing(item)}
-                    className="text-[#6B7280] hover:text-[#111] mr-3"
-                  >
-                    수정
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="text-red-400 hover:text-red-600"
-                  >
-                    삭제
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {items.length === 0 && (
-              <tr>
-                <td
-                  colSpan={4}
-                  className="px-4 py-8 text-center text-[#6B7280]"
+      {/* 삭제 확인 모달 */}
+      {deleting !== null && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+            <div className="px-6 py-6 text-center">
+              <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#EF4444"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  등록된 공지가 없습니다
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  <polyline points="3,6 5,6 21,6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </div>
+              <h3 className="text-[17px] font-bold text-[#111]">
+                공지를 삭제하시겠습니까?
+              </h3>
+              <p className="mt-2 text-[13px] text-[#888]">
+                삭제된 공지는 복구할 수 없습니다
+              </p>
+            </div>
+            <div className="px-6 py-4 border-t border-[#EBEBEB] flex gap-3">
+              <button
+                onClick={() => setDeleting(null)}
+                className="flex-1 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => handleDelete(deleting)}
+                className="flex-1 bg-red-500 text-white py-2.5 rounded-xl text-[14px] font-semibold hover:bg-red-600 transition-all"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 공지 목록 */}
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="bg-white border border-[#EBEBEB] rounded-2xl p-5 flex items-start justify-between gap-4 hover:shadow-sm transition-all"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-[15px] font-semibold text-[#111] truncate">
+                  {item.title}
+                </h3>
+                <span
+                  className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${
+                    item.is_visible
+                      ? "bg-green-50 text-green-600"
+                      : "bg-[#F7F7F7] text-[#999]"
+                  }`}
+                >
+                  {item.is_visible ? "공개" : "비공개"}
+                </span>
+              </div>
+              {item.content && (
+                <p className="mt-1.5 text-[13px] text-[#888] line-clamp-2">
+                  {item.content}
+                </p>
+              )}
+              <p className="mt-2 text-[12px] text-[#CCC]">
+                {item.created_at?.slice(0, 10)}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => handleToggleVisible(item)}
+                className={`relative w-10 h-5.5 rounded-full transition-colors ${
+                  item.is_visible ? "bg-[#111]" : "bg-[#DDD]"
+                }`}
+                title={item.is_visible ? "비공개로 전환" : "공개로 전환"}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform ${
+                    item.is_visible ? "translate-x-4.5" : ""
+                  }`}
+                />
+              </button>
+              <button
+                onClick={() => setEditing(item)}
+                className="p-2 rounded-lg text-[#999] hover:text-[#111] hover:bg-[#F7F7F7] transition-all"
+                title="수정"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setDeleting(item.id)}
+                className="p-2 rounded-lg text-[#999] hover:text-red-500 hover:bg-red-50 transition-all"
+                title="삭제"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="3,6 5,6 21,6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {items.length === 0 && (
+          <div className="bg-white border border-[#EBEBEB] rounded-2xl py-16 text-center">
+            <div className="w-16 h-16 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#CCC"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14,2 14,8 20,8" />
+              </svg>
+            </div>
+            <p className="text-[15px] font-medium text-[#999]">
+              등록된 공지가 없습니다
+            </p>
+            <p className="mt-1 text-[13px] text-[#CCC]">
+              새 공지를 작성해보세요
+            </p>
+          </div>
+        )}
       </div>
+
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
     </div>
   );
 }

@@ -14,9 +14,7 @@ export function ImageEditor({ src, onSave, onCancel }: ImageEditorProps) {
   const cropperRef = useRef<ReactCropperElement>(null);
   const [saving, setSaving] = useState(false);
 
-  const rotate = (deg: number) => {
-    cropperRef.current?.cropper.rotate(deg);
-  };
+  const rotate = (deg: number) => cropperRef.current?.cropper.rotate(deg);
 
   const handleSave = () => {
     const cropper = cropperRef.current?.cropper;
@@ -33,19 +31,31 @@ export function ImageEditor({ src, onSave, onCancel }: ImageEditorProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#E5E7EB]">
-          <h3 className="text-[16px] font-bold text-[#111]">사진 편집</h3>
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#EBEBEB]">
+          <h3 className="text-[18px] font-bold text-[#111]">사진 편집</h3>
           <button
             onClick={onCancel}
-            className="text-[#6B7280] hover:text-[#111] text-[20px]"
+            className="w-8 h-8 rounded-full hover:bg-[#F7F7F7] flex items-center justify-center text-[#999] hover:text-[#111] transition-all"
           >
-            ×
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 p-4">
+        <div className="flex-1 min-h-0 p-4 bg-[#FAFAFA]">
           <Cropper
             ref={cropperRef}
             src={src}
@@ -58,23 +68,49 @@ export function ImageEditor({ src, onSave, onCancel }: ImageEditorProps) {
           />
         </div>
 
-        <div className="flex items-center justify-between px-5 py-3 border-t border-[#E5E7EB]">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[#EBEBEB]">
           <div className="flex gap-2">
             <button
               onClick={() => rotate(-90)}
-              className="border border-[#E5E7EB] rounded px-3 py-1.5 text-[13px] hover:bg-[#F9FAFB]"
+              className="flex items-center gap-1.5 border border-[#DDD] rounded-xl px-4 py-2 text-[13px] text-[#666] hover:bg-[#F7F7F7] transition-all"
             >
-              ↺ 좌회전
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="1,4 1,10 7,10" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+              </svg>
+              좌회전
             </button>
             <button
               onClick={() => rotate(90)}
-              className="border border-[#E5E7EB] rounded px-3 py-1.5 text-[13px] hover:bg-[#F9FAFB]"
+              className="flex items-center gap-1.5 border border-[#DDD] rounded-xl px-4 py-2 text-[13px] text-[#666] hover:bg-[#F7F7F7] transition-all"
             >
-              ↻ 우회전
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="23,4 23,10 17,10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+              우회전
             </button>
             <button
               onClick={() => cropperRef.current?.cropper.reset()}
-              className="border border-[#E5E7EB] rounded px-3 py-1.5 text-[13px] hover:bg-[#F9FAFB]"
+              className="border border-[#DDD] rounded-xl px-4 py-2 text-[13px] text-[#666] hover:bg-[#F7F7F7] transition-all"
             >
               초기화
             </button>
@@ -82,16 +118,23 @@ export function ImageEditor({ src, onSave, onCancel }: ImageEditorProps) {
           <div className="flex gap-2">
             <button
               onClick={onCancel}
-              className="border border-[#E5E7EB] rounded px-4 py-1.5 text-[13px] hover:bg-[#F9FAFB]"
+              className="px-5 py-2 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
             >
               취소
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="bg-[#111] text-white rounded px-4 py-1.5 text-[13px] font-medium hover:bg-[#333] disabled:opacity-50"
+              className="bg-[#111] text-white rounded-xl px-5 py-2 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-40 transition-all"
             >
-              {saving ? "저장 중..." : "적용"}
+              {saving ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  적용 중
+                </span>
+              ) : (
+                "적용"
+              )}
             </button>
           </div>
         </div>
