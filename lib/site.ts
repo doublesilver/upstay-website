@@ -1,9 +1,9 @@
 export const siteConfig = {
   brandName: "UPSTAY",
   koreanName: "업스테이",
-  title: "업스테이 UPSTAY | 리모델링 · 건물관리 · 임대관리",
+  title: "업스테이 | 리모델링 · 전문관리 · 임대관리",
   description:
-    "업스테이는 리모델링, 건물관리, 임대관리를 한 번에 제공하는 부동산 토털 관리 서비스입니다.",
+    "공간의 가치를 업스테이가 높여드립니다. 리모델링, 전문관리, 임대관리를 한 번에 제공합니다.",
 };
 
 export const navItems = [

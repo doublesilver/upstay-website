@@ -32,6 +32,7 @@ const fallbackCases: RemodelingCase[] = staticCases.map((c, i) => ({
 export default function HomePage() {
   const [cases, setCases] = useState<RemodelingCase[]>(fallbackCases);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     fetch("/api/remodeling")
@@ -43,7 +44,10 @@ export default function HomePage() {
     fetch("/api/announcements")
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setAnnouncements(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setAnnouncements(data);
+          setShowPopup(true);
+        }
       })
       .catch(() => {});
   }, []);
@@ -53,22 +57,7 @@ export default function HomePage() {
       {/* 1화면: 리모델링 */}
       <section className="snap-start h-[calc(100dvh-64px)] overflow-hidden">
         <Container className="pt-6 pb-8 md:pt-10 md:pb-12 h-full flex flex-col">
-          {announcements.length > 0 && (
-            <div className="mb-4 shrink-0">
-              <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-4 py-2.5">
-                {announcements.map((a) => (
-                  <div key={a.id} className="flex items-start gap-2 py-1">
-                    <span className="shrink-0 text-[11px] font-medium bg-[#111] text-white rounded px-1.5 py-0.5 mt-0.5">
-                      공지
-                    </span>
-                    <p className="text-[13px] md:text-[14px] text-[#111]">
-                      {a.title}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* 공지사항 팝업은 아래에 렌더링 */}
 
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 md:p-5 flex-1 min-h-0 flex flex-col">
             <div className="flex items-baseline gap-3 shrink-0">
@@ -136,6 +125,44 @@ export default function HomePage() {
         </Container>
         <Footer />
       </section>
+      {/* 공지사항 팝업 */}
+      {showPopup && announcements.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-lg w-[90%] max-w-md mx-4 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E7EB]">
+              <h3 className="text-[16px] font-bold text-[#111]">공지사항</h3>
+              <button
+                onClick={() => setShowPopup(false)}
+                className="text-[#6B7280] hover:text-[#111] text-[20px] leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="px-5 py-4 max-h-[60vh] overflow-y-auto space-y-3">
+              {announcements.map((a) => (
+                <div key={a.id}>
+                  <p className="text-[14px] font-medium text-[#111]">
+                    {a.title}
+                  </p>
+                  {a.content && (
+                    <p className="mt-1 text-[13px] text-[#6B7280] leading-[1.6]">
+                      {a.content}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="px-5 py-3 border-t border-[#E5E7EB]">
+              <button
+                onClick={() => setShowPopup(false)}
+                className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-[#333] transition-colors"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
