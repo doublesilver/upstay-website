@@ -23,3 +23,8 @@ export const companyInfo = {
 
 // TODO: 실제 카카오톡 채널 URL로 교체
 export const KAKAO_URL = "https://pf.kakao.com/";
+
+export const PHONE_NUMBER = "010-3168-0624";
+export const PHONE_URL = "tel:010-3168-0624";
+
+export const SLOGAN = "공간의 가치를 업스테이가 높여드립니다";

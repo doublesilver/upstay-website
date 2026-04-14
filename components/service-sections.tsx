@@ -12,40 +12,33 @@ function ServiceSection({
   items: Item[];
 }) {
   return (
-    <section>
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-[18px] md:text-[22px] font-bold tracking-tight text-[#111111]">
+    <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 md:p-6">
+      <div className="flex items-baseline justify-between mb-3">
+        <h2 className="text-[16px] md:text-[18px] font-bold tracking-tight text-[#111111]">
           {title}
         </h2>
         <p className="text-[11px] md:text-[12px] text-[#6B7280]">{caption}</p>
       </div>
-      <ul className="mt-4 border-t border-[#E5E7EB]">
+      <ul className="space-y-1.5">
         {items.map((item) => (
           <li
             key={item.title}
-            className="border-b border-[#E5E7EB] py-4 md:py-5"
+            className="flex items-baseline gap-2 text-[13px] md:text-[14px]"
           >
-            <div className="flex items-start gap-3">
-              <span className="mt-1 text-[#6B7280] shrink-0">—</span>
-              <div>
-                <h3 className="text-[15px] md:text-[16px] font-medium text-[#111111]">
-                  {item.title}
-                </h3>
-                <p className="mt-1 text-[13px] text-[#6B7280] leading-[1.6]">
-                  {item.description}
-                </p>
-              </div>
-            </div>
+            <span className="text-[#6B7280] shrink-0">•</span>
+            <span className="font-medium text-[#111111]">{item.title}</span>
+            <span className="text-[#9CA3AF]">—</span>
+            <span className="text-[#6B7280]">{item.description}</span>
           </li>
         ))}
       </ul>
-    </section>
+    </div>
   );
 }
 
 export function ServiceSections() {
   return (
-    <div className="space-y-16">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
       <ServiceSection
         title="건물관리"
         caption="수선 · 유지 · 하자보수"
