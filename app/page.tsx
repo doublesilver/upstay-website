@@ -34,6 +34,8 @@ export default function HomePage() {
   const [cases, setCases] = useState<RemodelingCase[]>(fallbackCases);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [dismissOption, setDismissOption] = useState<string>("");
+  const [config, setConfig] = useState<Record<string, string>>({});
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -54,8 +56,17 @@ export default function HomePage() {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setAnnouncements(data);
+          const dismissUntil = localStorage.getItem("popup_dismiss_until");
+          if (dismissUntil === "forever") return;
+          if (dismissUntil && new Date(dismissUntil) > new Date()) return;
           setShowPopup(true);
         }
+      })
+      .catch(() => {});
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && typeof data === "object") setConfig(data);
       })
       .catch(() => {});
   }, []);
@@ -68,13 +79,13 @@ export default function HomePage() {
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col">
             <div className="flex items-baseline gap-3 shrink-0">
               <h2 className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111]">
-                리모델링
+                {config.remodeling_section_title || "리모델링"}
               </h2>
               <Link
                 href="/remodeling"
                 className="text-[11px] md:text-[13px] text-[#6B7280] hover:text-[#111111] transition-colors"
               >
-                더보기 →
+                {config.remodeling_more_text || "더보기 →"}
               </Link>
             </div>
 
@@ -171,7 +182,7 @@ export default function HomePage() {
       <section className="snap-start h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
         <Container className="py-4 md:py-8 w-full flex-1 flex items-center">
           <div className="w-full">
-            <ServiceSections />
+            <ServiceSections config={config} />
           </div>
         </Container>
         <Footer />
@@ -204,12 +215,49 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+            <div className="px-6 py-3 border-t border-[#EBEBEB] space-y-2">
+              {[
+                { value: "day", label: "하루 동안 보지 않기" },
+                { value: "week", label: "일주일 동안 보지 않기" },
+                { value: "forever", label: "다시 보지 않기" },
+              ].map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="popup_dismiss"
+                    value={opt.value}
+                    checked={dismissOption === opt.value}
+                    onChange={(e) => setDismissOption(e.target.value)}
+                    className="accent-[#111]"
+                  />
+                  <span className="text-[13px] text-[#666]">{opt.label}</span>
+                </label>
+              ))}
+            </div>
             <div className="px-5 py-3 border-t border-[#E5E7EB]">
               <button
-                onClick={() => setShowPopup(false)}
+                onClick={() => {
+                  if (dismissOption === "day") {
+                    localStorage.setItem(
+                      "popup_dismiss_until",
+                      new Date(Date.now() + 86400000).toISOString(),
+                    );
+                  } else if (dismissOption === "week") {
+                    localStorage.setItem(
+                      "popup_dismiss_until",
+                      new Date(Date.now() + 604800000).toISOString(),
+                    );
+                  } else if (dismissOption === "forever") {
+                    localStorage.setItem("popup_dismiss_until", "forever");
+                  }
+                  setShowPopup(false);
+                }}
                 className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-[#333] transition-colors"
               >
-                확인
+                닫기
               </button>
             </div>
           </div>

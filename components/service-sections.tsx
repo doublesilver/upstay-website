@@ -6,6 +6,14 @@ import {
 
 type Item = { title: string; description: string };
 
+interface SiteConfig {
+  [key: string]: string;
+}
+
+interface ServiceSectionsProps {
+  config?: SiteConfig;
+}
+
 function ServiceSection({
   title,
   caption,
@@ -40,23 +48,33 @@ function ServiceSection({
   );
 }
 
-export function ServiceSections() {
+export function ServiceSections({ config }: ServiceSectionsProps) {
+  const remodelingItems = config?.remodeling_items
+    ? JSON.parse(config.remodeling_items)
+    : remodelingServiceItems;
+  const buildingItems = config?.building_items
+    ? JSON.parse(config.building_items)
+    : buildingManagementItems;
+  const rentalItems = config?.rental_items
+    ? JSON.parse(config.rental_items)
+    : rentalManagementItems;
+
   return (
     <div className="space-y-2 md:space-y-3">
       <ServiceSection
-        title="리모델링"
-        caption="공사에 관한 모든 것"
-        items={remodelingServiceItems}
+        title={config?.service_remodeling_title ?? "리모델링"}
+        caption={config?.service_remodeling_caption ?? "공사에 관한 모든 것"}
+        items={remodelingItems}
       />
       <ServiceSection
-        title="건물관리"
-        caption="수선 · 유지 · 하자보수"
-        items={buildingManagementItems}
+        title={config?.service_building_title ?? "건물관리"}
+        caption={config?.service_building_caption ?? "수선 · 유지 · 하자보수"}
+        items={buildingItems}
       />
       <ServiceSection
-        title="임대관리"
-        caption="공실 · 입퇴실 · 민원"
-        items={rentalManagementItems}
+        title={config?.service_rental_title ?? "임대관리"}
+        caption={config?.service_rental_caption ?? "공실 · 입퇴실 · 민원"}
+        items={rentalItems}
       />
     </div>
   );

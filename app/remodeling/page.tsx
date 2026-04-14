@@ -24,6 +24,7 @@ const fallbackCases: RemodelingCase[] = staticCases.map((c, i) => ({
 
 export default function RemodelingPage() {
   const [cases, setCases] = useState<RemodelingCase[]>(fallbackCases);
+  const [config, setConfig] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetch("/api/remodeling")
@@ -32,16 +33,22 @@ export default function RemodelingPage() {
         if (Array.isArray(data) && data.length > 0) setCases(data);
       })
       .catch(() => {});
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && typeof data === "object") setConfig(data);
+      })
+      .catch(() => {});
   }, []);
 
   return (
     <Container className="pt-8 pb-12 md:pt-16 md:pb-16">
       <header>
         <h1 className="text-[22px] md:text-[28px] font-bold tracking-tight text-[#111111]">
-          리모델링
+          {config.remodeling_page_title || "리모델링"}
         </h1>
         <p className="mt-2 text-[12px] uppercase tracking-wider text-[#6B7280]">
-          Before → After
+          {config.remodeling_page_subtitle || "Before → After"}
         </p>
         <div className="mt-6 border-t border-[#E5E7EB]" />
       </header>
@@ -99,7 +106,7 @@ export default function RemodelingPage() {
       </section>
 
       <div className="mt-16">
-        <ServiceSections />
+        <ServiceSections config={config} />
       </div>
     </Container>
   );

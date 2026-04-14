@@ -69,7 +69,7 @@ const navItems = [
     ),
   },
   {
-    label: "설정",
+    label: "편집기",
     href: "/admin/config",
     icon: (
       <svg
