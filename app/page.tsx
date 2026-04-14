@@ -49,7 +49,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="snap-y snap-proximity h-[calc(100dvh-56px)] overflow-y-auto">
+    <div className="snap-y snap-mandatory h-[calc(100dvh-56px)] overflow-y-auto">
       {/* 1화면: 리모델링 */}
       <section className="snap-start h-[calc(100dvh-56px)] overflow-hidden">
         <Container className="pt-6 pb-8 md:pt-10 md:pb-12 h-full flex flex-col">
@@ -83,12 +83,12 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* 데스크탑: 가로 3열, 각 사례 좌우 Before→After */}
-            <div className="mt-4 flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 overflow-y-auto md:overflow-hidden">
+            {/* 풀너비 Before → After 가로 배치 */}
+            <div className="mt-4 flex-1 min-h-0 space-y-4 overflow-y-auto">
               {cases.map((c) => (
                 <div
                   key={c.id}
-                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-2"
+                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-5"
                 >
                   <figure>
                     <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
@@ -97,15 +97,17 @@ export default function HomePage() {
                         alt={`${c.title} Before`}
                         fill
                         className="object-cover"
-                        sizes="(min-width: 768px) 16vw, 50vw"
+                        sizes="(min-width: 768px) 45vw, 50vw"
                         unoptimized
                       />
                     </div>
-                    <figcaption className="mt-1 text-[10px] md:text-[11px] uppercase tracking-wider text-[#9CA3AF]">
+                    <figcaption className="mt-1.5 text-[10px] md:text-[11px] uppercase tracking-wider text-[#9CA3AF]">
                       BEFORE
                     </figcaption>
                   </figure>
-                  <span className="text-[14px] text-[#9CA3AF] pb-4">→</span>
+                  <span className="text-[14px] md:text-[18px] text-[#9CA3AF] pb-5">
+                    →
+                  </span>
                   <figure>
                     <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
                       <Image
@@ -113,11 +115,11 @@ export default function HomePage() {
                         alt={`${c.title} After`}
                         fill
                         className="object-cover"
-                        sizes="(min-width: 768px) 16vw, 50vw"
+                        sizes="(min-width: 768px) 45vw, 50vw"
                         unoptimized
                       />
                     </div>
-                    <figcaption className="mt-1 text-[10px] md:text-[11px] uppercase tracking-wider text-[#111111]">
+                    <figcaption className="mt-1.5 text-[10px] md:text-[11px] uppercase tracking-wider text-[#111111]">
                       AFTER
                     </figcaption>
                   </figure>
@@ -128,9 +130,9 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* 2화면: 서비스 3컬럼 + 푸터 */}
-      <section className="snap-start bg-[#F9FAFB] border-t border-[#E5E7EB]">
-        <Container className="py-8 md:py-10 w-full">
+      {/* 2화면: 서비스 세로 + 푸터 */}
+      <section className="snap-start h-[calc(100dvh-56px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between">
+        <Container className="py-6 md:py-8 w-full flex-1 flex items-center">
           <div className="w-full">
             <ServiceSections />
           </div>
