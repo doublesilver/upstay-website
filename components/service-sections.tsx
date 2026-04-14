@@ -23,16 +23,16 @@ function ServiceSection({
         </h2>
         <p className="text-[11px] md:text-[12px] text-[#6B7280]">{caption}</p>
       </div>
-      <ul className="space-y-1.5">
+      <ul className="space-y-2.5">
         {items.map((item) => (
-          <li
-            key={item.title}
-            className="flex items-baseline gap-2 text-[13px] md:text-[14px]"
-          >
-            <span className="text-[#6B7280] shrink-0">•</span>
-            <span className="font-medium text-[#111111]">{item.title}</span>
-            <span className="text-[#9CA3AF]">—</span>
-            <span className="text-[#6B7280]">{item.description}</span>
+          <li key={item.title} className="text-[13px] md:text-[14px]">
+            <div className="flex items-baseline gap-2">
+              <span className="text-[#6B7280] shrink-0">•</span>
+              <span className="font-medium text-[#111111]">{item.title}</span>
+            </div>
+            <p className="ml-5 mt-0.5 text-[12px] md:text-[13px] text-[#6B7280] leading-[1.5]">
+              {item.description}
+            </p>
           </li>
         ))}
       </ul>

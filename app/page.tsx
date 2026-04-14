@@ -86,8 +86,11 @@ export default function HomePage() {
             {/* 데스크탑: 가로 3열 / 모바일: 세로 */}
             <div className="mt-4 flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 overflow-y-auto md:overflow-hidden">
               {cases.map((c) => (
-                <div key={c.id} className="flex flex-col gap-3">
-                  <figure className="flex-1">
+                <div key={c.id} className="space-y-2">
+                  <figure>
+                    <figcaption className="mb-1.5 text-[11px] md:text-[12px] font-medium uppercase tracking-wider text-[#9CA3AF]">
+                      BEFORE
+                    </figcaption>
                     <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
                       <Image
                         src={c.before_image}
@@ -98,11 +101,14 @@ export default function HomePage() {
                         unoptimized
                       />
                     </div>
-                    <figcaption className="mt-1.5 text-[10px] md:text-[11px] uppercase tracking-wider text-[#6B7280]">
-                      BEFORE
-                    </figcaption>
                   </figure>
-                  <figure className="flex-1">
+                  <div className="text-center text-[14px] text-[#9CA3AF]">
+                    ↓
+                  </div>
+                  <figure>
+                    <figcaption className="mb-1.5 text-[11px] md:text-[12px] font-medium uppercase tracking-wider text-[#111111]">
+                      AFTER
+                    </figcaption>
                     <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
                       <Image
                         src={c.after_image}
@@ -113,9 +119,6 @@ export default function HomePage() {
                         unoptimized
                       />
                     </div>
-                    <figcaption className="mt-1.5 text-[10px] md:text-[11px] uppercase tracking-wider text-[#6B7280]">
-                      AFTER
-                    </figcaption>
                   </figure>
                 </div>
               ))}
