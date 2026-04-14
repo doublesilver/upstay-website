@@ -83,45 +83,42 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* 풀너비 Before → After 가로 배치 */}
-            <div className="mt-4 flex-1 min-h-0 space-y-4 overflow-y-auto">
+            {/* 3열 세로: Before ↓ After */}
+            <div className="mt-4 flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 overflow-y-auto md:overflow-hidden">
               {cases.map((c) => (
-                <div
-                  key={c.id}
-                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-5"
-                >
+                <div key={c.id} className="space-y-1.5">
                   <figure>
+                    <figcaption className="mb-1 text-[10px] md:text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF]">
+                      BEFORE
+                    </figcaption>
                     <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
                       <Image
                         src={c.before_image}
                         alt={`${c.title} Before`}
                         fill
                         className="object-cover"
-                        sizes="(min-width: 768px) 45vw, 50vw"
+                        sizes="(min-width: 768px) 33vw, 100vw"
                         unoptimized
                       />
                     </div>
-                    <figcaption className="mt-1.5 text-[10px] md:text-[11px] uppercase tracking-wider text-[#9CA3AF]">
-                      BEFORE
-                    </figcaption>
                   </figure>
-                  <span className="text-[14px] md:text-[18px] text-[#9CA3AF] pb-5">
-                    →
-                  </span>
+                  <div className="text-center text-[13px] text-[#9CA3AF]">
+                    ↓
+                  </div>
                   <figure>
+                    <figcaption className="mb-1 text-[10px] md:text-[11px] font-medium uppercase tracking-wider text-[#111111]">
+                      AFTER
+                    </figcaption>
                     <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
                       <Image
                         src={c.after_image}
                         alt={`${c.title} After`}
                         fill
                         className="object-cover"
-                        sizes="(min-width: 768px) 45vw, 50vw"
+                        sizes="(min-width: 768px) 33vw, 100vw"
                         unoptimized
                       />
                     </div>
-                    <figcaption className="mt-1.5 text-[10px] md:text-[11px] uppercase tracking-wider text-[#111111]">
-                      AFTER
-                    </figcaption>
                   </figure>
                 </div>
               ))}

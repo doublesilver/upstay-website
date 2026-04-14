@@ -42,7 +42,7 @@ function ServiceSection({
 
 export function ServiceSections() {
   return (
-    <div className="space-y-3 md:space-y-4">
+    <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
       <ServiceSection
         title="리모델링"
         caption="공사에 관한 모든 것"
