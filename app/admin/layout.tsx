@@ -19,16 +19,15 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const t = sessionStorage.getItem("admin_token");
-    setToken(t);
-    setLoading(false);
+    setToken(sessionStorage.getItem("admin_token"));
+    setMounted(true);
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -61,7 +60,7 @@ export default function AdminLayout({
     router.push("/admin");
   };
 
-  if (loading) {
+  if (!mounted) {
     return (
       <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
         <div className="text-[#9CA3AF] text-[14px]">로딩 중...</div>
