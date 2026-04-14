@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Container } from "@/components/container";
@@ -49,13 +50,14 @@ export default function HomePage() {
 
   return (
     <div className="snap-y snap-mandatory h-[calc(100dvh-56px)] overflow-y-auto">
-      <section className="snap-start min-h-[calc(100dvh-56px)]">
-        <Container className="pt-8 pb-12 md:pt-12 md:pb-16">
+      {/* 1화면: 리모델링 */}
+      <section className="snap-start h-[calc(100dvh-56px)] overflow-hidden">
+        <Container className="pt-6 pb-8 md:pt-10 md:pb-12 h-full flex flex-col">
           {announcements.length > 0 && (
-            <section className="mb-8">
-              <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-4 py-3">
+            <div className="mb-4 shrink-0">
+              <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-4 py-2.5">
                 {announcements.map((a) => (
-                  <div key={a.id} className="flex items-start gap-2 py-1.5">
+                  <div key={a.id} className="flex items-start gap-2 py-1">
                     <span className="shrink-0 text-[11px] font-medium bg-[#111] text-white rounded px-1.5 py-0.5 mt-0.5">
                       공지
                     </span>
@@ -65,11 +67,11 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-            </section>
+            </div>
           )}
 
-          <section className="bg-white border border-[#E5E7EB] rounded-xl p-5 md:p-6">
-            <div className="flex items-baseline gap-3">
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 md:p-6 flex-1 min-h-0 flex flex-col">
+            <div className="flex items-baseline gap-3 shrink-0">
               <h2 className="text-[18px] md:text-[22px] font-bold tracking-tight text-[#111111]">
                 리모델링
               </h2>
@@ -81,54 +83,48 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="mt-6 space-y-6 md:space-y-8">
+            {/* 데스크탑: 가로 3열 / 모바일: 세로 */}
+            <div className="mt-4 flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 overflow-y-auto md:overflow-hidden">
               {cases.map((c) => (
-                <div
-                  key={c.id}
-                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-5"
-                >
-                  <figure>
-                    <div className="aspect-[4/3] border border-[#E5E7EB] overflow-hidden bg-[#F9FAFB]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                <div key={c.id} className="flex flex-col gap-3">
+                  <figure className="flex-1">
+                    <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
+                      <Image
                         src={c.before_image}
-                        alt="Before"
-                        className="w-full h-full object-cover"
+                        alt={`${c.title} Before`}
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 768px) 33vw, 100vw"
+                        unoptimized
                       />
                     </div>
-                    <figcaption className="mt-2 text-[10px] md:text-[12px] uppercase tracking-wider text-[#6B7280]">
+                    <figcaption className="mt-1.5 text-[10px] md:text-[11px] uppercase tracking-wider text-[#6B7280]">
                       BEFORE
                     </figcaption>
                   </figure>
-
-                  <span
-                    aria-hidden="true"
-                    className="text-[14px] md:text-[18px] text-[#111111] pb-5"
-                  >
-                    →
-                  </span>
-
-                  <figure>
-                    <div className="aspect-[4/3] border border-[#E5E7EB] overflow-hidden bg-[#F9FAFB]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                  <figure className="flex-1">
+                    <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
+                      <Image
                         src={c.after_image}
-                        alt="After"
-                        className="w-full h-full object-cover"
+                        alt={`${c.title} After`}
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 768px) 33vw, 100vw"
+                        unoptimized
                       />
                     </div>
-                    <figcaption className="mt-2 text-[10px] md:text-[12px] uppercase tracking-wider text-[#6B7280]">
+                    <figcaption className="mt-1.5 text-[10px] md:text-[11px] uppercase tracking-wider text-[#6B7280]">
                       AFTER
                     </figcaption>
                   </figure>
                 </div>
               ))}
             </div>
-          </section>
+          </div>
         </Container>
       </section>
 
-      {/* 건물관리 + 임대관리 + 푸터: 한 화면에 snap 전환 */}
+      {/* 2화면: 서비스 3컬럼 + 푸터 */}
       <section className="snap-start h-[calc(100dvh-56px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between">
         <Container className="py-8 md:py-10 w-full flex-1 flex items-center">
           <div className="w-full">
