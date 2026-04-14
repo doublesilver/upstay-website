@@ -20,14 +20,19 @@ export function Header() {
             aria-label="주요 메뉴"
             className="flex items-center justify-center gap-4 md:gap-7"
           >
-            {navItems.map((item) => (
-              <Link
+            {navItems.map((item, i) => (
+              <span
                 key={item.href}
-                href={item.href}
-                className="text-[13px] md:text-[14px] font-medium text-[#111111] hover:text-[#6B7280] transition-colors whitespace-nowrap"
+                className="flex items-center gap-4 md:gap-7"
               >
-                {item.label}
-              </Link>
+                {i > 0 && <span className="text-[#E5E7EB]">|</span>}
+                <Link
+                  href={item.href}
+                  className="text-[13px] md:text-[14px] font-medium text-[#111111] hover:text-[#6B7280] transition-colors whitespace-nowrap"
+                >
+                  {item.label}
+                </Link>
+              </span>
             ))}
           </nav>
           <p className="mt-0.5 text-[12px] md:text-[13px] text-[#9CA3AF] tracking-tight truncate">

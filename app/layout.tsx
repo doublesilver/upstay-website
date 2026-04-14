@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { KakaoButton } from "@/components/kakao-button";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -36,8 +34,6 @@ export default function RootLayout({
       <body className="bg-white text-[#111111]">
         <Header />
         <main>{children}</main>
-        <Footer />
-        <KakaoButton />
       </body>
     </html>
   );

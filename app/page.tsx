@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Container } from "@/components/container";
 import { ServiceSections } from "@/components/service-sections";
+import { Footer } from "@/components/footer";
 import { remodelingCases as staticCases } from "@/lib/content";
 
 interface RemodelingCase {
@@ -127,11 +128,14 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* 건물관리 + 임대관리: 풀스크린 snap 전환 */}
-      <section className="snap-start h-[calc(100dvh-56px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex items-center">
-        <Container className="py-8 md:py-12 w-full">
-          <ServiceSections />
+      {/* 건물관리 + 임대관리 + 푸터: 한 화면에 snap 전환 */}
+      <section className="snap-start h-[calc(100dvh-56px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between">
+        <Container className="py-8 md:py-10 w-full flex-1 flex items-center">
+          <div className="w-full">
+            <ServiceSections />
+          </div>
         </Container>
+        <Footer />
       </section>
     </div>
   );
