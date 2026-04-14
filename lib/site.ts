@@ -16,7 +16,7 @@ export const companyInfo = {
   name: "업스테이",
   englishName: "UPSTAY",
   ceo: "안민혁",
-  address: "강남구 학동로 26길 82 (논현동 1517-26번지) 1층",
+  address: "서울시 강남구 학동로 26길 82 (논현동 157-26번지 1층)",
   businessNumber: "000-00-00000",
   phone: "010-3168-0624",
 };
