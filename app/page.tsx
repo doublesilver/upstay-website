@@ -13,6 +13,7 @@ interface RemodelingCase {
   before_image: string;
   after_image: string;
   title: string;
+  image_count?: number;
 }
 
 interface Announcement {

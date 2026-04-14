@@ -20,20 +20,27 @@ import { ImageEditor } from "@/components/admin/image-editor";
 import { WatermarkEditor } from "@/components/admin/watermark-editor";
 import { Toast } from "@/components/admin/toast";
 
+interface CaseImage {
+  id: number;
+  type: "before" | "after";
+  match_order: number;
+  image_url: string;
+  image_url_wm: string;
+}
+
 interface Case {
   id: number;
-  before_image: string;
-  after_image: string;
-  before_image_wm: string;
-  after_image_wm: string;
   title: string;
   sort_order: number;
   show_on_main: number;
+  created_at: string;
+  images: CaseImage[];
 }
 
 type EditorTarget = {
+  imageId: number;
   caseId: number;
-  field: "before_image" | "after_image";
+  type: "before" | "after";
   src: string;
 };
 
@@ -58,6 +65,20 @@ async function uploadFile(file: Blob, name?: string): Promise<string> {
   });
   const data = await res.json();
   return data.urls[0];
+}
+
+function getPairs(
+  images: CaseImage[],
+): { match_order: number; before?: CaseImage; after?: CaseImage }[] {
+  const map = new Map<number, { before?: CaseImage; after?: CaseImage }>();
+  for (const img of images) {
+    const entry = map.get(img.match_order) || {};
+    entry[img.type] = img;
+    map.set(img.match_order, entry);
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([match_order, pair]) => ({ match_order, ...pair }));
 }
 
 function ImageSlot({
@@ -149,15 +170,22 @@ function SortableCard({
   onDelete,
   onTitleChange,
   onTitleBlur,
+  onAddPair,
+  onDeletePair,
 }: {
   c: Case;
   onEdit: (target: EditorTarget) => void;
   onWatermark: (target: EditorTarget) => void;
-  onUpload: (caseId: number, field: "before_image" | "after_image") => void;
+  onUpload: (imageId: number) => void;
   onToggleMain: (id: number, val: number) => void;
   onDelete: (id: number) => void;
   onTitleChange: (id: number, title: string) => void;
   onTitleBlur: (id: number) => void;
+  onAddPair: (caseId: number, images: CaseImage[]) => void;
+  onDeletePair: (
+    caseId: number,
+    pair: { match_order: number; before?: CaseImage; after?: CaseImage },
+  ) => void;
 }) {
   const {
     attributes,
@@ -173,7 +201,7 @@ function SortableCard({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const imgSrc = (path: string) => path || null;
+  const pairs = getPairs(c.images);
 
   return (
     <div
@@ -241,20 +269,97 @@ function SortableCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {(["before_image", "after_image"] as const).map((field) => (
-          <ImageSlot
-            key={field}
-            src={imgSrc(c[field])}
-            wmSrc={imgSrc(c[`${field}_wm` as keyof Case] as string)}
-            label={field === "before_image" ? "Before" : "After"}
-            onEdit={() => onEdit({ caseId: c.id, field, src: c[field] })}
-            onWatermark={() =>
-              onWatermark({ caseId: c.id, field, src: c[field] })
-            }
-            onUpload={() => onUpload(c.id, field)}
-          />
+      <div className="space-y-3 mt-4">
+        {pairs.map((pair) => (
+          <div key={pair.match_order} className="flex items-start gap-3">
+            <span className="text-[12px] text-[#999] pt-2 w-8 shrink-0 text-center">
+              {pair.match_order}
+            </span>
+
+            <div className="flex-1">
+              <ImageSlot
+                src={pair.before?.image_url || null}
+                wmSrc={pair.before?.image_url_wm || null}
+                label="Before"
+                onEdit={() =>
+                  pair.before &&
+                  onEdit({
+                    imageId: pair.before.id,
+                    caseId: c.id,
+                    type: "before",
+                    src: pair.before.image_url,
+                  })
+                }
+                onWatermark={() =>
+                  pair.before &&
+                  onWatermark({
+                    imageId: pair.before.id,
+                    caseId: c.id,
+                    type: "before",
+                    src: pair.before.image_url,
+                  })
+                }
+                onUpload={() => pair.before && onUpload(pair.before.id)}
+              />
+            </div>
+
+            <span className="text-[14px] text-[#CCC] pt-8 shrink-0">→</span>
+
+            <div className="flex-1">
+              <ImageSlot
+                src={pair.after?.image_url || null}
+                wmSrc={pair.after?.image_url_wm || null}
+                label="After"
+                onEdit={() =>
+                  pair.after &&
+                  onEdit({
+                    imageId: pair.after.id,
+                    caseId: c.id,
+                    type: "after",
+                    src: pair.after.image_url,
+                  })
+                }
+                onWatermark={() =>
+                  pair.after &&
+                  onWatermark({
+                    imageId: pair.after.id,
+                    caseId: c.id,
+                    type: "after",
+                    src: pair.after.image_url,
+                  })
+                }
+                onUpload={() => pair.after && onUpload(pair.after.id)}
+              />
+            </div>
+
+            <button
+              onClick={() => onDeletePair(c.id, pair)}
+              className="text-[#CCC] hover:text-red-500 pt-2 shrink-0"
+              title="이 쌍 삭제"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
         ))}
+
+        <button
+          onClick={() => onAddPair(c.id, c.images)}
+          className="w-full py-2.5 border-2 border-dashed border-[#DDD] rounded-xl text-[13px] text-[#999] hover:border-[#999] hover:text-[#666] transition-all"
+        >
+          + 사진 쌍 추가
+        </button>
       </div>
     </div>
   );
@@ -270,6 +375,8 @@ export default function RemodelingAdminPage() {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
+
+  const flash = (m: string) => setToast(m);
 
   const load = useCallback(() => {
     fetch("/api/admin/remodeling", { headers: getHeaders() })
@@ -295,7 +402,7 @@ export default function RemodelingAdminPage() {
     const reordered = arrayMove(cases, oldIdx, newIdx);
     setCases(reordered);
     for (let i = 0; i < reordered.length; i++) {
-      await save({ id: reordered[i].id, sort_order: i + 1 } as Case);
+      await save({ id: reordered[i].id, sort_order: i + 1 });
     }
     flash("순서가 변경되었습니다");
   };
@@ -321,10 +428,60 @@ export default function RemodelingAdminPage() {
     flash("삭제되었습니다");
   };
 
-  const handleUpload = (
-    caseId: number,
-    field: "before_image" | "after_image",
+  const handleAddPair = async (caseId: number, existingImages: CaseImage[]) => {
+    const maxOrder = existingImages.reduce(
+      (max, img) => Math.max(max, img.match_order),
+      0,
+    );
+    const nextOrder = maxOrder + 1;
+    await fetch("/api/admin/remodeling/images", {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        case_id: caseId,
+        type: "before",
+        match_order: nextOrder,
+        image_url: "",
+      }),
+    });
+    await fetch("/api/admin/remodeling/images", {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        case_id: caseId,
+        type: "after",
+        match_order: nextOrder,
+        image_url: "",
+      }),
+    });
+    load();
+    flash("사진 쌍이 추가되었습니다");
+  };
+
+  const handleDeletePair = async (
+    _caseId: number,
+    pair: { match_order: number; before?: CaseImage; after?: CaseImage },
   ) => {
+    if (!window.confirm("이 사진 쌍을 삭제하시겠습니까?")) return;
+    if (pair.before) {
+      await fetch("/api/admin/remodeling/images", {
+        method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify({ id: pair.before.id }),
+      });
+    }
+    if (pair.after) {
+      await fetch("/api/admin/remodeling/images", {
+        method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify({ id: pair.after.id }),
+      });
+    }
+    load();
+    flash("사진 쌍이 삭제되었습니다");
+  };
+
+  const handleUpload = (imageId: number) => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -332,7 +489,11 @@ export default function RemodelingAdminPage() {
       const files = input.files;
       if (!files?.length) return;
       const url = await uploadFile(files[0]);
-      await save({ id: caseId, [field]: url } as unknown as Case);
+      await fetch("/api/admin/remodeling/images", {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify({ id: imageId, image_url: url }),
+      });
       load();
       flash("업로드 완료");
     };
@@ -345,23 +506,24 @@ export default function RemodelingAdminPage() {
 
   const handleTitleBlur = async (id: number) => {
     const c = cases.find((c) => c.id === id);
-    if (c) await save({ id, title: c.title } as Case);
+    if (c) await save({ id, title: c.title });
   };
 
   const handleToggleMain = async (id: number, val: number) => {
     setCases((prev) =>
       prev.map((c) => (c.id === id ? { ...c, show_on_main: val } : c)),
     );
-    await save({ id, show_on_main: val } as Case);
+    await save({ id, show_on_main: val });
   };
 
   const handleEditorSave = async (blob: Blob) => {
     if (!editTarget) return;
     const url = await uploadFile(blob, "edited.jpg");
-    await save({
-      id: editTarget.caseId,
-      [editTarget.field]: url,
-    } as unknown as Case);
+    await fetch("/api/admin/remodeling/images", {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ id: editTarget.imageId, image_url: url }),
+    });
     setEditTarget(null);
     load();
     flash("편집이 저장되었습니다");
@@ -370,16 +532,15 @@ export default function RemodelingAdminPage() {
   const handleWatermarkSave = async (blob: Blob) => {
     if (!wmTarget) return;
     const url = await uploadFile(blob, "watermarked.jpg");
-    await save({
-      id: wmTarget.caseId,
-      [`${wmTarget.field}_wm`]: url,
-    } as unknown as Case);
+    await fetch("/api/admin/remodeling/images", {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ id: wmTarget.imageId, image_url_wm: url }),
+    });
     setWmTarget(null);
     load();
     flash("워터마크가 적용되었습니다");
   };
-
-  const flash = (m: string) => setToast(m);
 
   return (
     <div>
@@ -421,6 +582,8 @@ export default function RemodelingAdminPage() {
                 onDelete={(id) => setDeleting(id)}
                 onTitleChange={handleTitleChange}
                 onTitleBlur={handleTitleBlur}
+                onAddPair={handleAddPair}
+                onDeletePair={handleDeletePair}
               />
             ))}
           </div>
@@ -454,7 +617,6 @@ export default function RemodelingAdminPage() {
         </div>
       )}
 
-      {/* 삭제 확인 모달 */}
       {deleting !== null && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
