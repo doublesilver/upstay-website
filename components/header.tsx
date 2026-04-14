@@ -43,7 +43,7 @@ export function Header() {
               </span>
             ))}
           </nav>
-          <p className="hidden md:block mt-0.5 text-[13px] text-[#9CA3AF] tracking-tight truncate">
+          <p className="mt-0.5 text-[10px] md:text-[13px] text-[#9CA3AF] tracking-tight truncate">
             {SLOGAN}
           </p>
         </div>
