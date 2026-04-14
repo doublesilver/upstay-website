@@ -8,7 +8,7 @@ export function Header() {
     <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB]">
       <Container className="h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4">
         {/* 로고 */}
-        <Link href="/" className="shrink-0 h-full py-0.5 md:py-1">
+        <Link href="/" className="shrink-0 h-full py-px">
           <Image
             src="/logo.png"
             alt="업스테이 UPSTAY"
