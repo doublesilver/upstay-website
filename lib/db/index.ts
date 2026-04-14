@@ -59,9 +59,20 @@ function initSchema(db: Database.Database) {
       title TEXT NOT NULL,
       content TEXT NOT NULL DEFAULT '',
       is_visible INTEGER NOT NULL DEFAULT 1,
+      dismiss_duration TEXT NOT NULL DEFAULT 'none',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  // 기존 announcements 테이블에 dismiss_duration 컬럼 추가 (없을 경우)
+  const announcementCols = db
+    .prepare("PRAGMA table_info(announcements)")
+    .all() as { name: string }[];
+  if (!announcementCols.some((col) => col.name === "dismiss_duration")) {
+    db.exec(
+      "ALTER TABLE announcements ADD COLUMN dismiss_duration TEXT NOT NULL DEFAULT 'none'",
+    );
+  }
 
   // 기본 config 값 삽입 (INSERT OR IGNORE로 기존 값 보존)
   const insert = db.prepare(

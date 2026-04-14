@@ -162,6 +162,10 @@ export default function ConfigPage() {
   const [config, setConfig] = useState<Config>(defaultConfig);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
+  const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
+  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
+    "desktop",
+  );
 
   useEffect(() => {
     fetch("/api/admin/config", {
@@ -199,7 +203,7 @@ export default function ConfigPage() {
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-[26px] font-bold text-[#111] tracking-tight">
             편집기
@@ -217,9 +221,33 @@ export default function ConfigPage() {
         </button>
       </div>
 
-      <div className="flex gap-6 items-start">
-        {/* 좌측 편집 폼 */}
-        <div className="flex-1 min-w-0 space-y-8 max-h-[calc(100vh-160px)] overflow-y-auto pr-2">
+      {/* 탭 버튼 */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab("edit")}
+          className={`px-5 py-2 rounded-xl text-[14px] font-medium transition-all ${
+            activeTab === "edit"
+              ? "bg-[#111] text-white"
+              : "bg-[#F7F7F7] text-[#666] hover:bg-[#EBEBEB]"
+          }`}
+        >
+          편집
+        </button>
+        <button
+          onClick={() => setActiveTab("preview")}
+          className={`px-5 py-2 rounded-xl text-[14px] font-medium transition-all ${
+            activeTab === "preview"
+              ? "bg-[#111] text-white"
+              : "bg-[#F7F7F7] text-[#666] hover:bg-[#EBEBEB]"
+          }`}
+        >
+          미리보기
+        </button>
+      </div>
+
+      {/* 편집 탭 */}
+      {activeTab === "edit" && (
+        <div className="space-y-8 max-h-[calc(100vh-220px)] overflow-y-auto pr-2">
           {/* 히어로 */}
           <div>
             <SectionLabel>히어로</SectionLabel>
@@ -293,7 +321,6 @@ export default function ConfigPage() {
           <div>
             <SectionLabel>서비스 섹션</SectionLabel>
             <div className="space-y-6">
-              {/* 리모델링 */}
               <div className="bg-[#FAFAFA] rounded-xl p-4 space-y-3">
                 <p className="text-[12px] font-semibold text-[#666]">
                   리모델링
@@ -315,7 +342,6 @@ export default function ConfigPage() {
                   />
                 </Field>
               </div>
-              {/* 건물관리 */}
               <div className="bg-[#FAFAFA] rounded-xl p-4 space-y-3">
                 <p className="text-[12px] font-semibold text-[#666]">
                   건물관리
@@ -337,7 +363,6 @@ export default function ConfigPage() {
                   />
                 </Field>
               </div>
-              {/* 임대관리 */}
               <div className="bg-[#FAFAFA] rounded-xl p-4 space-y-3">
                 <p className="text-[12px] font-semibold text-[#666]">
                   임대관리
@@ -390,32 +415,85 @@ export default function ConfigPage() {
             </div>
           </div>
         </div>
+      )}
 
-        {/* 우측 미리보기 */}
-        <div className="w-[420px] shrink-0 sticky top-8">
-          <div className="bg-white border border-[#EBEBEB] rounded-2xl p-5 max-h-[calc(100vh-160px)] overflow-y-auto">
-            <h2 className="text-[15px] font-semibold text-[#111] mb-4">
-              미리보기
-            </h2>
+      {/* 미리보기 탭 */}
+      {activeTab === "preview" && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={() => setPreviewMode("desktop")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition-all ${
+                previewMode === "desktop"
+                  ? "bg-[#111] text-white"
+                  : "bg-[#F7F7F7] text-[#666]"
+              }`}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+              </svg>
+              데스크탑
+            </button>
+            <button
+              onClick={() => setPreviewMode("mobile")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition-all ${
+                previewMode === "mobile"
+                  ? "bg-[#111] text-white"
+                  : "bg-[#F7F7F7] text-[#666]"
+              }`}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="5" y="2" width="14" height="20" rx="2" />
+                <line x1="12" y1="18" x2="12.01" y2="18" />
+              </svg>
+              모바일
+            </button>
+          </div>
 
-            {/* 히어로 미리보기 */}
-            <div className="bg-[#F7F7F7] rounded-xl p-5 mb-4">
-              <h3 className="text-[18px] font-bold text-[#111] leading-relaxed whitespace-pre-line">
-                {config.hero_title || "(타이틀 미입력)"}
-              </h3>
-              <p className="mt-2 text-[13px] text-[#888]">
-                {config.hero_subtitle || "(서브타이틀 미입력)"}
-              </p>
-            </div>
-
-            {/* 서비스 섹션 미리보기 */}
-            <div>
-              <p className="text-[11px] text-[#BBB] mb-2">서비스 섹션</p>
-              <ServiceSections config={config} />
+          <div
+            className={`bg-white border border-[#EBEBEB] rounded-2xl overflow-hidden ${
+              previewMode === "mobile" ? "max-w-[390px] mx-auto" : ""
+            }`}
+          >
+            <div
+              className="overflow-y-auto"
+              style={{ maxHeight: "calc(100vh - 240px)" }}
+            >
+              <div className="bg-[#111] text-white px-8 py-16 text-center">
+                <h2 className="text-[24px] md:text-[32px] font-bold leading-relaxed whitespace-pre-line">
+                  {config.hero_title || "(타이틀 미입력)"}
+                </h2>
+                <p className="mt-3 text-[14px] text-white/60">
+                  {config.hero_subtitle || "(서브타이틀 미입력)"}
+                </p>
+              </div>
+              <div className="p-6">
+                <ServiceSections config={config} />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
     </div>

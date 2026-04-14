@@ -8,6 +8,7 @@ interface Announcement {
   title: string;
   content: string;
   is_visible: number;
+  dismiss_duration: string;
   created_at: string;
 }
 
@@ -74,6 +75,7 @@ export default function AnnouncementsAdminPage() {
     title: "",
     content: "",
     is_visible: 1,
+    dismiss_duration: "none",
     created_at: "",
   });
 
@@ -156,6 +158,23 @@ export default function AnnouncementsAdminPage() {
                 <span className="text-[13px] text-[#666]">
                   {editing.is_visible ? "공개" : "비공개"}
                 </span>
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-[#333] mb-2">
+                  팝업 닫기 설정
+                </label>
+                <select
+                  value={editing.dismiss_duration || "none"}
+                  onChange={(e) =>
+                    setEditing({ ...editing, dismiss_duration: e.target.value })
+                  }
+                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                >
+                  <option value="none">매번 표시</option>
+                  <option value="day">닫으면 하루 동안 안 보임</option>
+                  <option value="week">닫으면 일주일 동안 안 보임</option>
+                  <option value="forever">닫으면 다시 안 보임</option>
+                </select>
               </div>
             </div>
             <div className="px-6 py-4 border-t border-[#EBEBEB] flex justify-end gap-3">

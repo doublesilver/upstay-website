@@ -20,6 +20,7 @@ interface Announcement {
   id: number;
   title: string;
   content: string;
+  dismiss_duration: string;
   created_at: string;
 }
 
@@ -34,7 +35,6 @@ export default function HomePage() {
   const [cases, setCases] = useState<RemodelingCase[]>(fallbackCases);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showPopup, setShowPopup] = useState(false);
-  const [dismissOption, setDismissOption] = useState<string>("");
   const [config, setConfig] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -215,42 +215,28 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            <div className="px-6 py-3 border-t border-[#EBEBEB] space-y-2">
-              {[
-                { value: "day", label: "하루 동안 보지 않기" },
-                { value: "week", label: "일주일 동안 보지 않기" },
-                { value: "forever", label: "다시 보지 않기" },
-              ].map((opt) => (
-                <label
-                  key={opt.value}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="popup_dismiss"
-                    value={opt.value}
-                    checked={dismissOption === opt.value}
-                    onChange={(e) => setDismissOption(e.target.value)}
-                    className="accent-[#111]"
-                  />
-                  <span className="text-[13px] text-[#666]">{opt.label}</span>
-                </label>
-              ))}
-            </div>
             <div className="px-5 py-3 border-t border-[#E5E7EB]">
               <button
                 onClick={() => {
-                  if (dismissOption === "day") {
+                  const durations = announcements.map(
+                    (a) => a.dismiss_duration || "none",
+                  );
+                  let duration = "none";
+                  if (durations.includes("forever")) duration = "forever";
+                  else if (durations.includes("week")) duration = "week";
+                  else if (durations.includes("day")) duration = "day";
+
+                  if (duration === "day") {
                     localStorage.setItem(
                       "popup_dismiss_until",
                       new Date(Date.now() + 86400000).toISOString(),
                     );
-                  } else if (dismissOption === "week") {
+                  } else if (duration === "week") {
                     localStorage.setItem(
                       "popup_dismiss_until",
                       new Date(Date.now() + 604800000).toISOString(),
                     );
-                  } else if (dismissOption === "forever") {
+                  } else if (duration === "forever") {
                     localStorage.setItem("popup_dismiss_until", "forever");
                   }
                   setShowPopup(false);
