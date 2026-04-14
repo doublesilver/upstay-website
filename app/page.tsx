@@ -70,7 +70,7 @@ export default function HomePage() {
             </div>
           )}
 
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 md:p-6 flex-1 min-h-0 flex flex-col">
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 md:p-5 flex-1 min-h-0 flex flex-col">
             <div className="flex items-baseline gap-3 shrink-0">
               <h2 className="text-[18px] md:text-[22px] font-bold tracking-tight text-[#111111]">
                 리모델링
@@ -91,7 +91,7 @@ export default function HomePage() {
                     <figcaption className="mb-1 text-[10px] md:text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF]">
                       BEFORE
                     </figcaption>
-                    <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
+                    <div className="aspect-[3/2] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
                       <Image
                         src={c.before_image}
                         alt={`${c.title} Before`}
@@ -109,7 +109,7 @@ export default function HomePage() {
                     <figcaption className="mb-1 text-[10px] md:text-[11px] font-medium uppercase tracking-wider text-[#111111]">
                       AFTER
                     </figcaption>
-                    <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
+                    <div className="aspect-[3/2] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
                       <Image
                         src={c.after_image}
                         alt={`${c.title} After`}
