@@ -13,6 +13,11 @@ export const remodelingCases = [
     before: unsplash("photo-1484101403633-562f891dc89a"),
     after: unsplash("photo-1586023492125-27b2c045efd7"),
   },
+  {
+    id: "03",
+    before: unsplash("photo-1502672260266-1c1ef2d93688"),
+    after: unsplash("photo-1600585154340-be6161a56a0c"),
+  },
 ];
 
 // 임시 설명 — 실제 서비스 소개 문구로 교체 예정

@@ -35,7 +35,7 @@ export default function RootLayout({
       </head>
       <body className="bg-white text-[#111111]">
         <Header />
-        <main className="min-h-[calc(100vh-56px)]">{children}</main>
+        <main>{children}</main>
         <Footer />
         <KakaoButton />
       </body>

@@ -77,5 +77,11 @@ function initSchema(db: Database.Database) {
       "사례 2",
       2,
     );
+    insert.run(
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&h=900&q=80",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&h=900&q=80",
+      "사례 3",
+      3,
+    );
   }
 }
