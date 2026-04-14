@@ -78,7 +78,7 @@ export default function HomePage() {
             </div>
 
             {/* 모바일: Before→After 가로 배치 세로 스크롤 / 데스크탑: 3열 세로 배치 */}
-            <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-y-auto">
+            <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-hidden">
               {/* 모바일 레이아웃 */}
               <div className="md:hidden space-y-2.5">
                 {cases.map((c) => (
