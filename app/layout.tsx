@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Header } from "@/components/header";
+import { HeaderWrapper } from "@/components/header-wrapper";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -33,7 +33,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-white text-[#111111]">
-        <Header />
+        <HeaderWrapper />
         <main>{children}</main>
       </body>
     </html>
