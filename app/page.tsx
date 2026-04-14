@@ -63,60 +63,49 @@ export default function HomePage() {
     <div className="snap-y snap-mandatory h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-y-auto">
       {/* 1화면: 리모델링 */}
       <section className="snap-start h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
-        <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col">
-            <div className="flex items-baseline gap-3 shrink-0">
-              <h2 className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111]">
+        <Container className="pt-2 pb-2 md:pt-10 md:pb-12 h-full flex flex-col">
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-2.5 md:p-5 flex-1 min-h-0 flex flex-col">
+            <div className="flex items-baseline gap-2 shrink-0">
+              <h2 className="text-[15px] md:text-[22px] font-bold tracking-tight text-[#111111]">
                 리모델링
               </h2>
               <Link
                 href="/remodeling"
-                className="text-[11px] md:text-[13px] text-[#6B7280] hover:text-[#111111] transition-colors"
+                className="text-[10px] md:text-[13px] text-[#6B7280] hover:text-[#111111] transition-colors"
               >
                 더보기 →
               </Link>
             </div>
 
-            {/* 모바일: Before→After 가로 배치 세로 스크롤 / 데스크탑: 3열 세로 배치 */}
-            <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-y-auto">
-              {/* 모바일 레이아웃 */}
-              <div className="md:hidden space-y-2.5">
+            <div className="mt-2 md:mt-4 flex-1 min-h-0 overflow-hidden">
+              {/* 모바일: 2열 그리드, Before→After 가로 */}
+              <div className="md:hidden grid grid-cols-2 gap-1.5 h-full content-start">
                 {cases.map((c) => (
                   <div
                     key={c.id}
-                    className="grid grid-cols-[1fr_auto_1fr] items-center gap-2"
+                    className="grid grid-cols-[1fr_auto_1fr] items-center gap-1"
                   >
-                    <figure>
-                      <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
-                        <Image
-                          src={c.before_image}
-                          alt={`${c.title} Before`}
-                          fill
-                          className="object-cover"
-                          sizes="45vw"
-                          unoptimized
-                        />
-                      </div>
-                      <figcaption className="mt-1 text-[9px] uppercase tracking-wider text-[#9CA3AF]">
-                        BEFORE
-                      </figcaption>
-                    </figure>
-                    <span className="text-[12px] text-[#9CA3AF] pb-4">→</span>
-                    <figure>
-                      <div className="aspect-[4/3] border border-[#E5E7EB] rounded-lg overflow-hidden bg-[#F9FAFB] relative">
-                        <Image
-                          src={c.after_image}
-                          alt={`${c.title} After`}
-                          fill
-                          className="object-cover"
-                          sizes="45vw"
-                          unoptimized
-                        />
-                      </div>
-                      <figcaption className="mt-1 text-[9px] uppercase tracking-wider text-[#111111]">
-                        AFTER
-                      </figcaption>
-                    </figure>
+                    <div className="aspect-[4/3] border border-[#E5E7EB] rounded overflow-hidden bg-[#F9FAFB] relative">
+                      <Image
+                        src={c.before_image}
+                        alt={`${c.title} Before`}
+                        fill
+                        className="object-cover"
+                        sizes="23vw"
+                        unoptimized
+                      />
+                    </div>
+                    <span className="text-[10px] text-[#9CA3AF]">→</span>
+                    <div className="aspect-[4/3] border border-[#E5E7EB] rounded overflow-hidden bg-[#F9FAFB] relative">
+                      <Image
+                        src={c.after_image}
+                        alt={`${c.title} After`}
+                        fill
+                        className="object-cover"
+                        sizes="23vw"
+                        unoptimized
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
