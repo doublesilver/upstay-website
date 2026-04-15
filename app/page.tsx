@@ -96,7 +96,7 @@ export default function HomePage() {
                   >
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <figure>
-                        <div className="aspect-[4/3] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
                           <Image
                             src={c.before_image}
                             alt={`${c.title} Before`}
@@ -114,7 +114,7 @@ export default function HomePage() {
                         →
                       </span>
                       <figure>
-                        <div className="aspect-[4/3] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
                           <Image
                             src={c.after_image}
                             alt={`${c.title} After`}

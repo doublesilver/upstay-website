@@ -1,11 +1,3 @@
-import {
-  buildingManagementItems,
-  rentalManagementItems,
-  remodelingServiceItems,
-} from "@/lib/content";
-
-type Item = { title: string; description: string };
-
 interface SiteConfig {
   [key: string]: string;
 }
@@ -16,65 +8,40 @@ interface ServiceSectionsProps {
 
 function ServiceSection({
   title,
-  caption,
-  items,
+  description,
 }: {
   title: string;
-  caption: string;
-  items: Item[];
+  description: string;
 }) {
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 md:px-6 md:py-3.5">
-      <div className="flex items-baseline justify-between mb-1.5 md:mb-2">
-        <h2 className="text-[14px] md:text-[17px] font-bold tracking-tight text-[#111111]">
-          {title}
-        </h2>
-        <p className="text-[9px] md:text-[11px] text-[#6B7280]">{caption}</p>
-      </div>
-      <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0.5 md:gap-y-1">
-        {items.map((item) => (
-          <li
-            key={item.title}
-            className="flex items-baseline gap-1.5 md:gap-2 text-[11px] md:text-[13px]"
-          >
-            <span className="text-[#6B7280] shrink-0">•</span>
-            <span className="font-medium text-[#111111]">{item.title}</span>
-            <span className="text-[#D1D5DB]">—</span>
-            <span className="text-[#6B7280] truncate">{item.description}</span>
-          </li>
-        ))}
-      </ul>
+      <h2 className="text-[14px] md:text-[17px] font-bold tracking-tight text-[#111111] mb-1">
+        <span className="mr-1.5">●</span>
+        {title}
+      </h2>
+      <p className="text-[11px] md:text-[13px] text-[#6B7280] leading-relaxed whitespace-pre-line">
+        {description}
+      </p>
     </div>
   );
 }
 
 export function ServiceSections({ config }: ServiceSectionsProps) {
-  const remodelingItems = config?.remodeling_items
-    ? JSON.parse(config.remodeling_items)
-    : remodelingServiceItems;
-  const buildingItems = config?.building_items
-    ? JSON.parse(config.building_items)
-    : buildingManagementItems;
-  const rentalItems = config?.rental_items
-    ? JSON.parse(config.rental_items)
-    : rentalManagementItems;
-
   return (
     <div className="space-y-2 md:space-y-3">
       <ServiceSection
         title={config?.service_remodeling_title ?? "리모델링"}
-        caption={config?.service_remodeling_caption ?? "공사에 관한 모든 것"}
-        items={remodelingItems}
+        description="주방, 욕실, 베란다, 현관, 천정, 도배, 바닥, 구멍, 몰딩, 샷시 등 공사에 관한 모든 것"
       />
       <ServiceSection
         title={config?.service_building_title ?? "건물관리"}
-        caption={config?.service_building_caption ?? "수선 · 유지 · 하자보수"}
-        items={buildingItems}
+        description="설비, 전기, 수도, 주차, 청소 등 수선, 유지, 하자보수의 모든 것"
       />
       <ServiceSection
         title={config?.service_rental_title ?? "임대관리"}
-        caption={config?.service_rental_caption ?? "공실 · 입퇴실 · 민원"}
-        items={rentalItems}
+        description={
+          "공실관리, 입퇴실 시 입주자 및 시설물관리,\n월세 관리비 공과금 정산 및 수납독촉,\n민원접수 및 처리, 악성연체자 소송진행"
+        }
       />
     </div>
   );
