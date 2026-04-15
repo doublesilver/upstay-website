@@ -7,16 +7,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB]">
       <Container className="h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4">
-        {/* 로고 */}
-        <Link href="/" className="shrink-0 h-full py-px">
-          <Image
-            src="/logo.png"
-            alt="업스테이 UPSTAY"
-            width={200}
-            height={80}
-            className="h-full w-auto"
-            priority
-          />
+        {/* 로고 — 이미지 준비 후 교체 예정 */}
+        <Link
+          href="/"
+          className="shrink-0 text-[16px] md:text-[20px] font-bold text-[#111111] tracking-tight"
+        >
+          UPSTAY
         </Link>
 
         {/* 네비게이션 + 슬로건 (가운데) */}

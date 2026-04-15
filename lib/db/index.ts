@@ -83,8 +83,7 @@ function initSchema(db: Database.Database) {
   insert.run("hero_subtitle", "리모델링 · 건물관리 · 임대관리");
 
   // 메인 페이지 텍스트
-  insert.run("remodeling_section_title", "리모델링");
-  insert.run("remodeling_more_text", "더보기 →");
+  insert.run("remodeling_section_title", "리모델링 사례보기");
 
   // 리모델링 페이지 텍스트
   insert.run("remodeling_page_title", "리모델링");
