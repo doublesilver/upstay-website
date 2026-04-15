@@ -24,11 +24,9 @@ export function Footer() {
           <span>· 전화번호</span>
           <span>:</span>
           <span className="whitespace-nowrap">{companyInfo.phone}</span>
-        </div>
-        <div className="grid grid-cols-[auto_auto_1fr] gap-x-2">
           <span>· 주소</span>
           <span>:</span>
-          <span>{companyInfo.address}</span>
+          <span className="col-span-5">{companyInfo.address}</span>
         </div>
       </Container>
     </footer>
