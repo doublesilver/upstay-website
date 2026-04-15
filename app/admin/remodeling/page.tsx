@@ -236,16 +236,14 @@ function SortableCard({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => onToggleMain(c.id, c.show_on_main ? 0 : 1)}
-            className={`relative w-10 h-[22px] rounded-full transition-colors ${
-              c.show_on_main ? "bg-[#111]" : "bg-[#DDD]"
+            className={`text-[20px] transition-all ${
+              c.show_on_main
+                ? "text-yellow-400 drop-shadow-sm"
+                : "text-[#DDD] hover:text-yellow-200"
             }`}
-            title={c.show_on_main ? "메인 노출 중" : "메인 미노출"}
+            title={c.show_on_main ? "대표 사례 (메인 노출)" : "대표 선정하기"}
           >
-            <span
-              className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] bg-white rounded-full shadow transition-transform ${
-                c.show_on_main ? "translate-x-[18px]" : ""
-              }`}
-            />
+            ★
           </button>
           <button
             onClick={() => onDelete(c.id)}
@@ -510,6 +508,13 @@ export default function RemodelingAdminPage() {
   };
 
   const handleToggleMain = async (id: number, val: number) => {
+    if (val === 1) {
+      const featured = cases.filter((c) => c.show_on_main && c.id !== id);
+      if (featured.length >= 4) {
+        alert("대표 사례는 최대 4개까지 선정할 수 있습니다.");
+        return;
+      }
+    }
     setCases((prev) =>
       prev.map((c) => (c.id === id ? { ...c, show_on_main: val } : c)),
     );
