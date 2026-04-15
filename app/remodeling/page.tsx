@@ -4,7 +4,6 @@ import Image from "next/image";
 import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Container } from "@/components/container";
-import { ServiceSections } from "@/components/service-sections";
 import { remodelingCases as staticCases } from "@/lib/content";
 
 interface RemodelingCase {
@@ -402,10 +401,6 @@ function RemodelingPageInner() {
           </button>
         ))}
       </section>
-
-      <div className="mt-16">
-        <ServiceSections config={config} />
-      </div>
 
       {selectedId !== null && (
         <DetailModal caseId={selectedId} onClose={handleClose} />
