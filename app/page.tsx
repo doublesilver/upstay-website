@@ -78,9 +78,11 @@ export default function HomePage() {
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
             <div className="shrink-0">
-              <h2 className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111]">
-                {config.remodeling_section_title || "리모델링 사례보기"}
-              </h2>
+              <Link href="/remodeling" className="inline-block">
+                <h2 className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors">
+                  {config.remodeling_section_title || "리모델링 사례보기"} →
+                </h2>
+              </Link>
             </div>
 
             {/* 모바일: Before→After 가로 배치 세로 스크롤 / 데스크탑: 3열 세로 배치 */}
