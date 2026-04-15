@@ -92,11 +92,11 @@ export default function HomePage() {
                 {cases.map((c) => (
                   <div
                     key={c.id}
-                    className="bg-[#fdf6ee] border border-[#e8ddd0] rounded-xl p-3"
+                    className="bg-white border border-[#e8ddd0] rounded-xl p-3"
                   >
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <figure>
-                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                           <Image
                             src={c.before_image}
                             alt={`${c.title} Before`}
@@ -106,7 +106,7 @@ export default function HomePage() {
                             unoptimized
                           />
                         </div>
-                        <figcaption className="mt-1 text-[9px] uppercase tracking-wider text-[#9CA3AF]">
+                        <figcaption className="mt-1 text-[9px] uppercase tracking-wider text-[#111111]">
                           BEFORE
                         </figcaption>
                       </figure>
@@ -114,7 +114,7 @@ export default function HomePage() {
                         →
                       </span>
                       <figure>
-                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                           <Image
                             src={c.after_image}
                             alt={`${c.title} After`}
@@ -138,13 +138,13 @@ export default function HomePage() {
                 {cases.map((c) => (
                   <div
                     key={c.id}
-                    className="bg-[#fdf6ee] border border-[#e8ddd0] rounded-xl p-4 space-y-1.5"
+                    className="bg-white border border-[#e8ddd0] rounded-xl p-4 space-y-1.5"
                   >
                     <figure>
-                      <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF]">
+                      <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#111111]">
                         BEFORE
                       </figcaption>
-                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                         <Image
                           src={c.before_image}
                           alt={`${c.title} Before`}
@@ -162,7 +162,7 @@ export default function HomePage() {
                       <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#111111]">
                         AFTER
                       </figcaption>
-                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                         <Image
                           src={c.after_image}
                           alt={`${c.title} After`}
