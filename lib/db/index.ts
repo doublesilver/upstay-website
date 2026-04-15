@@ -89,56 +89,21 @@ function initSchema(db: Database.Database) {
   insert.run("remodeling_page_title", "리모델링");
   insert.run("remodeling_page_subtitle", "Before → After");
 
-  // 서비스 섹션 제목/캡션
+  // 서비스 섹션 제목/설명
   insert.run("service_remodeling_title", "리모델링");
-  insert.run("service_remodeling_caption", "공사에 관한 모든 것");
+  insert.run(
+    "service_remodeling_desc",
+    "주방, 욕실, 베란다, 현관, 천정, 도배, 바닥, 구멍, 몰딩, 샷시 등 공사에 관한 모든 것",
+  );
   insert.run("service_building_title", "건물관리");
-  insert.run("service_building_caption", "수선 · 유지 · 하자보수");
+  insert.run(
+    "service_building_desc",
+    "설비, 전기, 수도, 주차, 청소 등 수선, 유지, 하자보수의 모든 것",
+  );
   insert.run("service_rental_title", "임대관리");
-  insert.run("service_rental_caption", "공실 · 입퇴실 · 민원");
-
-  // 서비스 아이템 (JSON 배열)
   insert.run(
-    "remodeling_items",
-    JSON.stringify([
-      { title: "주방", description: "싱크대·타일·후드 교체" },
-      { title: "욕실", description: "방수·타일·위생기구 교체" },
-      { title: "베란다", description: "확장·샷시·방수 공사" },
-      { title: "현관", description: "중문·신발장·타일 시공" },
-      { title: "천장", description: "몰딩·조명·텍스 교체" },
-      { title: "도배", description: "벽지·페인트·곰팡이 처리" },
-      { title: "바닥", description: "장판·마루·타일 시공" },
-      { title: "기타", description: "구멍보수·샷시·몰딩 등" },
-    ]),
-  );
-  insert.run(
-    "building_items",
-    JSON.stringify([
-      {
-        title: "설비",
-        description: "냉난방, 급배수, 환기 등 기본 설비 점검 및 유지보수",
-      },
-      {
-        title: "전기",
-        description: "차단기, 조명, 콘센트 등 전기 설비 유지보수",
-      },
-      { title: "목공", description: "마감재, 문틀, 내장 마감 보수 작업" },
-      {
-        title: "소방",
-        description: "소화기, 스프링클러, 비상구 등 소방 설비 점검",
-      },
-      { title: "청소", description: "공용부 및 외부 공간의 정기 청소 관리" },
-    ]),
-  );
-  insert.run(
-    "rental_items",
-    JSON.stringify([
-      { title: "공실관리", description: "상태 점검 및 다음 임차 준비" },
-      { title: "입퇴실 관리", description: "시설물 확인 및 인계 절차" },
-      { title: "수납 관리", description: "월세·관리비·공과금 정산 및 독촉" },
-      { title: "민원 처리", description: "임차인 요청·불편 사항 해결" },
-      { title: "연체 대응", description: "소송·재판·강제 퇴실 법적 절차" },
-    ]),
+    "service_rental_desc",
+    "공실관리, 입퇴실 시 입주자 및 시설물관리,\n월세 관리비 공과금 정산 및 수납독촉,\n민원접수 및 처리, 악성연체자 소송진행",
   );
 
   insert.run("schema_version", "3");
