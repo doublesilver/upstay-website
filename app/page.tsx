@@ -133,8 +133,8 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* 데스크탑 레이아웃: 3열 Before↓After */}
-              <div className="hidden md:grid md:grid-cols-4 gap-5 h-full overflow-hidden">
+              {/* 데스크탑 레이아웃: 4열 Before↓After */}
+              <div className="hidden md:grid md:grid-cols-4 gap-4">
                 {cases.map((c) => (
                   <div
                     key={c.id}
