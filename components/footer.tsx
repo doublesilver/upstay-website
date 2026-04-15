@@ -4,7 +4,7 @@ import { companyInfo } from "@/lib/site";
 export function Footer() {
   return (
     <footer className="border-t border-[#E5E7EB]">
-      <Container className="py-6 md:py-8 text-[12px] md:text-[13px] text-[#6B7280] leading-7">
+      <Container className="py-6 md:py-8 text-[11px] md:text-[12px] text-[#6B7280] leading-7">
         <div className="grid grid-cols-2 gap-x-6">
           <div className="grid grid-cols-[auto_auto_1fr] gap-x-2">
             <span>상호명</span>
