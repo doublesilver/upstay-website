@@ -19,7 +19,9 @@ export function Footer() {
           <div className="grid grid-cols-[auto_auto_1fr] gap-x-2">
             <span>사업자등록번호</span>
             <span>:</span>
-            <span>{companyInfo.businessNumber}</span>
+            <span className="whitespace-nowrap">
+              {companyInfo.businessNumber}
+            </span>
             <span>전화번호</span>
             <span>:</span>
             <span className="whitespace-nowrap">{companyInfo.phone}</span>
