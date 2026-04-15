@@ -22,7 +22,7 @@ export function Footer() {
             <span>{companyInfo.businessNumber}</span>
             <span>전화번호</span>
             <span>:</span>
-            <span>{companyInfo.phone}</span>
+            <span className="whitespace-nowrap">{companyInfo.phone}</span>
           </div>
         </div>
         <div className="grid grid-cols-[auto_auto_1fr] gap-x-2 mt-0.5">
