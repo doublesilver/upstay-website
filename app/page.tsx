@@ -84,7 +84,7 @@ export default function HomePage() {
                 className="inline-block border border-[#ccc] rounded px-1 py-px hover:border-[#999] transition-colors"
               >
                 <h2
-                  className="text-[12px] md:text-[18px] font-normal tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
+                  className="text-[12px] md:text-[18px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
                   style={(() => {
                     try {
                       const s = JSON.parse(
