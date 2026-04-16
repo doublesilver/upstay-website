@@ -112,7 +112,7 @@ export default function RemodelingDetailPage({
                 </p>
                 <div
                   ref={beforeRef}
-                  className="relative aspect-[2/1] border border-[#ccc] rounded-lg overflow-hidden bg-[#fdf6ee]"
+                  className="relative aspect-[2/1] border border-[#ccc] rounded-lg overflow-hidden bg-[#CBE4D6]"
                 >
                   <Image
                     src={befores[beforeIdx]}
@@ -145,7 +145,7 @@ export default function RemodelingDetailPage({
                       <button
                         key={i}
                         onClick={() => setBeforeIdx(i)}
-                        className={`aspect-square border rounded overflow-hidden bg-[#fdf6ee] relative ${
+                        className={`aspect-square border rounded overflow-hidden bg-[#CBE4D6] relative ${
                           i === beforeIdx
                             ? "border-2 border-[#111]"
                             : "border border-[#ccc]"
@@ -171,7 +171,7 @@ export default function RemodelingDetailPage({
                 </p>
                 <div
                   ref={afterRef}
-                  className="relative aspect-[2/1] border border-[#ccc] rounded-lg overflow-hidden bg-[#fdf6ee]"
+                  className="relative aspect-[2/1] border border-[#ccc] rounded-lg overflow-hidden bg-[#CBE4D6]"
                 >
                   <Image
                     src={afters[afterIdx]}
@@ -204,7 +204,7 @@ export default function RemodelingDetailPage({
                       <button
                         key={i}
                         onClick={() => setAfterIdx(i)}
-                        className={`aspect-square border rounded overflow-hidden bg-[#fdf6ee] relative ${
+                        className={`aspect-square border rounded overflow-hidden bg-[#CBE4D6] relative ${
                           i === afterIdx
                             ? "border-2 border-[#111]"
                             : "border border-[#ccc]"

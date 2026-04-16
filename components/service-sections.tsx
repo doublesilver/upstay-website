@@ -45,7 +45,7 @@ function ServiceSection({
   const ts = titleStyle || {};
   const ds = descStyle || {};
   return (
-    <div className="bg-[#fdf6ee] border border-[#111111] rounded-xl px-4 py-2.5 md:px-6 md:py-3.5">
+    <div className="bg-[#CBE4D6] border border-[#111111] rounded-xl px-4 py-2.5 md:px-6 md:py-3.5">
       <div className="flex items-baseline justify-between mb-1.5">
         <h2
           className="text-[14px] md:text-[17px] font-bold tracking-tight text-[#111111]"
