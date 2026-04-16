@@ -28,7 +28,7 @@ const navItems = [
     ),
   },
   {
-    label: "리모델링",
+    label: "리모델링 사건등록",
     href: "/admin/remodeling",
     icon: (
       <svg
@@ -48,7 +48,7 @@ const navItems = [
     ),
   },
   {
-    label: "공지사항",
+    label: "팝업창설정",
     href: "/admin/announcements",
     icon: (
       <svg
@@ -69,7 +69,7 @@ const navItems = [
     ),
   },
   {
-    label: "편집기",
+    label: "메인창 수정",
     href: "/admin/config",
     icon: (
       <svg
@@ -126,6 +126,7 @@ export default function AdminLayout({
       }
       sessionStorage.setItem("admin_token", data.token);
       setToken(data.token);
+      router.push("/admin/remodeling");
     } catch {
       setError("서버에 연결할 수 없습니다");
     }

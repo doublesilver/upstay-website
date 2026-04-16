@@ -32,11 +32,13 @@ function styledCss(style: TextStyle): React.CSSProperties {
 function ServiceSection({
   title,
   description,
+  caption,
   titleStyle,
   descStyle,
 }: {
   title: string;
   description: string;
+  caption?: string;
   titleStyle?: TextStyle;
   descStyle?: TextStyle;
 }) {
@@ -56,13 +58,20 @@ function ServiceSection({
         {title}
       </h2>
       <div className="bg-white border border-[#e8ddd0] rounded-lg px-3 py-2 md:px-4 md:py-2.5">
-        <p
-          className="text-[12px] md:text-[14px] font-bold text-[#111111] leading-relaxed whitespace-pre-line"
-          style={styledCss(ds)}
-        >
-          {ds.bullet && <span className="mr-1">•</span>}
-          {description}
-        </p>
+        <div className="flex justify-between items-start">
+          <p
+            className="text-[12px] md:text-[14px] font-bold text-[#111111] leading-relaxed whitespace-pre-line"
+            style={styledCss(ds)}
+          >
+            {ds.bullet && <span className="mr-1">•</span>}
+            {description}
+          </p>
+          {caption && (
+            <span className="text-[11px] md:text-[13px] text-[#111] font-normal shrink-0 ml-2">
+              {caption}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -81,18 +90,23 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
       <ServiceSection
         title={config?.service_remodeling_title ?? "리모델링"}
         description={config?.service_remodeling_desc ?? DEFAULT_REMODELING_DESC}
+        caption={config?.service_remodeling_caption ?? "공사에 관한 모든 것"}
         titleStyle={parseStyle(config?.service_remodeling_title_style)}
         descStyle={parseStyle(config?.service_remodeling_desc_style)}
       />
       <ServiceSection
         title={config?.service_building_title ?? "건물관리"}
         description={config?.service_building_desc ?? DEFAULT_BUILDING_DESC}
+        caption={
+          config?.service_building_caption ?? "수선, 유지, 하자보수의 모든 것"
+        }
         titleStyle={parseStyle(config?.service_building_title_style)}
         descStyle={parseStyle(config?.service_building_desc_style)}
       />
       <ServiceSection
         title={config?.service_rental_title ?? "임대관리"}
         description={config?.service_rental_desc ?? DEFAULT_RENTAL_DESC}
+        caption={config?.service_rental_caption ?? "임대차의 모든업무"}
         titleStyle={parseStyle(config?.service_rental_title_style)}
         descStyle={parseStyle(config?.service_rental_desc_style)}
       />

@@ -109,16 +109,19 @@ function initSchema(db: Database.Database) {
     "service_remodeling_desc",
     "주방, 욕실, 베란다, 현관, 천정, 도배, 바닥, 구멍, 몰딩, 샷시 등 공사에 관한 모든 것",
   );
+  insert.run("service_remodeling_caption", "공사에 관한 모든 것");
   insert.run("service_building_title", "건물관리");
   insert.run(
     "service_building_desc",
     "설비, 전기, 수도, 주차, 청소 등 수선, 유지, 하자보수의 모든 것",
   );
+  insert.run("service_building_caption", "수선, 유지, 하자보수의 모든 것");
   insert.run("service_rental_title", "임대관리");
   insert.run(
     "service_rental_desc",
     "공실관리, 입퇴실 시 입주자 및 시설물관리,\n월세 관리비 공과금 정산 및 수납독촉,\n민원접수 및 처리, 악성연체자 소송진행",
   );
+  insert.run("service_rental_caption", "임대차의 모든업무");
 
   insert.run("schema_version", "3");
 

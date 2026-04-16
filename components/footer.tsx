@@ -4,9 +4,25 @@ import { useEffect, useState } from "react";
 import { Container } from "@/components/container";
 import { companyInfo } from "@/lib/site";
 
-function JLabel({ children, width }: { children: string; width: string }) {
+function JLabel({
+  children,
+  width,
+  spacing,
+}: {
+  children: string;
+  width: string;
+  spacing?: string;
+}) {
+  const useSpacing = spacing && spacing !== "0em" && spacing !== "0px";
   return (
-    <td style={{ width, textAlign: "justify", textAlignLast: "justify" }}>
+    <td
+      style={{
+        width,
+        ...(useSpacing
+          ? { letterSpacing: spacing }
+          : { textAlign: "justify", textAlignLast: "justify" }),
+      }}
+    >
       {children}
     </td>
   );
@@ -35,7 +51,9 @@ export function Footer() {
           <tbody>
             <tr>
               <td className="pr-1">·</td>
-              <JLabel width="4.5em">{c("footer_label_name", "상호명")}</JLabel>
+              <JLabel width="4.5em" spacing={config?.footer_label_name_spacing}>
+                {c("footer_label_name", "상호명")}
+              </JLabel>
               <td className="px-1">
                 <span style={{ position: "relative", left: colonLeft }}>:</span>
               </td>
@@ -45,7 +63,10 @@ export function Footer() {
               </td>
               <td className="px-2 text-[#E5E7EB]">|</td>
               <td className="pr-1">·</td>
-              <JLabel width="7.5em">
+              <JLabel
+                width="7.5em"
+                spacing={config?.footer_label_business_number_spacing}
+              >
                 {c("footer_label_business_number", "사업자등록번호")}
               </JLabel>
               <td className="px-1">
@@ -59,14 +80,19 @@ export function Footer() {
             </tr>
             <tr>
               <td className="pr-1">·</td>
-              <JLabel width="4.5em">{c("footer_label_ceo", "대표자명")}</JLabel>
+              <JLabel width="4.5em" spacing={config?.footer_label_ceo_spacing}>
+                {c("footer_label_ceo", "대표자명")}
+              </JLabel>
               <td className="px-1">
                 <span style={{ position: "relative", left: colonLeft }}>:</span>
               </td>
               <td>{c("footer_ceo", companyInfo.ceo)}</td>
               <td className="px-2 text-[#E5E7EB]">|</td>
               <td className="pr-1">·</td>
-              <JLabel width="7.5em">
+              <JLabel
+                width="7.5em"
+                spacing={config?.footer_label_phone_spacing}
+              >
                 {c("footer_label_phone", "전화번호")}
               </JLabel>
               <td className="px-1">
@@ -80,7 +106,12 @@ export function Footer() {
             </tr>
             <tr>
               <td className="pr-1">·</td>
-              <JLabel width="4.5em">{c("footer_label_address", "주소")}</JLabel>
+              <JLabel
+                width="4.5em"
+                spacing={config?.footer_label_address_spacing}
+              >
+                {c("footer_label_address", "주소")}
+              </JLabel>
               <td className="px-1">
                 <span style={{ position: "relative", left: colonLeft }}>:</span>
               </td>

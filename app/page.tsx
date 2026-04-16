@@ -114,7 +114,7 @@ export default function HomePage() {
                   <Link
                     key={c.id}
                     href="/remodeling"
-                    className="block w-full bg-white border border-[#e8ddd0] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
+                    className="block w-full bg-white border border-[#111111] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
                   >
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <div>

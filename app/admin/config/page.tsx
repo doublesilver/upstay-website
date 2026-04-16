@@ -18,10 +18,13 @@ interface Config {
   remodeling_page_subtitle: string;
   service_remodeling_title: string;
   service_remodeling_desc: string;
+  service_remodeling_caption: string;
   service_building_title: string;
   service_building_desc: string;
+  service_building_caption: string;
   service_rental_title: string;
   service_rental_desc: string;
+  service_rental_caption: string;
   [key: string]: string;
 }
 
@@ -31,10 +34,13 @@ const defaultConfig: Config = {
   remodeling_page_subtitle: "",
   service_remodeling_title: "",
   service_remodeling_desc: "",
+  service_remodeling_caption: "",
   service_building_title: "",
   service_building_desc: "",
+  service_building_caption: "",
   service_rental_title: "",
   service_rental_desc: "",
+  service_rental_caption: "",
 };
 
 function Hint({ children }: { children: React.ReactNode }) {
@@ -246,6 +252,21 @@ export default function ConfigPage() {
                 className={inputCls}
               />
             </div>
+            <div>
+              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                서비스 캡션
+              </label>
+              <StyleToolbar
+                value={getStyle("service_remodeling_caption")}
+                onChange={setStyle("service_remodeling_caption")}
+              />
+              <input
+                type="text"
+                value={config.service_remodeling_caption}
+                onChange={set("service_remodeling_caption")}
+                className={inputCls}
+              />
+            </div>
           </div>
         </section>
 
@@ -288,6 +309,21 @@ export default function ConfigPage() {
                 className={inputCls}
               />
             </div>
+            <div>
+              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                서비스 캡션
+              </label>
+              <StyleToolbar
+                value={getStyle("service_building_caption")}
+                onChange={setStyle("service_building_caption")}
+              />
+              <input
+                type="text"
+                value={config.service_building_caption}
+                onChange={set("service_building_caption")}
+                className={inputCls}
+              />
+            </div>
           </div>
         </section>
 
@@ -327,6 +363,21 @@ export default function ConfigPage() {
                 value={config.service_rental_desc}
                 onChange={set("service_rental_desc")}
                 rows={3}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                서비스 캡션
+              </label>
+              <StyleToolbar
+                value={getStyle("service_rental_caption")}
+                onChange={setStyle("service_rental_caption")}
+              />
+              <input
+                type="text"
+                value={config.service_rental_caption}
+                onChange={set("service_rental_caption")}
                 className={inputCls}
               />
             </div>
