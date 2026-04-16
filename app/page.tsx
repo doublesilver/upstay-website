@@ -79,9 +79,12 @@ export default function HomePage() {
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
           <div className="bg-[#E8F5E9] border border-[#111111] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
             <div className="shrink-0">
-              <Link href="/remodeling" className="inline-block">
+              <Link
+                href="/remodeling"
+                className="inline-block border border-[#ccc] rounded-lg px-3 py-1.5 hover:border-[#999] transition-colors"
+              >
                 <h2
-                  className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
+                  className="text-[15px] md:text-[21px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
                   style={(() => {
                     try {
                       const s = JSON.parse(
