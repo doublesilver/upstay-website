@@ -77,7 +77,7 @@ export default function HomePage() {
       {/* 1화면: 리모델링 */}
       <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
-          <div className="bg-[#fdf6ee] border border-[#e8ddd0] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
+          <div className="bg-[#fdf6ee] border border-[#111111] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
             <div className="shrink-0">
               <Link href="/remodeling" className="inline-block">
                 <h2
