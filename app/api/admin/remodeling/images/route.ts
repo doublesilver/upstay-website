@@ -5,7 +5,7 @@ import { verifyToken, unauthorized } from "@/lib/auth";
 export async function POST(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
   const { case_id, type, match_order, image_url } = await req.json();
-  if (!case_id || !type || !match_order)
+  if (!case_id || !type || match_order === undefined || match_order === null)
     return Response.json(
       { error: "case_id, type, match_order required" },
       { status: 400 },
@@ -46,9 +46,16 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
-  const { id } = await req.json();
-  if (!id) return Response.json({ error: "id required" }, { status: 400 });
+  const { id, case_id } = await req.json();
+  if (!id || !case_id)
+    return Response.json({ error: "id, case_id required" }, { status: 400 });
   const db = getDb();
+  const row = db
+    .prepare("SELECT case_id FROM case_images WHERE id = ?")
+    .get(id) as { case_id: number } | undefined;
+  if (!row) return Response.json({ error: "not found" }, { status: 404 });
+  if (row.case_id !== case_id)
+    return Response.json({ error: "case_id mismatch" }, { status: 403 });
   db.prepare("DELETE FROM case_images WHERE id = ?").run(id);
   return Response.json({ ok: true });
 }

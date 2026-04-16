@@ -16,18 +16,31 @@ export async function GET(req: NextRequest) {
 
 const ALLOWED_KEYS = new Set([
   "slogan_text",
+  "slogan_text_style",
   "remodeling_section_title",
+  "remodeling_section_title_style",
   "remodeling_page_title",
+  "remodeling_page_title_style",
   "remodeling_page_subtitle",
+  "remodeling_page_subtitle_style",
   "service_remodeling_title",
+  "service_remodeling_title_style",
   "service_remodeling_desc",
+  "service_remodeling_desc_style",
   "service_remodeling_caption",
+  "service_remodeling_caption_style",
   "service_building_title",
+  "service_building_title_style",
   "service_building_desc",
+  "service_building_desc_style",
   "service_building_caption",
+  "service_building_caption_style",
   "service_rental_title",
+  "service_rental_title_style",
   "service_rental_desc",
+  "service_rental_desc_style",
   "service_rental_caption",
+  "service_rental_caption_style",
   "footer_name",
   "footer_english_name",
   "footer_ceo",
@@ -56,7 +69,7 @@ export async function PUT(req: NextRequest) {
     "INSERT OR REPLACE INTO site_config (key, value) VALUES (?, ?)",
   );
   for (const [key, value] of Object.entries(body)) {
-    if (ALLOWED_KEYS.has(key) || key.endsWith("_style")) {
+    if (ALLOWED_KEYS.has(key)) {
       stmt.run(key, value as string);
     }
   }

@@ -188,11 +188,7 @@ function SortableThumb({
 
       <button
         onClick={onDelete}
-        className="absolute top-1 right-1 w-5 h-5 bg-red-500/80 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all z-10"
-        style={{
-          right: isPrimary ? "auto" : undefined,
-          left: isPrimary ? "1px" : undefined,
-        }}
+        className="absolute top-1 left-1 w-5 h-5 bg-red-500/80 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all z-10"
         title="삭제"
       >
         ✕
@@ -223,7 +219,7 @@ function ImageSection({
     type: "before" | "after",
     files: FileList,
   ) => void;
-  onDeleteImage: (imageId: number) => void;
+  onDeleteImage: (caseId: number, imageId: number) => void;
   onBulkDelete: (caseId: number, type: "before" | "after") => void;
   onSetPrimary: (
     caseId: number,
@@ -312,7 +308,7 @@ function ImageSection({
                     img={img}
                     isPrimary={img.match_order === 0}
                     onSetPrimary={() => onSetPrimary(caseId, img.id, type)}
-                    onDelete={() => onDeleteImage(img.id)}
+                    onDelete={() => onDeleteImage(caseId, img.id)}
                     onEdit={() =>
                       img.image_url &&
                       onEdit({
@@ -391,7 +387,7 @@ function SortableCase({
     type: "before" | "after",
     files: FileList,
   ) => void;
-  onDeleteImage: (imageId: number) => void;
+  onDeleteImage: (caseId: number, imageId: number) => void;
   onBulkDelete: (caseId: number, type: "before" | "after") => void;
   onSetPrimary: (
     caseId: number,
@@ -601,9 +597,13 @@ export default function RemodelingAdminPage() {
     const newIdx = cases.findIndex((c) => c.id === over.id);
     const reordered = arrayMove(cases, oldIdx, newIdx);
     setCases(reordered);
-    for (let i = 0; i < reordered.length; i++) {
-      await save({ id: reordered[i].id, sort_order: i + 1 });
-    }
+    await fetch("/api/admin/remodeling/reorder", {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        items: reordered.map((c, i) => ({ id: c.id, sort_order: i + 1 })),
+      }),
+    });
     flash("순서가 변경되었습니다");
   };
 
@@ -716,12 +716,12 @@ export default function RemodelingAdminPage() {
     flash(`${success}/${files.length}장 업로드 완료`);
   };
 
-  const handleDeleteImage = async (imageId: number) => {
+  const handleDeleteImage = async (caseId: number, imageId: number) => {
     if (!window.confirm("이 이미지를 삭제하시겠습니까?")) return;
     await fetch("/api/admin/remodeling/images", {
       method: "DELETE",
       headers: getHeaders(),
-      body: JSON.stringify({ id: imageId }),
+      body: JSON.stringify({ id: imageId, case_id: caseId }),
     });
     load();
     flash("이미지가 삭제되었습니다");
@@ -738,13 +738,15 @@ export default function RemodelingAdminPage() {
       )
     )
       return;
-    for (const img of imgs) {
-      await fetch("/api/admin/remodeling/images", {
-        method: "DELETE",
-        headers: getHeaders(),
-        body: JSON.stringify({ id: img.id }),
-      });
-    }
+    await Promise.all(
+      imgs.map((img) =>
+        fetch("/api/admin/remodeling/images", {
+          method: "DELETE",
+          headers: getHeaders(),
+          body: JSON.stringify({ id: img.id, case_id: caseId }),
+        }),
+      ),
+    );
     load();
     flash(`${type.toUpperCase()} 이미지가 모두 삭제되었습니다`);
   };
@@ -762,18 +764,21 @@ export default function RemodelingAdminPage() {
 
     if (currentPrimary && currentPrimary.id === imageId) return;
 
+    const items: { id: number; match_order: number }[] = [];
     let order = 1;
     for (const img of imgs) {
       if (img.id === imageId) {
-        await saveImage({ id: img.id, match_order: 0 });
-      } else if (img.match_order === 0) {
-        await saveImage({ id: img.id, match_order: order });
-        order++;
+        items.push({ id: img.id, match_order: 0 });
       } else {
-        await saveImage({ id: img.id, match_order: order });
+        items.push({ id: img.id, match_order: order });
         order++;
       }
     }
+    await fetch("/api/admin/remodeling/images/reorder", {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ items }),
+    });
 
     load();
     flash("대표 이미지가 설정되었습니다");
@@ -785,13 +790,16 @@ export default function RemodelingAdminPage() {
     oldIndex: number,
     newIndex: number,
   ) => {
+    const caseData = cases.find((c) => c.id === caseId);
+    if (!caseData) return;
+    const typeImgs = getImagesByType(caseData.images, type);
+    const reorderedImages = arrayMove(typeImgs, oldIndex, newIndex);
+
     setCases((prev) =>
       prev.map((c) => {
         if (c.id !== caseId) return c;
-        const typeImgs = getImagesByType(c.images, type);
-        const reordered = arrayMove(typeImgs, oldIndex, newIndex);
         const otherImgs = c.images.filter((img) => img.type !== type);
-        const updatedImgs = reordered.map((img, i) => ({
+        const updatedImgs = reorderedImages.map((img, i) => ({
           ...img,
           match_order: i,
         }));
@@ -799,13 +807,16 @@ export default function RemodelingAdminPage() {
       }),
     );
 
-    const caseData = cases.find((c) => c.id === caseId);
-    if (!caseData) return;
-    const typeImgs = getImagesByType(caseData.images, type);
-    const reordered = arrayMove(typeImgs, oldIndex, newIndex);
-    for (let i = 0; i < reordered.length; i++) {
-      await saveImage({ id: reordered[i].id, match_order: i });
-    }
+    await fetch("/api/admin/remodeling/images/reorder", {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        items: reorderedImages.map((img, i) => ({
+          id: img.id,
+          match_order: i,
+        })),
+      }),
+    });
   };
 
   const handleEditorSave = async (blob: Blob) => {

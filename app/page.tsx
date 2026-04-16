@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Container } from "@/components/container";
 import { ServiceSections } from "@/components/service-sections";
 import { Footer } from "@/components/footer";
@@ -37,13 +37,22 @@ export default function HomePage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showPopup, setShowPopup] = useState(false);
   const [config, setConfig] = useState<Record<string, string>>({});
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    if (!showPopup) return;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
+    closeBtnRef.current?.focus();
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowPopup(false);
     };
-  }, []);
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [showPopup]);
 
   useEffect(() => {
     fetch("/api/remodeling")
@@ -81,7 +90,7 @@ export default function HomePage() {
             <div className="shrink-0">
               <Link
                 href="/remodeling"
-                className="inline-block border border-[#ccc] rounded px-1 py-px hover:border-[#999] transition-colors"
+                className="inline-block bg-white border border-[#ccc] rounded px-1 py-px hover:border-[#999] transition-colors"
               >
                 <h2
                   className="text-[12px] md:text-[18px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
@@ -181,18 +190,30 @@ export default function HomePage() {
             <ServiceSections config={config} />
           </div>
         </Container>
-        <Footer />
+        <Footer config={config} />
       </section>
 
       {/* 공지사항 팝업 */}
       {showPopup && announcements.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-lg w-[90%] max-w-md mx-4 overflow-hidden">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="announcement-title"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md mx-4 overflow-hidden"
+          >
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E7EB]">
-              <h3 className="text-[16px] font-bold text-[#111]">공지사항</h3>
+              <h3
+                id="announcement-title"
+                className="text-[16px] font-bold text-[#111]"
+              >
+                공지사항
+              </h3>
               <button
+                ref={closeBtnRef}
                 onClick={() => setShowPopup(false)}
                 className="text-[#6B7280] hover:text-[#111] text-[20px] leading-none"
+                aria-label="닫기"
               >
                 ×
               </button>
