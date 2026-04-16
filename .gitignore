@@ -8,4 +8,12 @@ yarn-error.log*
 pnpm-debug.log*
 dist
 data/
+*.m4a
+*.JPG
+tsconfig.tsbuildinfo
+통화*
+Gemini_Generated_Image*
+Screenshot*
+KakaoTalk*
+image.png
 .omc/
