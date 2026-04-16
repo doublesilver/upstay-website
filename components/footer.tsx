@@ -5,29 +5,67 @@ export function Footer() {
   return (
     <footer className="border-t border-[#E5E7EB]">
       <Container className="py-6 md:py-8 text-[11px] md:text-[12px] text-[#6B7280] leading-7">
-        <div className="grid grid-cols-[auto_auto_1fr_auto_auto_auto_1fr] gap-x-2 items-baseline">
-          <span>· 상호명</span>
-          <span>:</span>
-          <span>
-            {companyInfo.name} ({companyInfo.englishName})
-          </span>
-          <span className="text-[#E5E7EB]">|</span>
-          <span>· 사업자등록번호</span>
-          <span>:</span>
-          <span className="whitespace-nowrap">
-            {companyInfo.businessNumber}
-          </span>
-          <span>· 대표자명</span>
-          <span>:</span>
-          <span>{companyInfo.ceo}</span>
-          <span className="text-[#E5E7EB]">|</span>
-          <span>· 전화번호</span>
-          <span>:</span>
-          <span className="whitespace-nowrap">{companyInfo.phone}</span>
-          <span>· 주소</span>
-          <span>:</span>
-          <span className="col-span-5">{companyInfo.address}</span>
-        </div>
+        <table className="border-collapse">
+          <tbody>
+            <tr>
+              <td className="pr-1">·</td>
+              <td
+                className="w-[4.5em]"
+                style={{ textAlign: "justify", textAlignLast: "justify" }}
+              >
+                상호명
+              </td>
+              <td className="px-1">:</td>
+              <td>
+                {companyInfo.name} ({companyInfo.englishName})
+              </td>
+              <td className="px-2 text-[#E5E7EB]">|</td>
+              <td className="pr-1">·</td>
+              <td
+                className="w-[7.5em]"
+                style={{ textAlign: "justify", textAlignLast: "justify" }}
+              >
+                사업자등록번호
+              </td>
+              <td className="px-1">:</td>
+              <td className="whitespace-nowrap">
+                {companyInfo.businessNumber}
+              </td>
+            </tr>
+            <tr>
+              <td className="pr-1">·</td>
+              <td
+                className="w-[4.5em]"
+                style={{ textAlign: "justify", textAlignLast: "justify" }}
+              >
+                대표자명
+              </td>
+              <td className="px-1">:</td>
+              <td>{companyInfo.ceo}</td>
+              <td className="px-2 text-[#E5E7EB]">|</td>
+              <td className="pr-1">·</td>
+              <td
+                className="w-[7.5em]"
+                style={{ textAlign: "justify", textAlignLast: "justify" }}
+              >
+                전화번호
+              </td>
+              <td className="px-1">:</td>
+              <td className="whitespace-nowrap">{companyInfo.phone}</td>
+            </tr>
+            <tr>
+              <td className="pr-1">·</td>
+              <td
+                className="w-[4.5em]"
+                style={{ textAlign: "justify", textAlignLast: "justify" }}
+              >
+                주소
+              </td>
+              <td className="px-1">:</td>
+              <td colSpan={6}>{companyInfo.address}</td>
+            </tr>
+          </tbody>
+        </table>
       </Container>
     </footer>
   );

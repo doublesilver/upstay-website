@@ -2,14 +2,16 @@ import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   const db = getDb();
+  const { searchParams } = new URL(request.url);
+  const showAll = searchParams.get("all") === "true";
 
-  const cases = db
-    .prepare(
-      "SELECT id, title FROM remodeling_cases WHERE show_on_main = 1 ORDER BY sort_order ASC",
-    )
-    .all() as { id: number; title: string }[];
+  const query = showAll
+    ? "SELECT id, title FROM remodeling_cases ORDER BY sort_order ASC"
+    : "SELECT id, title FROM remodeling_cases WHERE show_on_main = 1 ORDER BY sort_order ASC";
+
+  const cases = db.prepare(query).all() as { id: number; title: string }[];
 
   const result = cases.map((c) => {
     const images = db

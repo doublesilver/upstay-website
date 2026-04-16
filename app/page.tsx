@@ -37,7 +37,6 @@ export default function HomePage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showPopup, setShowPopup] = useState(false);
   const [config, setConfig] = useState<Record<string, string>>({});
-  const [modalCase, setModalCase] = useState<RemodelingCase | null>(null);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -112,10 +111,10 @@ export default function HomePage() {
                   ? c.after_images
                   : [c.after_image].filter(Boolean);
                 return (
-                  <button
+                  <Link
                     key={c.id}
-                    onClick={() => setModalCase(c)}
-                    className="w-full bg-white border border-[#e8ddd0] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
+                    href="/remodeling"
+                    className="block w-full bg-white border border-[#e8ddd0] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
                   >
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <div>
@@ -166,77 +165,10 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                  </button>
+                  </Link>
                 );
               })}
             </div>
-
-            {/* 모달: 클릭 시 세로 나열 */}
-            {modalCase && (
-              <div
-                className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
-                onClick={() => setModalCase(null)}
-              >
-                <div
-                  className="bg-white rounded-2xl max-w-lg w-[90%] max-h-[85vh] overflow-y-auto p-4"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-[16px] font-bold text-[#111]">
-                      {modalCase.title}
-                    </h3>
-                    <button
-                      onClick={() => setModalCase(null)}
-                      className="text-[#999] hover:text-[#111] text-[20px]"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    {(modalCase.before_images?.length
-                      ? modalCase.before_images
-                      : [modalCase.before_image].filter(Boolean)
-                    ).map((url, j) => (
-                      <div key={`b${j}`}>
-                        <p className="text-[10px] uppercase tracking-wider text-[#999] mb-1">
-                          BEFORE {j + 1}
-                        </p>
-                        <div className="aspect-[3/2] border border-[#111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
-                          <Image
-                            src={url}
-                            alt={`Before ${j + 1}`}
-                            fill
-                            className="object-cover"
-                            sizes="90vw"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    {(modalCase.after_images?.length
-                      ? modalCase.after_images
-                      : [modalCase.after_image].filter(Boolean)
-                    ).map((url, j) => (
-                      <div key={`a${j}`}>
-                        <p className="text-[10px] uppercase tracking-wider text-[#999] mb-1">
-                          AFTER {j + 1}
-                        </p>
-                        <div className="aspect-[3/2] border border-[#111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
-                          <Image
-                            src={url}
-                            alt={`After ${j + 1}`}
-                            fill
-                            className="object-cover"
-                            sizes="90vw"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </Container>
       </section>
