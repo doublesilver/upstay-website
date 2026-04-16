@@ -14,6 +14,40 @@ export async function GET(req: NextRequest) {
   return Response.json(config);
 }
 
+const ALLOWED_KEYS = new Set([
+  "slogan_text",
+  "remodeling_section_title",
+  "remodeling_page_title",
+  "remodeling_page_subtitle",
+  "service_remodeling_title",
+  "service_remodeling_desc",
+  "service_remodeling_caption",
+  "service_building_title",
+  "service_building_desc",
+  "service_building_caption",
+  "service_rental_title",
+  "service_rental_desc",
+  "service_rental_caption",
+  "footer_name",
+  "footer_english_name",
+  "footer_ceo",
+  "footer_address",
+  "footer_business_number",
+  "footer_phone",
+  "footer_label_name",
+  "footer_label_ceo",
+  "footer_label_address",
+  "footer_label_business_number",
+  "footer_label_phone",
+  "footer_label_name_spacing",
+  "footer_label_ceo_spacing",
+  "footer_label_address_spacing",
+  "footer_label_business_number_spacing",
+  "footer_label_phone_spacing",
+  "footer_colon_left_offset",
+  "footer_colon_right_offset",
+]);
+
 export async function PUT(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
   const body = await req.json();
@@ -22,7 +56,9 @@ export async function PUT(req: NextRequest) {
     "INSERT OR REPLACE INTO site_config (key, value) VALUES (?, ?)",
   );
   for (const [key, value] of Object.entries(body)) {
-    stmt.run(key, value as string);
+    if (ALLOWED_KEYS.has(key) || key.endsWith("_style")) {
+      stmt.run(key, value as string);
+    }
   }
   return Response.json({ ok: true });
 }

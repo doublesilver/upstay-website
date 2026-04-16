@@ -13,17 +13,29 @@ export async function GET(request: Request) {
 
   const cases = db.prepare(query).all() as { id: number; title: string }[];
 
+  const caseIds = cases.map((c) => c.id);
+  if (caseIds.length === 0) return Response.json([]);
+
+  const allImages = db
+    .prepare(
+      `SELECT case_id, type, match_order, image_url, image_url_wm FROM case_images WHERE case_id IN (${caseIds.map(() => "?").join(",")}) ORDER BY match_order ASC, type ASC`,
+    )
+    .all(...caseIds) as {
+    case_id: number;
+    type: string;
+    match_order: number;
+    image_url: string;
+    image_url_wm: string;
+  }[];
+
+  const imageMap = new Map<number, typeof allImages>();
+  for (const img of allImages) {
+    if (!imageMap.has(img.case_id)) imageMap.set(img.case_id, []);
+    imageMap.get(img.case_id)!.push(img);
+  }
+
   const result = cases.map((c) => {
-    const images = db
-      .prepare(
-        "SELECT type, match_order, image_url, image_url_wm FROM case_images WHERE case_id = ? ORDER BY match_order ASC, type ASC",
-      )
-      .all(c.id) as {
-      type: string;
-      match_order: number;
-      image_url: string;
-      image_url_wm: string;
-    }[];
+    const images = imageMap.get(c.id) || [];
 
     const befores = images
       .filter((i) => i.type === "before")

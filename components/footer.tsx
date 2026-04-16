@@ -46,7 +46,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-[#E5E7EB]">
-      <Container className="py-6 md:py-8 text-[11px] md:text-[12px] text-[#6B7280] leading-7">
+      <Container className="py-6 md:py-8 text-[11px] md:text-[12px] text-[#4B5563] leading-7">
         <table className="border-collapse">
           <tbody>
             <tr>

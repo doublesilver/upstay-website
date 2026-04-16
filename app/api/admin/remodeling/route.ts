@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
+import fs from "fs";
+import path from "path";
 
 export async function GET(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
@@ -60,6 +62,22 @@ export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
   const db = getDb();
+  const images = db
+    .prepare(
+      "SELECT image_url, image_url_wm FROM case_images WHERE case_id = ?",
+    )
+    .all(id) as { image_url: string; image_url_wm: string }[];
   db.prepare("DELETE FROM remodeling_cases WHERE id=?").run(id);
+  for (const img of images) {
+    for (const url of [img.image_url, img.image_url_wm]) {
+      if (url && url.startsWith("/api/uploads/")) {
+        const filename = url.replace("/api/uploads/", "");
+        const filepath = path.join(process.cwd(), "data", "uploads", filename);
+        try {
+          fs.unlinkSync(filepath);
+        } catch {}
+      }
+    }
+  }
   return Response.json({ ok: true });
 }

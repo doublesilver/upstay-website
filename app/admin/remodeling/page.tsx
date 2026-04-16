@@ -205,6 +205,7 @@ function ImageSection({
   caseId,
   type,
   images,
+  uploading,
   onBulkUpload,
   onDeleteImage,
   onBulkDelete,
@@ -216,6 +217,7 @@ function ImageSection({
   caseId: number;
   type: "before" | "after";
   images: CaseImage[];
+  uploading?: boolean;
   onBulkUpload: (
     caseId: number,
     type: "before" | "after",
@@ -265,9 +267,10 @@ function ImageSection({
         <span className="text-[12px] text-[#999]">{images.length}장</span>
         <button
           onClick={() => fileRef.current?.click()}
-          className="ml-auto text-[12px] text-[#666] hover:text-[#111] border border-[#DDD] rounded-lg px-3 py-1 hover:border-[#999] transition-all"
+          disabled={uploading}
+          className={`ml-auto text-[12px] border rounded-lg px-3 py-1 transition-all ${uploading ? "text-[#CCC] border-[#EEE] cursor-not-allowed" : "text-[#666] hover:text-[#111] border-[#DDD] hover:border-[#999]"}`}
         >
-          + 업로드
+          {uploading ? "업로드 중..." : "+ 업로드"}
         </button>
         <input
           ref={fileRef}
@@ -344,8 +347,9 @@ function ImageSection({
             일괄 삭제
           </button>
           <button
-            onClick={() => alert("일괄 워터마크 기능은 준비 중입니다")}
-            className="text-[11px] text-[#666] hover:text-[#111] transition-colors"
+            disabled
+            className="text-[11px] text-[#CCC] cursor-not-allowed"
+            title="준비 중"
           >
             일괄 워터마크
           </button>
@@ -358,6 +362,7 @@ function ImageSection({
 function SortableCase({
   c,
   expanded,
+  uploading,
   onToggleExpand,
   onEdit,
   onWatermark,
@@ -373,6 +378,7 @@ function SortableCase({
 }: {
   c: Case;
   expanded: boolean;
+  uploading?: boolean;
   onToggleExpand: (id: number) => void;
   onEdit: (target: EditorTarget) => void;
   onWatermark: (target: EditorTarget) => void;
@@ -499,6 +505,7 @@ function SortableCase({
             caseId={c.id}
             type="before"
             images={beforeImages}
+            uploading={uploading}
             onBulkUpload={onBulkUpload}
             onDeleteImage={onDeleteImage}
             onBulkDelete={onBulkDelete}
@@ -511,6 +518,7 @@ function SortableCase({
             caseId={c.id}
             type="after"
             images={afterImages}
+            uploading={uploading}
             onBulkUpload={onBulkUpload}
             onDeleteImage={onDeleteImage}
             onBulkDelete={onBulkDelete}
@@ -540,6 +548,7 @@ export default function RemodelingAdminPage() {
   const [editTarget, setEditTarget] = useState<EditorTarget | null>(null);
   const [wmTarget, setWmTarget] = useState<EditorTarget | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -676,6 +685,7 @@ export default function RemodelingAdminPage() {
     );
 
     flash(`${files.length}장 업로드 중...`);
+    setUploading(true);
     let success = 0;
 
     try {
@@ -701,6 +711,7 @@ export default function RemodelingAdminPage() {
       console.error("[업로드] 에러:", e);
     }
 
+    setUploading(false);
     load();
     flash(`${success}/${files.length}장 업로드 완료`);
   };
@@ -846,6 +857,7 @@ export default function RemodelingAdminPage() {
                 key={c.id}
                 c={c}
                 expanded={expandedIds === "all" || expandedIds.has(c.id)}
+                uploading={uploading}
                 onToggleExpand={toggleExpand}
                 onEdit={setEditTarget}
                 onWatermark={setWmTarget}

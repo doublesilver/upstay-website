@@ -118,7 +118,7 @@ export default function HomePage() {
                   >
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <div>
-                        <p className="text-[9px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
+                        <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
                           BEFORE
                         </p>
                         <div className="grid grid-cols-2 gap-1">
@@ -133,7 +133,6 @@ export default function HomePage() {
                                 fill
                                 className="object-cover"
                                 sizes="20vw"
-                                unoptimized
                               />
                             </div>
                           ))}
@@ -143,7 +142,7 @@ export default function HomePage() {
                         →
                       </span>
                       <div>
-                        <p className="text-[9px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
+                        <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
                           AFTER
                         </p>
                         <div className="grid grid-cols-2 gap-1">
@@ -158,7 +157,6 @@ export default function HomePage() {
                                 fill
                                 className="object-cover"
                                 sizes="20vw"
-                                unoptimized
                               />
                             </div>
                           ))}
@@ -174,7 +172,7 @@ export default function HomePage() {
       </section>
 
       {/* 2화면: 서비스 + 푸터 */}
-      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
+      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#faf8f5] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
         <Container className="py-4 md:py-8 w-full flex-1 flex items-center">
           <div className="w-full">
             <ServiceSections config={config} />

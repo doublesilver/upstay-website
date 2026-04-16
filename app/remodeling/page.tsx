@@ -52,7 +52,7 @@ function RemodelingPageInner() {
             >
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <div>
-                  <p className="text-[9px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
+                  <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
                     BEFORE
                   </p>
                   <div className="grid grid-cols-2 gap-1">
@@ -67,7 +67,6 @@ function RemodelingPageInner() {
                           fill
                           className="object-cover"
                           sizes="20vw"
-                          unoptimized
                         />
                       </div>
                     ))}
@@ -77,7 +76,7 @@ function RemodelingPageInner() {
                   &rarr;
                 </span>
                 <div>
-                  <p className="text-[9px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
+                  <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
                     AFTER
                   </p>
                   <div className="grid grid-cols-2 gap-1">
@@ -92,7 +91,6 @@ function RemodelingPageInner() {
                           fill
                           className="object-cover"
                           sizes="20vw"
-                          unoptimized
                         />
                       </div>
                     ))}

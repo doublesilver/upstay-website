@@ -32,7 +32,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ext = path.extname(file.name) || ".jpg";
+    const ext = path.extname(file.name).toLowerCase() || ".jpg";
+    const ALLOWED_EXT = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+    if (!ALLOWED_EXT.includes(ext)) {
+      return Response.json(
+        { error: `${file.name}: 허용되지 않는 파일 형식` },
+        { status: 400 },
+      );
+    }
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(path.join(UPLOAD_DIR, filename), buffer);

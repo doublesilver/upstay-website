@@ -119,18 +119,19 @@ export default function RemodelingDetailPage({
                     alt={`Before ${beforeIdx + 1}`}
                     fill
                     className="object-cover"
-                    unoptimized
                   />
                   {befores.length > 1 && (
                     <>
                       <button
                         onClick={() => navBefore(-1)}
+                        aria-label="이전 사진"
                         className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-[#111] shadow transition-colors"
                       >
                         &#9664;
                       </button>
                       <button
                         onClick={() => navBefore(1)}
+                        aria-label="다음 사진"
                         className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-[#111] shadow transition-colors"
                       >
                         &#9654;
@@ -155,7 +156,6 @@ export default function RemodelingDetailPage({
                           alt={`Before thumb ${i + 1}`}
                           fill
                           className="object-cover"
-                          unoptimized
                         />
                       </button>
                     ))}
@@ -178,18 +178,19 @@ export default function RemodelingDetailPage({
                     alt={`After ${afterIdx + 1}`}
                     fill
                     className="object-cover"
-                    unoptimized
                   />
                   {afters.length > 1 && (
                     <>
                       <button
                         onClick={() => navAfter(-1)}
+                        aria-label="이전 사진"
                         className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-[#111] shadow transition-colors"
                       >
                         &#9664;
                       </button>
                       <button
                         onClick={() => navAfter(1)}
+                        aria-label="다음 사진"
                         className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-[#111] shadow transition-colors"
                       >
                         &#9654;
@@ -214,7 +215,6 @@ export default function RemodelingDetailPage({
                           alt={`After thumb ${i + 1}`}
                           fill
                           className="object-cover"
-                          unoptimized
                         />
                       </button>
                     ))}
