@@ -76,6 +76,46 @@ export default function HomePage() {
       {/* 1화면: 리모델링 */}
       <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
+          {(config.hero_title || config.hero_subtitle) && (
+            <div className="shrink-0 mb-3 md:mb-4 text-center">
+              {config.hero_title && (
+                <h1
+                  className="text-[18px] md:text-[26px] font-bold tracking-tight text-[#111111] whitespace-pre-line"
+                  style={(() => {
+                    try {
+                      const s = JSON.parse(config.hero_title_style || "{}");
+                      const css: Record<string, string> = {};
+                      if (s.fontSize) css.fontSize = s.fontSize;
+                      if (s.fontWeight) css.fontWeight = s.fontWeight;
+                      return css;
+                    } catch {
+                      return {};
+                    }
+                  })()}
+                >
+                  {config.hero_title}
+                </h1>
+              )}
+              {config.hero_subtitle && (
+                <p
+                  className="mt-1 text-[12px] md:text-[14px] text-[#6B7280]"
+                  style={(() => {
+                    try {
+                      const s = JSON.parse(config.hero_subtitle_style || "{}");
+                      const css: Record<string, string> = {};
+                      if (s.fontSize) css.fontSize = s.fontSize;
+                      if (s.fontWeight) css.fontWeight = s.fontWeight;
+                      return css;
+                    } catch {
+                      return {};
+                    }
+                  })()}
+                >
+                  {config.hero_subtitle}
+                </p>
+              )}
+            </div>
+          )}
           <div className="bg-[#fdf6ee] border border-[#e8ddd0] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
             <div className="shrink-0">
               <Link href="/remodeling" className="inline-block">
