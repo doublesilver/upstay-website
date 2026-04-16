@@ -4,7 +4,7 @@ import { HeaderWrapper } from "@/components/header-wrapper";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://upstay-web-production.up.railway.app"),
+  metadataBase: new URL("https://upstay.co.kr"),
   title: {
     default: siteConfig.title,
     template: `%s | ${siteConfig.koreanName}`,
