@@ -13,7 +13,8 @@ interface RemodelingCase {
   before_image: string;
   after_image: string;
   title: string;
-  image_count?: number;
+  before_images?: string[];
+  after_images?: string[];
 }
 
 interface Announcement {
@@ -36,6 +37,7 @@ export default function HomePage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showPopup, setShowPopup] = useState(false);
   const [config, setConfig] = useState<Record<string, string>>({});
+  const [modalCase, setModalCase] = useState<RemodelingCase | null>(null);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -100,98 +102,141 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* 모바일: Before→After 가로 배치 세로 스크롤 / 데스크탑: 3열 세로 배치 */}
-            <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-hidden">
-              {/* 모바일 레이아웃 */}
-              <div className="md:hidden space-y-2.5">
-                {cases.map((c) => (
-                  <div
+            {/* 3카드: BEFORE 2x2 → AFTER 2x2 */}
+            <div className="mt-3 md:mt-4 flex-1 min-h-0 space-y-3 md:space-y-4 overflow-y-auto">
+              {cases.slice(0, 3).map((c) => {
+                const befores = c.before_images?.length
+                  ? c.before_images
+                  : [c.before_image].filter(Boolean);
+                const afters = c.after_images?.length
+                  ? c.after_images
+                  : [c.after_image].filter(Boolean);
+                return (
+                  <button
                     key={c.id}
-                    className="bg-white border border-[#e8ddd0] rounded-xl p-3"
+                    onClick={() => setModalCase(c)}
+                    className="w-full bg-white border border-[#e8ddd0] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
                   >
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                      <figure>
-                        <figcaption className="mb-1 text-[9px] uppercase tracking-wider text-[#111111]">
+                      <div>
+                        <p className="text-[9px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
                           BEFORE
-                        </figcaption>
-                        <div className="aspect-[3/2] border border-[#111111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
-                          <Image
-                            src={c.before_image}
-                            alt={`${c.title} Before`}
-                            fill
-                            className="object-cover"
-                            sizes="45vw"
-                            unoptimized
-                          />
+                        </p>
+                        <div className="grid grid-cols-2 gap-1">
+                          {befores.slice(0, 4).map((url, j) => (
+                            <div
+                              key={j}
+                              className="aspect-square border border-[#111] rounded overflow-hidden bg-[#fdf6ee] relative"
+                            >
+                              <Image
+                                src={url}
+                                alt={`Before ${j + 1}`}
+                                fill
+                                className="object-cover"
+                                sizes="20vw"
+                                unoptimized
+                              />
+                            </div>
+                          ))}
                         </div>
-                      </figure>
-                      <span className="text-[20px] font-black text-[#111111]">
+                      </div>
+                      <span className="text-[18px] md:text-[22px] font-black text-[#111]">
                         →
                       </span>
-                      <figure>
-                        <figcaption className="mb-1 text-[9px] uppercase tracking-wider text-[#111111]">
+                      <div>
+                        <p className="text-[9px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
                           AFTER
-                        </figcaption>
-                        <div className="aspect-[3/2] border border-[#111111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
+                        </p>
+                        <div className="grid grid-cols-2 gap-1">
+                          {afters.slice(0, 4).map((url, j) => (
+                            <div
+                              key={j}
+                              className="aspect-square border border-[#111] rounded overflow-hidden bg-[#fdf6ee] relative"
+                            >
+                              <Image
+                                src={url}
+                                alt={`After ${j + 1}`}
+                                fill
+                                className="object-cover"
+                                sizes="20vw"
+                                unoptimized
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 모달: 클릭 시 세로 나열 */}
+            {modalCase && (
+              <div
+                className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+                onClick={() => setModalCase(null)}
+              >
+                <div
+                  className="bg-white rounded-2xl max-w-lg w-[90%] max-h-[85vh] overflow-y-auto p-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-[16px] font-bold text-[#111]">
+                      {modalCase.title}
+                    </h3>
+                    <button
+                      onClick={() => setModalCase(null)}
+                      className="text-[#999] hover:text-[#111] text-[20px]"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {(modalCase.before_images?.length
+                      ? modalCase.before_images
+                      : [modalCase.before_image].filter(Boolean)
+                    ).map((url, j) => (
+                      <div key={`b${j}`}>
+                        <p className="text-[10px] uppercase tracking-wider text-[#999] mb-1">
+                          BEFORE {j + 1}
+                        </p>
+                        <div className="aspect-[3/2] border border-[#111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                           <Image
-                            src={c.after_image}
-                            alt={`${c.title} After`}
+                            src={url}
+                            alt={`Before ${j + 1}`}
                             fill
                             className="object-cover"
-                            sizes="45vw"
+                            sizes="90vw"
                             unoptimized
                           />
                         </div>
-                      </figure>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 데스크탑 레이아웃: 4열 Before↓After */}
-              <div className="hidden md:grid md:grid-cols-4 gap-4">
-                {cases.map((c) => (
-                  <div
-                    key={c.id}
-                    className="bg-white border border-[#e8ddd0] rounded-xl p-4 space-y-1.5"
-                  >
-                    <figure>
-                      <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#111111]">
-                        BEFORE
-                      </figcaption>
-                      <div className="aspect-[3/2] border border-[#111111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
-                        <Image
-                          src={c.before_image}
-                          alt={`${c.title} Before`}
-                          fill
-                          className="object-cover"
-                          sizes="33vw"
-                          unoptimized
-                        />
                       </div>
-                    </figure>
-                    <div className="text-center text-[18px] font-black text-[#111111]">
-                      ↓
-                    </div>
-                    <figure>
-                      <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#111111]">
-                        AFTER
-                      </figcaption>
-                      <div className="aspect-[3/2] border border-[#111111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
-                        <Image
-                          src={c.after_image}
-                          alt={`${c.title} After`}
-                          fill
-                          className="object-cover"
-                          sizes="33vw"
-                          unoptimized
-                        />
+                    ))}
+                    {(modalCase.after_images?.length
+                      ? modalCase.after_images
+                      : [modalCase.after_image].filter(Boolean)
+                    ).map((url, j) => (
+                      <div key={`a${j}`}>
+                        <p className="text-[10px] uppercase tracking-wider text-[#999] mb-1">
+                          AFTER {j + 1}
+                        </p>
+                        <div className="aspect-[3/2] border border-[#111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
+                          <Image
+                            src={url}
+                            alt={`After ${j + 1}`}
+                            fill
+                            className="object-cover"
+                            sizes="90vw"
+                            unoptimized
+                          />
+                        </div>
                       </div>
-                    </figure>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </Container>
       </section>

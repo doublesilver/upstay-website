@@ -12,34 +12,31 @@ export async function GET() {
     .all() as { id: number; title: string }[];
 
   const result = cases.map((c) => {
-    const beforeRow = db
+    const images = db
       .prepare(
-        "SELECT image_url, image_url_wm FROM case_images WHERE case_id = ? AND type = 'before' AND match_order = 1",
+        "SELECT type, match_order, image_url, image_url_wm FROM case_images WHERE case_id = ? ORDER BY match_order ASC, type ASC",
       )
-      .get(c.id) as { image_url: string; image_url_wm: string } | undefined;
+      .all(c.id) as {
+      type: string;
+      match_order: number;
+      image_url: string;
+      image_url_wm: string;
+    }[];
 
-    const afterRow = db
-      .prepare(
-        "SELECT image_url, image_url_wm FROM case_images WHERE case_id = ? AND type = 'after' AND match_order = 1",
-      )
-      .get(c.id) as { image_url: string; image_url_wm: string } | undefined;
-
-    const imageCount = (
-      db
-        .prepare(
-          "SELECT COUNT(*) as cnt FROM case_images WHERE case_id = ? AND type = 'after'",
-        )
-        .get(c.id) as { cnt: number }
-    ).cnt;
+    const befores = images
+      .filter((i) => i.type === "before")
+      .map((i) => i.image_url_wm || i.image_url);
+    const afters = images
+      .filter((i) => i.type === "after")
+      .map((i) => i.image_url_wm || i.image_url);
 
     return {
       id: c.id,
       title: c.title,
-      before_image: beforeRow
-        ? beforeRow.image_url_wm || beforeRow.image_url
-        : "",
-      after_image: afterRow ? afterRow.image_url_wm || afterRow.image_url : "",
-      image_count: imageCount,
+      before_image: befores[0] || "",
+      after_image: afters[0] || "",
+      before_images: befores.slice(0, 4),
+      after_images: afters.slice(0, 4),
     };
   });
 
