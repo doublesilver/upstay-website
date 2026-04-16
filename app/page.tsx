@@ -180,7 +180,7 @@ export default function HomePage() {
             <ServiceSections config={config} />
           </div>
         </Container>
-        <Footer />
+        <Footer config={config} />
       </section>
 
       {/* 공지사항 팝업 */}

@@ -332,6 +332,90 @@ export default function ConfigPage() {
             </div>
           </div>
         </section>
+
+        {/* 푸터 사업자 정보 */}
+        <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
+          <h2 className="text-[16px] font-bold text-[#111] mb-1">
+            푸터 사업자 정보
+          </h2>
+          <p className="text-[13px] text-[#999] mb-6">
+            페이지 하단에 표시되는 사업자 정보입니다
+          </p>
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                  상호명
+                </label>
+                <input
+                  type="text"
+                  value={config.footer_name ?? ""}
+                  onChange={set("footer_name")}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                  영문명
+                </label>
+                <input
+                  type="text"
+                  value={config.footer_english_name ?? ""}
+                  onChange={set("footer_english_name")}
+                  className={inputCls}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                  대표자명
+                </label>
+                <input
+                  type="text"
+                  value={config.footer_ceo ?? ""}
+                  onChange={set("footer_ceo")}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                  사업자등록번호
+                </label>
+                <input
+                  type="text"
+                  value={config.footer_business_number ?? ""}
+                  onChange={set("footer_business_number")}
+                  className={inputCls}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                  전화번호
+                </label>
+                <input
+                  type="text"
+                  value={config.footer_phone ?? ""}
+                  onChange={set("footer_phone")}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                  주소
+                </label>
+                <input
+                  type="text"
+                  value={config.footer_address ?? ""}
+                  onChange={set("footer_address")}
+                  className={inputCls}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}

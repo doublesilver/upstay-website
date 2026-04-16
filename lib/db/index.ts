@@ -81,6 +81,17 @@ function initSchema(db: Database.Database) {
 
   insert.run("slogan_text", "공간의 가치를 업스테이가 높여드립니다");
 
+  // 푸터 사업자 정보
+  insert.run("footer_name", "업스테이");
+  insert.run("footer_english_name", "up stay");
+  insert.run("footer_ceo", "안민혁");
+  insert.run(
+    "footer_address",
+    "서울시 강남구 학동로 26길 82 (논현동 157-26번지 1층)",
+  );
+  insert.run("footer_business_number", "308-25-02055");
+  insert.run("footer_phone", "010-3168-0624");
+
   // 메인 페이지 텍스트
   insert.run("remodeling_section_title", "리모델링 사례보기");
 
@@ -154,11 +165,26 @@ function initSchema(db: Database.Database) {
       },
     ];
 
+    const extraBefores = [
+      "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=600&h=400&q=80",
+      "https://images.unsplash.com/photo-1560448075-bb485b067938?auto=format&fit=crop&w=600&h=400&q=80",
+      "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&w=600&h=400&q=80",
+    ];
+    const extraAfters = [
+      "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&h=400&q=80",
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=600&h=400&q=80",
+      "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?auto=format&fit=crop&w=600&h=400&q=80",
+    ];
+
     for (const seed of seedCases) {
       const result = insertCase.run(seed.title, seed.sortOrder);
       const caseId = result.lastInsertRowid;
       insertImage.run(caseId, "before", 1, seed.before);
       insertImage.run(caseId, "after", 1, seed.after);
+      for (let i = 0; i < 3; i++) {
+        insertImage.run(caseId, "before", i + 2, extraBefores[i]);
+        insertImage.run(caseId, "after", i + 2, extraAfters[i]);
+      }
     }
   }
 }
