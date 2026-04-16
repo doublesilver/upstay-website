@@ -172,7 +172,7 @@ export default function HomePage() {
       </section>
 
       {/* 2화면: 서비스 + 푸터 */}
-      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#CBE4D6] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
+      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#faf8f5] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
         <Container className="py-4 md:py-8 w-full flex-1 flex items-center">
           <div className="w-full">
             <ServiceSections config={config} />
