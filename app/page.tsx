@@ -76,7 +76,7 @@ export default function HomePage() {
       {/* 1화면: 리모델링 */}
       <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
+          <div className="bg-[#fdf6ee] border border-[#e8ddd0] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
             <div className="shrink-0">
               <Link href="/remodeling" className="inline-block">
                 <h2 className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors">
@@ -99,7 +99,7 @@ export default function HomePage() {
                         <figcaption className="mb-1 text-[9px] uppercase tracking-wider text-[#111111]">
                           BEFORE
                         </figcaption>
-                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
+                        <div className="aspect-[3/2] border border-[#111111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                           <Image
                             src={c.before_image}
                             alt={`${c.title} Before`}
@@ -117,7 +117,7 @@ export default function HomePage() {
                         <figcaption className="mb-1 text-[9px] uppercase tracking-wider text-[#111111]">
                           AFTER
                         </figcaption>
-                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
+                        <div className="aspect-[3/2] border border-[#111111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                           <Image
                             src={c.after_image}
                             alt={`${c.title} After`}
@@ -144,7 +144,7 @@ export default function HomePage() {
                       <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#111111]">
                         BEFORE
                       </figcaption>
-                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
+                      <div className="aspect-[3/2] border border-[#111111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                         <Image
                           src={c.before_image}
                           alt={`${c.title} Before`}
@@ -162,7 +162,7 @@ export default function HomePage() {
                       <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#111111]">
                         AFTER
                       </figcaption>
-                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
+                      <div className="aspect-[3/2] border border-[#111111] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                         <Image
                           src={c.after_image}
                           alt={`${c.title} After`}
