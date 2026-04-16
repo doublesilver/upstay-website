@@ -15,6 +15,13 @@ export function Footer({ config }: FooterProps) {
       config?.footer_business_number || companyInfo.businessNumber,
     phone: config?.footer_phone || companyInfo.phone,
   };
+  const label = {
+    name: config?.footer_label_name || "상호명",
+    ceo: config?.footer_label_ceo || "대표자명",
+    address: config?.footer_label_address || "주소",
+    businessNumber: config?.footer_label_business_number || "사업자등록번호",
+    phone: config?.footer_label_phone || "전화번호",
+  };
   return (
     <footer className="border-t border-[#E5E7EB]">
       <Container className="py-6 md:py-8 text-[11px] md:text-[12px] text-[#6B7280] leading-7">
@@ -26,7 +33,7 @@ export function Footer({ config }: FooterProps) {
                 className="w-[4.5em]"
                 style={{ textAlign: "justify", textAlignLast: "justify" }}
               >
-                상호명
+                {label.name}
               </td>
               <td className="px-1">:</td>
               <td>
@@ -38,7 +45,7 @@ export function Footer({ config }: FooterProps) {
                 className="w-[7.5em]"
                 style={{ textAlign: "justify", textAlignLast: "justify" }}
               >
-                사업자등록번호
+                {label.businessNumber}
               </td>
               <td className="px-1">:</td>
               <td className="whitespace-nowrap">{info.businessNumber}</td>
@@ -49,7 +56,7 @@ export function Footer({ config }: FooterProps) {
                 className="w-[4.5em]"
                 style={{ textAlign: "justify", textAlignLast: "justify" }}
               >
-                대표자명
+                {label.ceo}
               </td>
               <td className="px-1">:</td>
               <td>{info.ceo}</td>
@@ -59,7 +66,7 @@ export function Footer({ config }: FooterProps) {
                 className="w-[7.5em]"
                 style={{ textAlign: "justify", textAlignLast: "justify" }}
               >
-                전화번호
+                {label.phone}
               </td>
               <td className="px-1">:</td>
               <td className="whitespace-nowrap">{info.phone}</td>
@@ -70,7 +77,7 @@ export function Footer({ config }: FooterProps) {
                 className="w-[4.5em]"
                 style={{ textAlign: "justify", textAlignLast: "justify" }}
               >
-                주소
+                {label.address}
               </td>
               <td className="px-1">:</td>
               <td colSpan={6}>{info.address}</td>

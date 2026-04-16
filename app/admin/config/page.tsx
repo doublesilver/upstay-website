@@ -339,81 +339,81 @@ export default function ConfigPage() {
             푸터 사업자 정보
           </h2>
           <p className="text-[13px] text-[#999] mb-6">
-            페이지 하단에 표시되는 사업자 정보입니다
+            라벨명과 값을 수정할 수 있습니다
           </p>
           <div className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                  상호명
-                </label>
-                <input
-                  type="text"
-                  value={config.footer_name ?? ""}
-                  onChange={set("footer_name")}
-                  className={inputCls}
-                />
+            {[
+              {
+                label: "상호명",
+                labelKey: "footer_label_name",
+                valueKey: "footer_name",
+              },
+              {
+                label: "영문명",
+                labelKey: "",
+                valueKey: "footer_english_name",
+              },
+              {
+                label: "대표자명",
+                labelKey: "footer_label_ceo",
+                valueKey: "footer_ceo",
+              },
+              {
+                label: "사업자등록번호",
+                labelKey: "footer_label_business_number",
+                valueKey: "footer_business_number",
+              },
+              {
+                label: "전화번호",
+                labelKey: "footer_label_phone",
+                valueKey: "footer_phone",
+              },
+              {
+                label: "주소",
+                labelKey: "footer_label_address",
+                valueKey: "footer_address",
+              },
+            ].map((field) => (
+              <div
+                key={field.valueKey}
+                className="grid grid-cols-3 gap-3 items-end"
+              >
+                {field.labelKey ? (
+                  <div>
+                    <label className="block text-[12px] text-[#999] mb-1">
+                      라벨명
+                    </label>
+                    <input
+                      type="text"
+                      value={config[field.labelKey] ?? ""}
+                      onChange={set(field.labelKey)}
+                      className={inputCls}
+                      placeholder={field.label}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-[12px] text-[#999] mb-1">
+                      라벨
+                    </label>
+                    <div className="px-4 py-3 text-[14px] text-[#999]">
+                      {field.label}
+                    </div>
+                  </div>
+                )}
+                <div className="col-span-2">
+                  <label className="block text-[12px] text-[#999] mb-1">
+                    값
+                  </label>
+                  <input
+                    type="text"
+                    value={config[field.valueKey] ?? ""}
+                    onChange={set(field.valueKey)}
+                    className={inputCls}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                  영문명
-                </label>
-                <input
-                  type="text"
-                  value={config.footer_english_name ?? ""}
-                  onChange={set("footer_english_name")}
-                  className={inputCls}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                  대표자명
-                </label>
-                <input
-                  type="text"
-                  value={config.footer_ceo ?? ""}
-                  onChange={set("footer_ceo")}
-                  className={inputCls}
-                />
-              </div>
-              <div>
-                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                  사업자등록번호
-                </label>
-                <input
-                  type="text"
-                  value={config.footer_business_number ?? ""}
-                  onChange={set("footer_business_number")}
-                  className={inputCls}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                  전화번호
-                </label>
-                <input
-                  type="text"
-                  value={config.footer_phone ?? ""}
-                  onChange={set("footer_phone")}
-                  className={inputCls}
-                />
-              </div>
-              <div>
-                <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                  주소
-                </label>
-                <input
-                  type="text"
-                  value={config.footer_address ?? ""}
-                  onChange={set("footer_address")}
-                  className={inputCls}
-                />
-              </div>
-            </div>
+            ))}
           </div>
         </section>
       </div>
