@@ -77,14 +77,14 @@ export default function HomePage() {
       {/* 1화면: 리모델링 */}
       <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
-          <div className="bg-[#E8F5E9] border border-[#111111] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
+          <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
             <div className="shrink-0">
               <Link
                 href="/remodeling"
-                className="inline-block border border-[#ccc] rounded-lg px-3 py-1.5 hover:border-[#999] transition-colors"
+                className="inline-block border border-[#ccc] rounded px-1 py-px hover:border-[#999] transition-colors"
               >
                 <h2
-                  className="text-[15px] md:text-[21px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
+                  className="text-[12px] md:text-[18px] font-normal tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
                   style={(() => {
                     try {
                       const s = JSON.parse(
@@ -128,7 +128,7 @@ export default function HomePage() {
                           {befores.slice(0, 4).map((url, j) => (
                             <div
                               key={j}
-                              className="aspect-square border border-[#111] rounded overflow-hidden bg-[#E8F5E9] relative"
+                              className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                             >
                               <Image
                                 src={url}
@@ -152,7 +152,7 @@ export default function HomePage() {
                           {afters.slice(0, 4).map((url, j) => (
                             <div
                               key={j}
-                              className="aspect-square border border-[#111] rounded overflow-hidden bg-[#E8F5E9] relative"
+                              className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                             >
                               <Image
                                 src={url}

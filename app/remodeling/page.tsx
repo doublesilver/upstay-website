@@ -36,7 +36,7 @@ function RemodelingPageInner() {
 
   return (
     <Container className="pt-8 pb-12 md:pt-16 md:pb-16">
-      <div className="space-y-4 md:space-y-5 bg-[#E8F5E9] border border-[#111111] rounded-xl p-3 md:p-4">
+      <div className="space-y-4 md:space-y-5 bg-[#F1F8E9] border border-[#111111] rounded-xl p-3 md:p-4">
         {cases.map((c) => {
           const befores = c.before_images?.length
             ? c.before_images
@@ -59,7 +59,7 @@ function RemodelingPageInner() {
                     {befores.slice(0, 4).map((url, j) => (
                       <div
                         key={j}
-                        className="aspect-square border border-[#111] rounded overflow-hidden bg-[#E8F5E9] relative"
+                        className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                       >
                         <Image
                           src={url}
@@ -83,7 +83,7 @@ function RemodelingPageInner() {
                     {afters.slice(0, 4).map((url, j) => (
                       <div
                         key={j}
-                        className="aspect-square border border-[#111] rounded overflow-hidden bg-[#E8F5E9] relative"
+                        className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                       >
                         <Image
                           src={url}
