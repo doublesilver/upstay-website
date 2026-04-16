@@ -63,7 +63,7 @@ function RemodelingPageInner() {
                       >
                         <Image
                           src={url}
-                          alt={`Before ${j + 1}`}
+                          alt={`${c.title || "리모델링 사례"} 시공 전 ${j + 1}번째 사진`}
                           fill
                           className="object-cover"
                           sizes="20vw"
@@ -87,7 +87,7 @@ function RemodelingPageInner() {
                       >
                         <Image
                           src={url}
-                          alt={`After ${j + 1}`}
+                          alt={`${c.title || "리모델링 사례"} 시공 후 ${j + 1}번째 사진`}
                           fill
                           className="object-cover"
                           sizes="20vw"

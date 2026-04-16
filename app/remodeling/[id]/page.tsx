@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { use, useEffect, useState, useRef, useCallback } from "react";
+import Link from "next/link";
+import { use, useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { Container } from "@/components/container";
 
 interface Pair {
@@ -40,8 +41,14 @@ export default function RemodelingDetailPage({
       .catch(() => setLoading(false));
   }, [id]);
 
-  const befores = data?.pairs.map((p) => p.before_image).filter(Boolean) || [];
-  const afters = data?.pairs.map((p) => p.after_image).filter(Boolean) || [];
+  const befores = useMemo(
+    () => data?.pairs.map((p) => p.before_image).filter(Boolean) || [],
+    [data],
+  );
+  const afters = useMemo(
+    () => data?.pairs.map((p) => p.after_image).filter(Boolean) || [],
+    [data],
+  );
 
   const navBefore = useCallback(
     (dir: number) => {
@@ -90,6 +97,35 @@ export default function RemodelingDetailPage({
     };
   }, [navBefore, navAfter, data]);
 
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") navBefore(-1);
+      if (e.key === "ArrowRight") navBefore(1);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [navBefore]);
+
+  useEffect(() => {
+    if (!data) return;
+    [beforeIdx + 1, beforeIdx - 1].forEach((i) => {
+      if (befores[i]) {
+        const img = new window.Image();
+        img.src = befores[i];
+      }
+    });
+  }, [beforeIdx, befores, data]);
+
+  useEffect(() => {
+    if (!data) return;
+    [afterIdx + 1, afterIdx - 1].forEach((i) => {
+      if (afters[i]) {
+        const img = new window.Image();
+        img.src = afters[i];
+      }
+    });
+  }, [afterIdx, afters, data]);
+
   return (
     <Container className="pt-3 pb-6 md:pt-6 md:pb-10">
       {loading && (
@@ -104,6 +140,14 @@ export default function RemodelingDetailPage({
 
       {data && (
         <>
+          <div className="mb-4">
+            <Link
+              href="/remodeling"
+              className="text-[13px] text-[#666] hover:text-[#111] transition-colors"
+            >
+              ← 목록으로
+            </Link>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {befores.length > 0 && (
               <div className="flex flex-col">
@@ -116,9 +160,10 @@ export default function RemodelingDetailPage({
                 >
                   <Image
                     src={befores[beforeIdx]}
-                    alt={`Before ${beforeIdx + 1}`}
+                    alt={`${data.title} Before ${beforeIdx + 1}`}
                     fill
                     className="object-cover"
+                    priority
                   />
                   {befores.length > 1 && (
                     <>
@@ -140,7 +185,7 @@ export default function RemodelingDetailPage({
                   )}
                 </div>
                 {befores.length > 1 && (
-                  <div className="grid grid-cols-8 gap-1 mt-1">
+                  <div className="grid grid-cols-4 md:grid-cols-8 gap-1 mt-1">
                     {befores.map((url, i) => (
                       <button
                         key={i}
@@ -153,7 +198,7 @@ export default function RemodelingDetailPage({
                       >
                         <Image
                           src={url}
-                          alt={`Before thumb ${i + 1}`}
+                          alt={`${data.title} Before ${i + 1}`}
                           fill
                           className="object-cover"
                         />
@@ -175,9 +220,10 @@ export default function RemodelingDetailPage({
                 >
                   <Image
                     src={afters[afterIdx]}
-                    alt={`After ${afterIdx + 1}`}
+                    alt={`${data.title} After ${afterIdx + 1}`}
                     fill
                     className="object-cover"
+                    priority
                   />
                   {afters.length > 1 && (
                     <>
@@ -199,7 +245,7 @@ export default function RemodelingDetailPage({
                   )}
                 </div>
                 {afters.length > 1 && (
-                  <div className="grid grid-cols-8 gap-1 mt-1">
+                  <div className="grid grid-cols-4 md:grid-cols-8 gap-1 mt-1">
                     {afters.map((url, i) => (
                       <button
                         key={i}
@@ -212,7 +258,7 @@ export default function RemodelingDetailPage({
                       >
                         <Image
                           src={url}
-                          alt={`After thumb ${i + 1}`}
+                          alt={`${data.title} After ${i + 1}`}
                           fill
                           className="object-cover"
                         />

@@ -56,20 +56,31 @@ function getHeaders() {
   };
 }
 
+async function apiFetch(url: string, options?: RequestInit) {
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    sessionStorage.removeItem("admin_token");
+    window.location.href = "/admin";
+    throw new Error("Unauthorized");
+  }
+  return res;
+}
+
 async function uploadFiles(files: File[]): Promise<string[]> {
   const fd = new FormData();
   files.forEach((f) => fd.append("files", f, f.name));
-  const res = await fetch("/api/admin/upload", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${getToken()}` },
-    body: fd,
-  });
-  if (!res.ok) {
-    console.error("업로드 실패:", res.status, await res.text());
+  try {
+    const res = await apiFetch("/api/admin/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: fd,
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.urls || [];
+  } catch {
     return [];
   }
-  const data = await res.json();
-  return data.urls || [];
 }
 
 async function uploadFile(file: Blob, name?: string): Promise<string> {
@@ -553,27 +564,32 @@ export default function RemodelingAdminPage() {
   const flash = (m: string) => setToast(m);
 
   const load = useCallback(() => {
-    fetch("/api/admin/remodeling", { headers: getHeaders() })
+    apiFetch("/api/admin/remodeling", { headers: getHeaders() })
       .then((r) => r.json())
-      .then(setCases);
+      .then(setCases)
+      .catch(() => {});
   }, []);
 
   useEffect(load, [load]);
 
   const save = async (c: Partial<Case> & { id: number }) => {
-    await fetch("/api/admin/remodeling", {
-      method: "PUT",
-      headers: getHeaders(),
-      body: JSON.stringify(c),
-    });
+    try {
+      await apiFetch("/api/admin/remodeling", {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify(c),
+      });
+    } catch {}
   };
 
   const saveImage = async (data: { id: number; [key: string]: unknown }) => {
-    await fetch("/api/admin/remodeling/images", {
-      method: "PUT",
-      headers: getHeaders(),
-      body: JSON.stringify(data),
-    });
+    try {
+      await apiFetch("/api/admin/remodeling/images", {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+    } catch {}
   };
 
   const toggleExpand = (id: number) => {
@@ -597,46 +613,52 @@ export default function RemodelingAdminPage() {
     const newIdx = cases.findIndex((c) => c.id === over.id);
     const reordered = arrayMove(cases, oldIdx, newIdx);
     setCases(reordered);
-    await fetch("/api/admin/remodeling/reorder", {
-      method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify({
-        items: reordered.map((c, i) => ({ id: c.id, sort_order: i + 1 })),
-      }),
-    });
-    flash("순서가 변경되었습니다");
+    try {
+      await apiFetch("/api/admin/remodeling/reorder", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          items: reordered.map((c, i) => ({ id: c.id, sort_order: i + 1 })),
+        }),
+      });
+      flash("순서가 변경되었습니다");
+    } catch {}
   };
 
   const handleAdd = async () => {
-    const res = await fetch("/api/admin/remodeling", {
-      method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify({
-        title: "",
-        sort_order: cases.length + 1,
-        show_on_main: 0,
-      }),
-    });
-    const { id } = await res.json();
-    load();
-    setExpandedIds((prev) => {
-      const next =
-        prev === "all" ? new Set(cases.map((c) => c.id)) : new Set(prev);
-      next.add(id);
-      return next;
-    });
-    flash("새 폴더가 추가되었습니다");
+    try {
+      const res = await apiFetch("/api/admin/remodeling", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          title: "",
+          sort_order: cases.length + 1,
+          show_on_main: 0,
+        }),
+      });
+      const { id } = await res.json();
+      load();
+      setExpandedIds((prev) => {
+        const next =
+          prev === "all" ? new Set(cases.map((c) => c.id)) : new Set(prev);
+        next.add(id);
+        return next;
+      });
+      flash("새 폴더가 추가되었습니다");
+    } catch {}
   };
 
   const handleDelete = async (id: number) => {
-    await fetch("/api/admin/remodeling", {
-      method: "DELETE",
-      headers: getHeaders(),
-      body: JSON.stringify({ id }),
-    });
-    setDeleting(null);
-    load();
-    flash("삭제되었습니다");
+    try {
+      await apiFetch("/api/admin/remodeling", {
+        method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify({ id }),
+      });
+      setDeleting(null);
+      load();
+      flash("삭제되었습니다");
+    } catch {}
   };
 
   const handleToggleMain = async (id: number, val: number) => {
@@ -691,11 +713,10 @@ export default function RemodelingAdminPage() {
     try {
       const fileArray = Array.from(files);
       const urls = await uploadFiles(fileArray);
-      console.log(`[업로드] ${urls.length}/${files.length}장 파일 업로드 완료`);
 
       for (let i = 0; i < urls.length; i++) {
         const nextOrder = maxOrder + i + 1;
-        const res = await fetch("/api/admin/remodeling/images", {
+        const res = await apiFetch("/api/admin/remodeling/images", {
           method: "POST",
           headers: getHeaders(),
           body: JSON.stringify({
@@ -707,9 +728,7 @@ export default function RemodelingAdminPage() {
         });
         if (res.ok) success++;
       }
-    } catch (e) {
-      console.error("[업로드] 에러:", e);
-    }
+    } catch {}
 
     setUploading(false);
     load();
@@ -718,13 +737,15 @@ export default function RemodelingAdminPage() {
 
   const handleDeleteImage = async (caseId: number, imageId: number) => {
     if (!window.confirm("이 이미지를 삭제하시겠습니까?")) return;
-    await fetch("/api/admin/remodeling/images", {
-      method: "DELETE",
-      headers: getHeaders(),
-      body: JSON.stringify({ id: imageId, case_id: caseId }),
-    });
-    load();
-    flash("이미지가 삭제되었습니다");
+    try {
+      await apiFetch("/api/admin/remodeling/images", {
+        method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify({ id: imageId, case_id: caseId }),
+      });
+      load();
+      flash("이미지가 삭제되었습니다");
+    } catch {}
   };
 
   const handleBulkDelete = async (caseId: number, type: "before" | "after") => {
@@ -738,17 +759,19 @@ export default function RemodelingAdminPage() {
       )
     )
       return;
-    await Promise.all(
-      imgs.map((img) =>
-        fetch("/api/admin/remodeling/images", {
-          method: "DELETE",
-          headers: getHeaders(),
-          body: JSON.stringify({ id: img.id, case_id: caseId }),
-        }),
-      ),
-    );
-    load();
-    flash(`${type.toUpperCase()} 이미지가 모두 삭제되었습니다`);
+    try {
+      await Promise.all(
+        imgs.map((img) =>
+          apiFetch("/api/admin/remodeling/images", {
+            method: "DELETE",
+            headers: getHeaders(),
+            body: JSON.stringify({ id: img.id, case_id: caseId }),
+          }),
+        ),
+      );
+      load();
+      flash(`${type.toUpperCase()} 이미지가 모두 삭제되었습니다`);
+    } catch {}
   };
 
   const handleSetPrimary = async (
@@ -774,14 +797,15 @@ export default function RemodelingAdminPage() {
         order++;
       }
     }
-    await fetch("/api/admin/remodeling/images/reorder", {
-      method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify({ items }),
-    });
-
-    load();
-    flash("대표 이미지가 설정되었습니다");
+    try {
+      await apiFetch("/api/admin/remodeling/images/reorder", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({ items }),
+      });
+      load();
+      flash("대표 이미지가 설정되었습니다");
+    } catch {}
   };
 
   const handleReorderImages = async (
@@ -807,16 +831,18 @@ export default function RemodelingAdminPage() {
       }),
     );
 
-    await fetch("/api/admin/remodeling/images/reorder", {
-      method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify({
-        items: reorderedImages.map((img, i) => ({
-          id: img.id,
-          match_order: i,
-        })),
-      }),
-    });
+    try {
+      await apiFetch("/api/admin/remodeling/images/reorder", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          items: reorderedImages.map((img, i) => ({
+            id: img.id,
+            match_order: i,
+          })),
+        }),
+      });
+    } catch {}
   };
 
   const handleEditorSave = async (blob: Blob) => {

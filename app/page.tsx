@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Container } from "@/components/container";
 import { ServiceSections } from "@/components/service-sections";
 import { Footer } from "@/components/footer";
@@ -39,6 +39,18 @@ export default function HomePage() {
   const [config, setConfig] = useState<Record<string, string>>({});
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
+  const titleStyle = useMemo(() => {
+    try {
+      const s = JSON.parse(config.remodeling_section_title_style || "{}");
+      const css: Record<string, string> = {};
+      if (s.fontSize) css.fontSize = s.fontSize;
+      if (s.fontWeight) css.fontWeight = s.fontWeight;
+      return css;
+    } catch {
+      return {};
+    }
+  }, [config.remodeling_section_title_style]);
+
   useEffect(() => {
     if (!showPopup) return;
     const prev = document.body.style.overflow;
@@ -68,7 +80,10 @@ export default function HomePage() {
           setAnnouncements(data);
           const dismissUntil = localStorage.getItem("popup_dismiss_until");
           if (dismissUntil === "forever") return;
-          if (dismissUntil && new Date(dismissUntil) > new Date()) return;
+          if (dismissUntil) {
+            const expiry = new Date(dismissUntil);
+            if (!isNaN(expiry.getTime()) && expiry > new Date()) return;
+          }
           setShowPopup(true);
         }
       })
@@ -94,19 +109,7 @@ export default function HomePage() {
               >
                 <h2
                   className="text-[12px] md:text-[18px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
-                  style={(() => {
-                    try {
-                      const s = JSON.parse(
-                        config.remodeling_section_title_style || "{}",
-                      );
-                      const css: Record<string, string> = {};
-                      if (s.fontSize) css.fontSize = s.fontSize;
-                      if (s.fontWeight) css.fontWeight = s.fontWeight;
-                      return css;
-                    } catch {
-                      return {};
-                    }
-                  })()}
+                  style={titleStyle}
                 >
                   {config.remodeling_section_title || "리모델링 사례보기"} →
                 </h2>
@@ -141,7 +144,7 @@ export default function HomePage() {
                             >
                               <Image
                                 src={url}
-                                alt={`Before ${j + 1}`}
+                                alt={`${c.title || "리모델링 사례"} 시공 전 ${j + 1}번째 사진`}
                                 fill
                                 className="object-cover"
                                 sizes="20vw"
@@ -165,7 +168,7 @@ export default function HomePage() {
                             >
                               <Image
                                 src={url}
-                                alt={`After ${j + 1}`}
+                                alt={`${c.title || "리모델링 사례"} 시공 후 ${j + 1}번째 사진`}
                                 fill
                                 className="object-cover"
                                 sizes="20vw"
