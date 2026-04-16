@@ -4,6 +4,8 @@ import { existsSync } from "fs";
 import path from "path";
 import { verifyToken, unauthorized } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 const UPLOAD_DIR = path.join(process.cwd(), "data", "uploads");
 
 export async function POST(req: NextRequest) {

@@ -341,6 +341,32 @@ export default function ConfigPage() {
           <p className="text-[13px] text-[#999] mb-6">
             라벨명과 값을 수정할 수 있습니다
           </p>
+          <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-[#F9F9F9] rounded-xl">
+            <div>
+              <label className="block text-[12px] text-[#999] mb-1">
+                왼쪽 라벨 너비 (: 위치)
+              </label>
+              <input
+                type="text"
+                value={config.footer_left_width ?? "4.5em"}
+                onChange={set("footer_left_width")}
+                className={inputCls}
+                placeholder="4.5em"
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] text-[#999] mb-1">
+                오른쪽 라벨 너비 (: 위치)
+              </label>
+              <input
+                type="text"
+                value={config.footer_right_width ?? "7.5em"}
+                onChange={set("footer_right_width")}
+                className={inputCls}
+                placeholder="7.5em"
+              />
+            </div>
+          </div>
           <div className="space-y-5">
             {[
               {

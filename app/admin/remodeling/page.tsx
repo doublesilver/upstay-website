@@ -56,16 +56,25 @@ function getHeaders() {
   };
 }
 
-async function uploadFile(file: Blob, name?: string): Promise<string> {
+async function uploadFiles(files: File[]): Promise<string[]> {
   const fd = new FormData();
-  fd.append("files", file, name || "image.jpg");
+  files.forEach((f) => fd.append("files", f, f.name));
   const res = await fetch("/api/admin/upload", {
     method: "POST",
     headers: { Authorization: `Bearer ${getToken()}` },
     body: fd,
   });
+  if (!res.ok) {
+    console.error("업로드 실패:", res.status, await res.text());
+    return [];
+  }
   const data = await res.json();
-  return data.urls[0];
+  return data.urls || [];
+}
+
+async function uploadFile(file: Blob, name?: string): Promise<string> {
+  const urls = await uploadFiles([file as File]);
+  return urls[0] || "";
 }
 
 function getImagesByType(images: CaseImage[], type: "before" | "after") {
@@ -438,7 +447,7 @@ function SortableCase({
           value={c.title}
           onChange={(e) => onTitleChange(c.id, e.target.value)}
           onBlur={() => onTitleBlur(c.id)}
-          placeholder="사례 제목을 입력하세요"
+          placeholder="설명에 들어갈 내용을 작성해 주세요"
           className="flex-1 text-[15px] font-medium text-[#111] outline-none border-b border-transparent focus:border-[#DDD] pb-1 transition-all"
         />
 
@@ -511,7 +520,7 @@ function SortableCase({
 
 export default function RemodelingAdminPage() {
   const [cases, setCases] = useState<Case[]>([]);
-  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<number> | "all">("all");
   const [toast, setToast] = useState("");
   const [editTarget, setEditTarget] = useState<EditorTarget | null>(null);
   const [wmTarget, setWmTarget] = useState<EditorTarget | null>(null);
@@ -549,6 +558,11 @@ export default function RemodelingAdminPage() {
 
   const toggleExpand = (id: number) => {
     setExpandedIds((prev) => {
+      if (prev === "all") {
+        const all = new Set(cases.map((c) => c.id));
+        all.delete(id);
+        return all;
+      }
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -573,11 +587,20 @@ export default function RemodelingAdminPage() {
     const res = await fetch("/api/admin/remodeling", {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({ title: "", sort_order: cases.length + 1 }),
+      body: JSON.stringify({
+        title: "",
+        sort_order: cases.length + 1,
+        show_on_main: 0,
+      }),
     });
     const { id } = await res.json();
     load();
-    setExpandedIds((prev) => new Set(prev).add(id));
+    setExpandedIds((prev) => {
+      const next =
+        prev === "all" ? new Set(cases.map((c) => c.id)) : new Set(prev);
+      next.add(id);
+      return next;
+    });
     flash("새 사례가 추가되었습니다");
   };
 
@@ -628,24 +651,33 @@ export default function RemodelingAdminPage() {
     );
 
     flash(`${files.length}장 업로드 중...`);
+    let success = 0;
 
-    for (let i = 0; i < files.length; i++) {
-      const url = await uploadFile(files[i], files[i].name);
-      const nextOrder = maxOrder + i + 1;
-      await fetch("/api/admin/remodeling/images", {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({
-          case_id: caseId,
-          type,
-          match_order: nextOrder,
-          image_url: url,
-        }),
-      });
+    try {
+      const fileArray = Array.from(files);
+      const urls = await uploadFiles(fileArray);
+      console.log(`[업로드] ${urls.length}/${files.length}장 파일 업로드 완료`);
+
+      for (let i = 0; i < urls.length; i++) {
+        const nextOrder = maxOrder + i + 1;
+        const res = await fetch("/api/admin/remodeling/images", {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            case_id: caseId,
+            type,
+            match_order: nextOrder,
+            image_url: urls[i],
+          }),
+        });
+        if (res.ok) success++;
+      }
+    } catch (e) {
+      console.error("[업로드] 에러:", e);
     }
 
     load();
-    flash(`${files.length}장 업로드 완료`);
+    flash(`${success}/${files.length}장 업로드 완료`);
   };
 
   const handleDeleteImage = async (imageId: number) => {
@@ -769,7 +801,7 @@ export default function RemodelingAdminPage() {
               <SortableCase
                 key={c.id}
                 c={c}
-                expanded={expandedIds.has(c.id)}
+                expanded={expandedIds === "all" || expandedIds.has(c.id)}
                 onToggleExpand={toggleExpand}
                 onEdit={setEditTarget}
                 onWatermark={setWmTarget}
