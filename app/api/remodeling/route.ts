@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 
   const query = showAll
     ? "SELECT id, title FROM remodeling_cases ORDER BY sort_order ASC"
-    : "SELECT id, title FROM remodeling_cases WHERE show_on_main = 1 ORDER BY sort_order ASC";
+    : "SELECT id, title FROM remodeling_cases WHERE show_on_main >= 1 ORDER BY show_on_main ASC";
 
   const cases = db.prepare(query).all() as { id: number; title: string }[];
 
