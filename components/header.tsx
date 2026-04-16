@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/container";
 import { navItems, KAKAO_URL, PHONE_URL, SLOGAN } from "@/lib/site";
 
-export function Header() {
+export function Header({ config }: { config?: Record<string, string> }) {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB]">
       <Container className="h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4">
@@ -37,7 +37,7 @@ export function Header() {
             ))}
           </nav>
           <p className="mt-0 text-[11.5px] md:text-[13px] text-[#9CA3AF] tracking-tight truncate">
-            {SLOGAN}
+            {config?.slogan_text || SLOGAN}
           </p>
         </div>
 

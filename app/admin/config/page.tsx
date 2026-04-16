@@ -114,49 +114,28 @@ export default function ConfigPage() {
       </div>
 
       <div className="space-y-10">
-        {/* 메인 페이지 상단 */}
+        {/* 헤더 */}
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <h2 className="text-[16px] font-bold text-[#111] mb-1">
-            메인 화면 상단
-          </h2>
+          <h2 className="text-[16px] font-bold text-[#111] mb-1">헤더</h2>
           <p className="text-[13px] text-[#999] mb-6">
-            사이트 첫 화면에서 가장 먼저 보이는 큰 글씨 영역입니다
+            상단 헤더에 표시되는 슬로건 문구입니다
           </p>
           <div className="space-y-5">
             <div>
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                메인 타이틀
+                슬로건
               </label>
               <StyleToolbar
-                value={getStyle("hero_title")}
-                onChange={setStyle("hero_title")}
-              />
-              <textarea
-                value={config.hero_title}
-                onChange={set("hero_title")}
-                rows={3}
-                className={`${inputCls} resize-none`}
-              />
-              <Hint>
-                홈페이지 첫 화면 중앙에 크게 표시됩니다. 줄바꿈을 하면 실제
-                화면에서도 줄이 바뀝니다.
-              </Hint>
-            </div>
-            <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                서브타이틀
-              </label>
-              <StyleToolbar
-                value={getStyle("hero_subtitle")}
-                onChange={setStyle("hero_subtitle")}
+                value={getStyle("slogan_text")}
+                onChange={setStyle("slogan_text")}
               />
               <input
                 type="text"
-                value={config.hero_subtitle}
-                onChange={set("hero_subtitle")}
+                value={config.slogan_text ?? ""}
+                onChange={set("slogan_text")}
                 className={inputCls}
               />
-              <Hint>메인 타이틀 바로 아래에 작은 글씨로 표시됩니다.</Hint>
+              <Hint>헤더 네비게이션 아래에 표시되는 슬로건 문구입니다.</Hint>
             </div>
           </div>
         </section>
