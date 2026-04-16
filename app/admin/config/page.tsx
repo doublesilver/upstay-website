@@ -13,10 +13,7 @@ function getToken() {
 }
 
 interface Config {
-  hero_title: string;
-  hero_subtitle: string;
   remodeling_section_title: string;
-  remodeling_more_text: string;
   remodeling_page_title: string;
   remodeling_page_subtitle: string;
   service_remodeling_title: string;
@@ -29,10 +26,7 @@ interface Config {
 }
 
 const defaultConfig: Config = {
-  hero_title: "",
-  hero_subtitle: "",
   remodeling_section_title: "",
-  remodeling_more_text: "",
   remodeling_page_title: "",
   remodeling_page_subtitle: "",
   service_remodeling_title: "",
@@ -81,7 +75,7 @@ export default function ConfigPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    await fetch("/api/admin/config", {
+    const res = await fetch("/api/admin/config", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -90,7 +84,7 @@ export default function ConfigPage() {
       body: JSON.stringify(config),
     });
     setSaving(false);
-    setToast("저장되었습니다");
+    setToast(res.ok ? "저장되었습니다" : "저장 실패");
   };
 
   return (
@@ -165,22 +159,6 @@ export default function ConfigPage() {
                 className={inputCls}
               />
               <Hint>Before/After 사진 영역 상단에 표시되는 제목입니다.</Hint>
-            </div>
-            <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                더보기 버튼 문구
-              </label>
-              <StyleToolbar
-                value={getStyle("remodeling_more_text")}
-                onChange={setStyle("remodeling_more_text")}
-              />
-              <input
-                type="text"
-                value={config.remodeling_more_text}
-                onChange={set("remodeling_more_text")}
-                className={inputCls}
-              />
-              <Hint>리모델링 상세 페이지로 이동하는 링크 텍스트입니다.</Hint>
             </div>
           </div>
         </section>

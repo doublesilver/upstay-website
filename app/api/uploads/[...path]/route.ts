@@ -19,9 +19,9 @@ export async function GET(
 ) {
   const { path: segments } = await params;
   const filename = segments.join("/");
-  const filePath = path.join(UPLOAD_DIR, filename);
+  const filePath = path.resolve(UPLOAD_DIR, filename);
 
-  if (!existsSync(filePath) || filePath.includes("..")) {
+  if (!filePath.startsWith(path.resolve(UPLOAD_DIR)) || !existsSync(filePath)) {
     return new Response("Not found", { status: 404 });
   }
 

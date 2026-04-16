@@ -79,8 +79,7 @@ function initSchema(db: Database.Database) {
     "INSERT OR IGNORE INTO site_config (key, value) VALUES (?, ?)",
   );
 
-  insert.run("hero_title", "공간의 가치를\n업스테이가 높입니다");
-  insert.run("hero_subtitle", "리모델링 · 건물관리 · 임대관리");
+  insert.run("slogan_text", "공간의 가치를 업스테이가 높여드립니다");
 
   // 메인 페이지 텍스트
   insert.run("remodeling_section_title", "리모델링 사례보기");
