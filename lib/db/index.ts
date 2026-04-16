@@ -89,6 +89,11 @@ function initSchema(db: Database.Database) {
     "footer_address",
     "서울시 강남구 학동로 26길 82 (논현동 157-26번지 1층)",
   );
+  insert.run("footer_label_name_spacing", "0.4em");
+  insert.run("footer_label_ceo_spacing", "0em");
+  insert.run("footer_label_business_number_spacing", "0em");
+  insert.run("footer_label_phone_spacing", "0.85em");
+  insert.run("footer_label_address_spacing", "1.7em");
   insert.run("footer_business_number", "308-25-02055");
   insert.run("footer_phone", "010-3168-0624");
 
