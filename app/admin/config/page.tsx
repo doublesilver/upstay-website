@@ -376,7 +376,7 @@ export default function ConfigPage() {
             ].map((field) => (
               <div
                 key={field.valueKey}
-                className="grid grid-cols-3 gap-3 items-end"
+                className="grid grid-cols-[1fr_auto_2fr] gap-3 items-end"
               >
                 {field.labelKey ? (
                   <div>
@@ -401,7 +401,23 @@ export default function ConfigPage() {
                     </div>
                   </div>
                 )}
-                <div className="col-span-2">
+                {field.labelKey ? (
+                  <div>
+                    <label className="block text-[12px] text-[#999] mb-1 whitespace-nowrap">
+                      자간
+                    </label>
+                    <input
+                      type="text"
+                      value={config[`${field.labelKey}_spacing`] ?? ""}
+                      onChange={set(`${field.labelKey}_spacing`)}
+                      className="w-[70px] border border-[#DDD] rounded-xl px-3 py-3 text-[14px] outline-none focus:border-[#111] transition-all"
+                      placeholder="0em"
+                    />
+                  </div>
+                ) : (
+                  <div />
+                )}
+                <div>
                   <label className="block text-[12px] text-[#999] mb-1">
                     값
                   </label>
