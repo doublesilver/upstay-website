@@ -46,32 +46,32 @@ function ServiceSection({
   const ds = descStyle || {};
   return (
     <div className="bg-[#fdf6ee] border border-[#111111] rounded-xl px-4 py-2.5 md:px-6 md:py-3.5">
-      <h2
-        className="text-[14px] md:text-[17px] font-bold tracking-tight text-[#111111] mb-1.5"
-        style={styledCss(ts)}
-      >
-        {ts.bullet !== false && (
-          <span className="mr-1.5 text-[8px] md:text-[10px] align-middle">
-            ●
-          </span>
-        )}
-        {title}
-      </h2>
-      <div className="bg-white border border-[#111111] rounded-lg px-3 py-2 md:px-4 md:py-2.5">
-        <div className="flex justify-between items-start">
-          <p
-            className="text-[12px] md:text-[14px] font-bold text-[#111111] leading-relaxed whitespace-pre-line"
-            style={styledCss(ds)}
-          >
-            {ds.bullet && <span className="mr-1">•</span>}
-            {description}
-          </p>
-          {caption && (
-            <span className="text-[11px] md:text-[13px] text-[#111] font-normal shrink-0 ml-2">
-              {caption}
+      <div className="flex items-baseline justify-between mb-1.5">
+        <h2
+          className="text-[14px] md:text-[17px] font-bold tracking-tight text-[#111111]"
+          style={styledCss(ts)}
+        >
+          {ts.bullet !== false && (
+            <span className="mr-1.5 text-[8px] md:text-[10px] align-middle">
+              ●
             </span>
           )}
-        </div>
+          {title}
+        </h2>
+        {caption && (
+          <span className="text-[11px] md:text-[13px] text-[#111] font-normal">
+            {caption}
+          </span>
+        )}
+      </div>
+      <div className="bg-white border border-[#111111] rounded-lg px-3 py-2 md:px-4 md:py-2.5">
+        <p
+          className="text-[12px] md:text-[14px] font-bold text-[#111111] leading-relaxed whitespace-pre-line"
+          style={styledCss(ds)}
+        >
+          {ds.bullet && <span className="mr-1">•</span>}
+          {description}
+        </p>
       </div>
     </div>
   );

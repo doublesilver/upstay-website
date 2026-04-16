@@ -207,6 +207,7 @@ function ImageSection({
   images,
   onBulkUpload,
   onDeleteImage,
+  onBulkDelete,
   onSetPrimary,
   onReorder,
   onEdit,
@@ -221,6 +222,7 @@ function ImageSection({
     files: FileList,
   ) => void;
   onDeleteImage: (imageId: number) => void;
+  onBulkDelete: (caseId: number, type: "before" | "after") => void;
   onSetPrimary: (
     caseId: number,
     imageId: number,
@@ -333,6 +335,22 @@ function ImageSection({
           </DndContext>
         )}
       </div>
+      {images.length > 0 && (
+        <div className="flex gap-2 mt-2">
+          <button
+            onClick={() => onBulkDelete(caseId, type)}
+            className="text-[11px] text-red-500 hover:text-red-700 transition-colors"
+          >
+            일괄 삭제
+          </button>
+          <button
+            onClick={() => alert("일괄 워터마크 기능은 준비 중입니다")}
+            className="text-[11px] text-[#666] hover:text-[#111] transition-colors"
+          >
+            일괄 워터마크
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -349,6 +367,7 @@ function SortableCase({
   onTitleBlur,
   onBulkUpload,
   onDeleteImage,
+  onBulkDelete,
   onSetPrimary,
   onReorderImages,
 }: {
@@ -367,6 +386,7 @@ function SortableCase({
     files: FileList,
   ) => void;
   onDeleteImage: (imageId: number) => void;
+  onBulkDelete: (caseId: number, type: "before" | "after") => void;
   onSetPrimary: (
     caseId: number,
     imageId: number,
@@ -431,16 +451,26 @@ function SortableCase({
         </span>
 
         <div className="flex items-center gap-1 shrink-0">
-          <select
-            value={c.show_on_main}
-            onChange={(e) => onToggleMain(c.id, Number(e.target.value))}
-            className="text-[12px] text-[#666] border border-[#DDD] rounded-lg px-2 py-1 outline-none hover:border-[#999] transition-all"
-          >
-            <option value={0}>미노출</option>
-            <option value={1}>메인1</option>
-            <option value={2}>메인2</option>
-            <option value={3}>메인3</option>
-          </select>
+          {(
+            [
+              [0, "미노출"],
+              [1, "메인1"],
+              [2, "메인2"],
+              [3, "메인3"],
+            ] as [number, string][]
+          ).map(([val, label]) => (
+            <button
+              key={val}
+              onClick={() => onToggleMain(c.id, val)}
+              className={`px-2 py-0.5 rounded text-[11px] transition-all ${
+                c.show_on_main === val
+                  ? "bg-[#111] text-white"
+                  : "bg-white text-[#999] border border-[#DDD]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
           <button
             onClick={() => onDelete(c.id)}
             className="p-1.5 rounded-lg text-[#CCC] hover:text-red-500 hover:bg-red-50 transition-all"
@@ -471,6 +501,7 @@ function SortableCase({
             images={beforeImages}
             onBulkUpload={onBulkUpload}
             onDeleteImage={onDeleteImage}
+            onBulkDelete={onBulkDelete}
             onSetPrimary={onSetPrimary}
             onReorder={onReorderImages}
             onEdit={onEdit}
@@ -482,6 +513,7 @@ function SortableCase({
             images={afterImages}
             onBulkUpload={onBulkUpload}
             onDeleteImage={onDeleteImage}
+            onBulkDelete={onBulkDelete}
             onSetPrimary={onSetPrimary}
             onReorder={onReorderImages}
             onEdit={onEdit}
@@ -684,6 +716,28 @@ export default function RemodelingAdminPage() {
     flash("이미지가 삭제되었습니다");
   };
 
+  const handleBulkDelete = async (caseId: number, type: "before" | "after") => {
+    const caseData = cases.find((c) => c.id === caseId);
+    if (!caseData) return;
+    const imgs = getImagesByType(caseData.images, type);
+    if (imgs.length === 0) return;
+    if (
+      !window.confirm(
+        `${type.toUpperCase()} 이미지 ${imgs.length}장을 모두 삭제하시겠습니까?`,
+      )
+    )
+      return;
+    for (const img of imgs) {
+      await fetch("/api/admin/remodeling/images", {
+        method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify({ id: img.id }),
+      });
+    }
+    load();
+    flash(`${type.toUpperCase()} 이미지가 모두 삭제되었습니다`);
+  };
+
   const handleSetPrimary = async (
     caseId: number,
     imageId: number,
@@ -801,6 +855,7 @@ export default function RemodelingAdminPage() {
                 onTitleBlur={handleTitleBlur}
                 onBulkUpload={handleBulkUpload}
                 onDeleteImage={handleDeleteImage}
+                onBulkDelete={handleBulkDelete}
                 onSetPrimary={handleSetPrimary}
                 onReorderImages={handleReorderImages}
               />
