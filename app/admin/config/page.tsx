@@ -338,9 +338,35 @@ export default function ConfigPage() {
           <h2 className="text-[16px] font-bold text-[#111] mb-1">
             푸터 사업자 정보
           </h2>
-          <p className="text-[13px] text-[#999] mb-6">
+          <p className="text-[13px] text-[#999] mb-4">
             라벨명과 값을 수정할 수 있습니다
           </p>
+          <div className="grid grid-cols-2 gap-4 mb-6 p-3 bg-[#F9F9F9] rounded-xl">
+            <div>
+              <label className="block text-[12px] text-[#999] mb-1">
+                왼쪽 : 위치 (음수=왼쪽, 양수=오른쪽)
+              </label>
+              <input
+                type="text"
+                value={config.footer_colon_left_offset ?? "0px"}
+                onChange={set("footer_colon_left_offset")}
+                className={inputCls}
+                placeholder="0px"
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] text-[#999] mb-1">
+                오른쪽 : 위치 (음수=왼쪽, 양수=오른쪽)
+              </label>
+              <input
+                type="text"
+                value={config.footer_colon_right_offset ?? "0px"}
+                onChange={set("footer_colon_right_offset")}
+                className={inputCls}
+                placeholder="0px"
+              />
+            </div>
+          </div>
           <div className="space-y-5">
             {[
               {
