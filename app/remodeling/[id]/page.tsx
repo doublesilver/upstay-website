@@ -112,7 +112,7 @@ export default function RemodelingDetailPage({
                 </p>
                 <div
                   ref={beforeRef}
-                  className="relative aspect-[2/1] border border-[#111] rounded-lg overflow-hidden bg-[#fdf6ee]"
+                  className="relative aspect-[2/1] border border-[#ccc] rounded-lg overflow-hidden bg-[#fdf6ee]"
                 >
                   <Image
                     src={befores[beforeIdx]}
@@ -171,7 +171,7 @@ export default function RemodelingDetailPage({
                 </p>
                 <div
                   ref={afterRef}
-                  className="relative aspect-[2/1] border border-[#111] rounded-lg overflow-hidden bg-[#fdf6ee]"
+                  className="relative aspect-[2/1] border border-[#ccc] rounded-lg overflow-hidden bg-[#fdf6ee]"
                 >
                   <Image
                     src={afters[afterIdx]}

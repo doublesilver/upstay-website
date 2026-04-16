@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -14,6 +14,7 @@ import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
+  horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ImageEditor } from "@/components/admin/image-editor";
@@ -67,124 +68,310 @@ async function uploadFile(file: Blob, name?: string): Promise<string> {
   return data.urls[0];
 }
 
-function getPairs(
-  images: CaseImage[],
-): { match_order: number; before?: CaseImage; after?: CaseImage }[] {
-  const map = new Map<number, { before?: CaseImage; after?: CaseImage }>();
-  for (const img of images) {
-    const entry = map.get(img.match_order) || {};
-    entry[img.type] = img;
-    map.set(img.match_order, entry);
-  }
-  return Array.from(map.entries())
-    .sort(([a], [b]) => a - b)
-    .map(([match_order, pair]) => ({ match_order, ...pair }));
+function getImagesByType(images: CaseImage[], type: "before" | "after") {
+  return images
+    .filter((img) => img.type === type)
+    .sort((a, b) => a.match_order - b.match_order);
 }
 
-function ImageSlot({
-  src,
-  wmSrc,
-  label,
+function SortableThumb({
+  img,
+  isPrimary,
+  onSetPrimary,
+  onDelete,
   onEdit,
   onWatermark,
-  onUpload,
 }: {
-  src: string | null;
-  wmSrc: string | null;
-  label: string;
+  img: CaseImage;
+  isPrimary: boolean;
+  onSetPrimary: () => void;
+  onDelete: () => void;
   onEdit: () => void;
   onWatermark: () => void;
-  onUpload: () => void;
 }) {
-  if (!src) {
-    return (
-      <button
-        onClick={onUpload}
-        className="w-full aspect-[4/3] border-2 border-dashed border-[#DDD] rounded-xl flex flex-col items-center justify-center gap-2 text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="17,8 12,3 7,8" />
-          <line x1="12" y1="3" x2="12" y2="15" />
-        </svg>
-        <span className="text-[12px]">{label} 업로드</span>
-      </button>
-    );
-  }
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `img-${img.id}` });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
 
   return (
-    <div className="relative group rounded-xl overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={wmSrc || src}
-        alt={label}
-        className="w-full aspect-[4/3] object-cover"
-      />
-      {wmSrc && (
-        <span className="absolute top-2 right-2 bg-[#111]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md">
-          WM
-        </span>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border border-[#E5E5E5]"
+    >
+      {img.image_url ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={img.image_url_wm || img.image_url}
+            alt=""
+            className="w-full h-full object-cover"
+            {...attributes}
+            {...listeners}
+          />
+          {img.image_url_wm && (
+            <span className="absolute top-1 left-1 bg-[#111]/70 text-white text-[8px] px-1 py-0.5 rounded">
+              WM
+            </span>
+          )}
+        </>
+      ) : (
+        <div
+          className="w-full h-full bg-[#F5F5F5] flex items-center justify-center text-[#CCC]"
+          {...attributes}
+          {...listeners}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="m21 15-5-5L5 21" />
+          </svg>
+        </div>
       )}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-        <button
-          onClick={onEdit}
-          className="bg-white text-[#111] rounded-lg px-3 py-1.5 text-[12px] font-medium shadow-sm hover:bg-[#F7F7F7] transition-all"
-        >
-          편집
-        </button>
-        <button
-          onClick={onWatermark}
-          className="bg-white text-[#111] rounded-lg px-3 py-1.5 text-[12px] font-medium shadow-sm hover:bg-[#F7F7F7] transition-all"
-        >
-          워터마크
-        </button>
-        <button
-          onClick={onUpload}
-          className="bg-white text-[#111] rounded-lg px-3 py-1.5 text-[12px] font-medium shadow-sm hover:bg-[#F7F7F7] transition-all"
-        >
-          교체
-        </button>
+
+      <button
+        onClick={onSetPrimary}
+        className={`absolute top-1 right-1 text-[14px] transition-all z-10 ${
+          isPrimary
+            ? "text-yellow-400 drop-shadow"
+            : "text-white/60 opacity-0 group-hover:opacity-100 hover:text-yellow-300"
+        }`}
+        title={isPrimary ? "대표 이미지" : "대표로 설정"}
+      >
+        ★
+      </button>
+
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-end justify-center gap-1 pb-1 opacity-0 group-hover:opacity-100">
+        {img.image_url && (
+          <>
+            <button
+              onClick={onEdit}
+              className="bg-white/90 text-[#333] rounded px-1.5 py-0.5 text-[9px] font-medium hover:bg-white"
+            >
+              편집
+            </button>
+            <button
+              onClick={onWatermark}
+              className="bg-white/90 text-[#333] rounded px-1.5 py-0.5 text-[9px] font-medium hover:bg-white"
+            >
+              WM
+            </button>
+          </>
+        )}
       </div>
-      <span className="absolute bottom-2 left-2 text-[10px] font-semibold text-white/80 uppercase tracking-wider">
-        {label}
-      </span>
+
+      <button
+        onClick={onDelete}
+        className="absolute top-1 right-1 w-5 h-5 bg-red-500/80 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all z-10"
+        style={{
+          right: isPrimary ? "auto" : undefined,
+          left: isPrimary ? "1px" : undefined,
+        }}
+        title="삭제"
+      >
+        ✕
+      </button>
     </div>
   );
 }
 
-function SortableCard({
-  c,
+function ImageSection({
+  caseId,
+  type,
+  images,
+  onBulkUpload,
+  onDeleteImage,
+  onSetPrimary,
+  onReorder,
   onEdit,
   onWatermark,
-  onUpload,
+}: {
+  caseId: number;
+  type: "before" | "after";
+  images: CaseImage[];
+  onBulkUpload: (
+    caseId: number,
+    type: "before" | "after",
+    files: FileList,
+  ) => void;
+  onDeleteImage: (imageId: number) => void;
+  onSetPrimary: (
+    caseId: number,
+    imageId: number,
+    type: "before" | "after",
+  ) => void;
+  onReorder: (
+    caseId: number,
+    type: "before" | "after",
+    oldIndex: number,
+    newIndex: number,
+  ) => void;
+  onEdit: (target: EditorTarget) => void;
+  onWatermark: (target: EditorTarget) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const ids = images.map((img) => `img-${img.id}`);
+    const oldIdx = ids.indexOf(active.id as string);
+    const newIdx = ids.indexOf(over.id as string);
+    if (oldIdx !== -1 && newIdx !== -1) {
+      onReorder(caseId, type, oldIdx, newIdx);
+    }
+  };
+
+  const label = type === "before" ? "BEFORE" : "AFTER";
+  const primaryImg = images.find((img) => img.match_order === 0);
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-2">
+        <span
+          className={`text-[11px] font-bold tracking-wider px-2 py-0.5 rounded ${
+            type === "before"
+              ? "bg-[#111] text-white"
+              : "bg-emerald-500 text-white"
+          }`}
+        >
+          {label}
+        </span>
+        <span className="text-[12px] text-[#999]">{images.length}장</span>
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="ml-auto text-[12px] text-[#666] hover:text-[#111] border border-[#DDD] rounded-lg px-3 py-1 hover:border-[#999] transition-all"
+        >
+          + 업로드
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.length) {
+              onBulkUpload(caseId, type, e.target.files);
+              e.target.value = "";
+            }
+          }}
+        />
+      </div>
+
+      {images.length === 0 ? (
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="w-full py-6 border-2 border-dashed border-[#DDD] rounded-xl text-[13px] text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all"
+        >
+          클릭하여 {label} 이미지 업로드
+        </button>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={images.map((img) => `img-${img.id}`)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {images.map((img) => (
+                <SortableThumb
+                  key={img.id}
+                  img={img}
+                  isPrimary={img.match_order === 0}
+                  onSetPrimary={() => onSetPrimary(caseId, img.id, type)}
+                  onDelete={() => onDeleteImage(img.id)}
+                  onEdit={() =>
+                    img.image_url &&
+                    onEdit({
+                      imageId: img.id,
+                      caseId,
+                      type,
+                      src: img.image_url,
+                    })
+                  }
+                  onWatermark={() =>
+                    img.image_url &&
+                    onWatermark({
+                      imageId: img.id,
+                      caseId,
+                      type,
+                      src: img.image_url,
+                    })
+                  }
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+    </div>
+  );
+}
+
+function SortableCase({
+  c,
+  expanded,
+  onToggleExpand,
+  onEdit,
+  onWatermark,
   onToggleMain,
   onDelete,
   onTitleChange,
   onTitleBlur,
-  onAddPair,
-  onDeletePair,
+  onBulkUpload,
+  onDeleteImage,
+  onSetPrimary,
+  onReorderImages,
 }: {
   c: Case;
+  expanded: boolean;
+  onToggleExpand: (id: number) => void;
   onEdit: (target: EditorTarget) => void;
   onWatermark: (target: EditorTarget) => void;
-  onUpload: (imageId: number) => void;
   onToggleMain: (id: number, val: number) => void;
   onDelete: (id: number) => void;
   onTitleChange: (id: number, title: string) => void;
   onTitleBlur: (id: number) => void;
-  onAddPair: (caseId: number, images: CaseImage[]) => void;
-  onDeletePair: (
+  onBulkUpload: (
     caseId: number,
-    pair: { match_order: number; before?: CaseImage; after?: CaseImage },
+    type: "before" | "after",
+    files: FileList,
+  ) => void;
+  onDeleteImage: (imageId: number) => void;
+  onSetPrimary: (
+    caseId: number,
+    imageId: number,
+    type: "before" | "after",
+  ) => void;
+  onReorderImages: (
+    caseId: number,
+    type: "before" | "after",
+    oldIndex: number,
+    newIndex: number,
   ) => void;
 }) {
   const {
@@ -201,15 +388,16 @@ function SortableCard({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const pairs = getPairs(c.images);
+  const beforeImages = getImagesByType(c.images, "before");
+  const afterImages = getImagesByType(c.images, "after");
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white border border-[#EBEBEB] rounded-2xl p-5 hover:shadow-sm transition-all"
+      className="bg-white border border-[#EBEBEB] rounded-2xl overflow-hidden hover:shadow-sm transition-all"
     >
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center gap-3 px-5 py-4">
         <button
           {...attributes}
           {...listeners}
@@ -225,6 +413,26 @@ function SortableCard({
             <circle cx="11" cy="13" r="1.2" />
           </svg>
         </button>
+
+        <button
+          onClick={() => onToggleExpand(c.id)}
+          className="text-[#999] hover:text-[#333] transition-colors shrink-0"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`transition-transform ${expanded ? "rotate-90" : ""}`}
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
         <input
           type="text"
           value={c.title}
@@ -233,7 +441,11 @@ function SortableCard({
           placeholder="사례 제목을 입력하세요"
           className="flex-1 text-[15px] font-medium text-[#111] outline-none border-b border-transparent focus:border-[#DDD] pb-1 transition-all"
         />
-        <div className="flex items-center gap-2 shrink-0">
+
+        <div className="flex items-center gap-1 shrink-0">
+          <span className="text-[11px] text-[#BBB] mr-1">
+            B:{beforeImages.length} A:{afterImages.length}
+          </span>
           <button
             onClick={() => onToggleMain(c.id, c.show_on_main ? 0 : 1)}
             className={`text-[20px] transition-all ${
@@ -267,104 +479,39 @@ function SortableCard({
         </div>
       </div>
 
-      <div className="space-y-3 mt-4">
-        {pairs.map((pair) => (
-          <div key={pair.match_order} className="flex items-start gap-3">
-            <span className="text-[12px] text-[#999] pt-2 w-8 shrink-0 text-center">
-              {pair.match_order}
-            </span>
-
-            <div className="flex-1">
-              <ImageSlot
-                src={pair.before?.image_url || null}
-                wmSrc={pair.before?.image_url_wm || null}
-                label="Before"
-                onEdit={() =>
-                  pair.before &&
-                  onEdit({
-                    imageId: pair.before.id,
-                    caseId: c.id,
-                    type: "before",
-                    src: pair.before.image_url,
-                  })
-                }
-                onWatermark={() =>
-                  pair.before &&
-                  onWatermark({
-                    imageId: pair.before.id,
-                    caseId: c.id,
-                    type: "before",
-                    src: pair.before.image_url,
-                  })
-                }
-                onUpload={() => pair.before && onUpload(pair.before.id)}
-              />
-            </div>
-
-            <span className="text-[14px] text-[#CCC] pt-8 shrink-0">→</span>
-
-            <div className="flex-1">
-              <ImageSlot
-                src={pair.after?.image_url || null}
-                wmSrc={pair.after?.image_url_wm || null}
-                label="After"
-                onEdit={() =>
-                  pair.after &&
-                  onEdit({
-                    imageId: pair.after.id,
-                    caseId: c.id,
-                    type: "after",
-                    src: pair.after.image_url,
-                  })
-                }
-                onWatermark={() =>
-                  pair.after &&
-                  onWatermark({
-                    imageId: pair.after.id,
-                    caseId: c.id,
-                    type: "after",
-                    src: pair.after.image_url,
-                  })
-                }
-                onUpload={() => pair.after && onUpload(pair.after.id)}
-              />
-            </div>
-
-            <button
-              onClick={() => onDeletePair(c.id, pair)}
-              className="text-[#CCC] hover:text-red-500 pt-2 shrink-0"
-              title="이 쌍 삭제"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        ))}
-
-        <button
-          onClick={() => onAddPair(c.id, c.images)}
-          className="w-full py-2.5 border-2 border-dashed border-[#DDD] rounded-xl text-[13px] text-[#999] hover:border-[#999] hover:text-[#666] transition-all"
-        >
-          + 사진 쌍 추가
-        </button>
-      </div>
+      {expanded && (
+        <div className="px-5 pb-5 space-y-4 border-t border-[#F0F0F0] pt-4">
+          <ImageSection
+            caseId={c.id}
+            type="before"
+            images={beforeImages}
+            onBulkUpload={onBulkUpload}
+            onDeleteImage={onDeleteImage}
+            onSetPrimary={onSetPrimary}
+            onReorder={onReorderImages}
+            onEdit={onEdit}
+            onWatermark={onWatermark}
+          />
+          <ImageSection
+            caseId={c.id}
+            type="after"
+            images={afterImages}
+            onBulkUpload={onBulkUpload}
+            onDeleteImage={onDeleteImage}
+            onSetPrimary={onSetPrimary}
+            onReorder={onReorderImages}
+            onEdit={onEdit}
+            onWatermark={onWatermark}
+          />
+        </div>
+      )}
     </div>
   );
 }
 
 export default function RemodelingAdminPage() {
   const [cases, setCases] = useState<Case[]>([]);
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [toast, setToast] = useState("");
   const [editTarget, setEditTarget] = useState<EditorTarget | null>(null);
   const [wmTarget, setWmTarget] = useState<EditorTarget | null>(null);
@@ -392,6 +539,23 @@ export default function RemodelingAdminPage() {
     });
   };
 
+  const saveImage = async (data: { id: number; [key: string]: unknown }) => {
+    await fetch("/api/admin/remodeling/images", {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+  };
+
+  const toggleExpand = (id: number) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -406,12 +570,14 @@ export default function RemodelingAdminPage() {
   };
 
   const handleAdd = async () => {
-    await fetch("/api/admin/remodeling", {
+    const res = await fetch("/api/admin/remodeling", {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({ title: "", sort_order: cases.length + 1 }),
     });
+    const { id } = await res.json();
     load();
+    setExpandedIds((prev) => new Set(prev).add(id));
     flash("새 사례가 추가되었습니다");
   };
 
@@ -424,87 +590,6 @@ export default function RemodelingAdminPage() {
     setDeleting(null);
     load();
     flash("삭제되었습니다");
-  };
-
-  const handleAddPair = async (caseId: number, existingImages: CaseImage[]) => {
-    const maxOrder = existingImages.reduce(
-      (max, img) => Math.max(max, img.match_order),
-      0,
-    );
-    const nextOrder = maxOrder + 1;
-    await fetch("/api/admin/remodeling/images", {
-      method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify({
-        case_id: caseId,
-        type: "before",
-        match_order: nextOrder,
-        image_url: "",
-      }),
-    });
-    await fetch("/api/admin/remodeling/images", {
-      method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify({
-        case_id: caseId,
-        type: "after",
-        match_order: nextOrder,
-        image_url: "",
-      }),
-    });
-    load();
-    flash("사진 쌍이 추가되었습니다");
-  };
-
-  const handleDeletePair = async (
-    _caseId: number,
-    pair: { match_order: number; before?: CaseImage; after?: CaseImage },
-  ) => {
-    if (!window.confirm("이 사진 쌍을 삭제하시겠습니까?")) return;
-    if (pair.before) {
-      await fetch("/api/admin/remodeling/images", {
-        method: "DELETE",
-        headers: getHeaders(),
-        body: JSON.stringify({ id: pair.before.id }),
-      });
-    }
-    if (pair.after) {
-      await fetch("/api/admin/remodeling/images", {
-        method: "DELETE",
-        headers: getHeaders(),
-        body: JSON.stringify({ id: pair.after.id }),
-      });
-    }
-    load();
-    flash("사진 쌍이 삭제되었습니다");
-  };
-
-  const handleUpload = (imageId: number) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = async () => {
-      const files = input.files;
-      if (!files?.length) return;
-      const url = await uploadFile(files[0]);
-      await fetch("/api/admin/remodeling/images", {
-        method: "PUT",
-        headers: getHeaders(),
-        body: JSON.stringify({ id: imageId, image_url: url }),
-      });
-      load();
-      flash("업로드 완료");
-    };
-    input.click();
-  };
-
-  const handleTitleChange = (id: number, title: string) => {
-    setCases((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)));
-  };
-
-  const handleTitleBlur = async (id: number) => {
-    const c = cases.find((c) => c.id === id);
-    if (c) await save({ id, title: c.title });
   };
 
   const handleToggleMain = async (id: number, val: number) => {
@@ -521,14 +606,122 @@ export default function RemodelingAdminPage() {
     await save({ id, show_on_main: val });
   };
 
+  const handleTitleChange = (id: number, title: string) => {
+    setCases((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)));
+  };
+
+  const handleTitleBlur = async (id: number) => {
+    const c = cases.find((c) => c.id === id);
+    if (c) await save({ id, title: c.title });
+  };
+
+  const handleBulkUpload = async (
+    caseId: number,
+    type: "before" | "after",
+    files: FileList,
+  ) => {
+    const caseData = cases.find((c) => c.id === caseId);
+    const existing = caseData ? getImagesByType(caseData.images, type) : [];
+    const maxOrder = existing.reduce(
+      (max, img) => Math.max(max, img.match_order),
+      0,
+    );
+
+    flash(`${files.length}장 업로드 중...`);
+
+    for (let i = 0; i < files.length; i++) {
+      const url = await uploadFile(files[i], files[i].name);
+      const nextOrder = maxOrder + i + 1;
+      await fetch("/api/admin/remodeling/images", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          case_id: caseId,
+          type,
+          match_order: nextOrder,
+          image_url: url,
+        }),
+      });
+    }
+
+    load();
+    flash(`${files.length}장 업로드 완료`);
+  };
+
+  const handleDeleteImage = async (imageId: number) => {
+    if (!window.confirm("이 이미지를 삭제하시겠습니까?")) return;
+    await fetch("/api/admin/remodeling/images", {
+      method: "DELETE",
+      headers: getHeaders(),
+      body: JSON.stringify({ id: imageId }),
+    });
+    load();
+    flash("이미지가 삭제되었습니다");
+  };
+
+  const handleSetPrimary = async (
+    caseId: number,
+    imageId: number,
+    type: "before" | "after",
+  ) => {
+    const caseData = cases.find((c) => c.id === caseId);
+    if (!caseData) return;
+
+    const imgs = getImagesByType(caseData.images, type);
+    const currentPrimary = imgs.find((img) => img.match_order === 0);
+
+    if (currentPrimary && currentPrimary.id === imageId) return;
+
+    let order = 1;
+    for (const img of imgs) {
+      if (img.id === imageId) {
+        await saveImage({ id: img.id, match_order: 0 });
+      } else if (img.match_order === 0) {
+        await saveImage({ id: img.id, match_order: order });
+        order++;
+      } else {
+        await saveImage({ id: img.id, match_order: order });
+        order++;
+      }
+    }
+
+    load();
+    flash("대표 이미지가 설정되었습니다");
+  };
+
+  const handleReorderImages = async (
+    caseId: number,
+    type: "before" | "after",
+    oldIndex: number,
+    newIndex: number,
+  ) => {
+    setCases((prev) =>
+      prev.map((c) => {
+        if (c.id !== caseId) return c;
+        const typeImgs = getImagesByType(c.images, type);
+        const reordered = arrayMove(typeImgs, oldIndex, newIndex);
+        const otherImgs = c.images.filter((img) => img.type !== type);
+        const updatedImgs = reordered.map((img, i) => ({
+          ...img,
+          match_order: i,
+        }));
+        return { ...c, images: [...otherImgs, ...updatedImgs] };
+      }),
+    );
+
+    const caseData = cases.find((c) => c.id === caseId);
+    if (!caseData) return;
+    const typeImgs = getImagesByType(caseData.images, type);
+    const reordered = arrayMove(typeImgs, oldIndex, newIndex);
+    for (let i = 0; i < reordered.length; i++) {
+      await saveImage({ id: reordered[i].id, match_order: i });
+    }
+  };
+
   const handleEditorSave = async (blob: Blob) => {
     if (!editTarget) return;
     const url = await uploadFile(blob, "edited.jpg");
-    await fetch("/api/admin/remodeling/images", {
-      method: "PUT",
-      headers: getHeaders(),
-      body: JSON.stringify({ id: editTarget.imageId, image_url: url }),
-    });
+    await saveImage({ id: editTarget.imageId, image_url: url });
     setEditTarget(null);
     load();
     flash("편집이 저장되었습니다");
@@ -537,11 +730,7 @@ export default function RemodelingAdminPage() {
   const handleWatermarkSave = async (blob: Blob) => {
     if (!wmTarget) return;
     const url = await uploadFile(blob, "watermarked.jpg");
-    await fetch("/api/admin/remodeling/images", {
-      method: "PUT",
-      headers: getHeaders(),
-      body: JSON.stringify({ id: wmTarget.imageId, image_url_wm: url }),
-    });
+    await saveImage({ id: wmTarget.imageId, image_url_wm: url });
     setWmTarget(null);
     load();
     flash("워터마크가 적용되었습니다");
@@ -577,18 +766,21 @@ export default function RemodelingAdminPage() {
         >
           <div className="space-y-4">
             {cases.map((c) => (
-              <SortableCard
+              <SortableCase
                 key={c.id}
                 c={c}
+                expanded={expandedIds.has(c.id)}
+                onToggleExpand={toggleExpand}
                 onEdit={setEditTarget}
                 onWatermark={setWmTarget}
-                onUpload={handleUpload}
                 onToggleMain={handleToggleMain}
                 onDelete={(id) => setDeleting(id)}
                 onTitleChange={handleTitleChange}
                 onTitleBlur={handleTitleBlur}
-                onAddPair={handleAddPair}
-                onDeletePair={handleDeletePair}
+                onBulkUpload={handleBulkUpload}
+                onDeleteImage={handleDeleteImage}
+                onSetPrimary={handleSetPrimary}
+                onReorderImages={handleReorderImages}
               />
             ))}
           </div>

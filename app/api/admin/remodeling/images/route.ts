@@ -25,7 +25,7 @@ export async function PUT(req: NextRequest) {
   const { id, ...fields } = body;
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
 
-  const allowed = ["image_url", "image_url_wm"];
+  const allowed = ["image_url", "image_url_wm", "match_order"];
   const sets: string[] = [];
   const vals: unknown[] = [];
   for (const key of allowed) {
