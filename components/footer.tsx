@@ -1,11 +1,20 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Container } from "@/components/container";
 import { companyInfo } from "@/lib/site";
 
-interface FooterProps {
-  config?: Record<string, string>;
-}
+export function Footer() {
+  const [config, setConfig] = useState<Record<string, string>>({});
 
-export function Footer({ config }: FooterProps) {
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && typeof data === "object") setConfig(data);
+      })
+      .catch(() => {});
+  }, []);
   const info = {
     name: config?.footer_name || companyInfo.name,
     englishName: config?.footer_english_name || companyInfo.englishName,
