@@ -14,7 +14,7 @@ export const navItems = [
 
 export const companyInfo = {
   name: "업스테이",
-  englishName: "UPSTAY",
+  englishName: "up stay",
   ceo: "안민혁",
   address: "서울시 강남구 학동로 26길 82 (논현동 157-26번지 1층)",
   businessNumber: "308-25-02055",

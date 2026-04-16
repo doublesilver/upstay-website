@@ -74,7 +74,7 @@ export default function HomePage() {
   return (
     <div className="snap-y snap-mandatory h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-y-auto">
       {/* 1화면: 리모델링 */}
-      <section className="snap-start h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
+      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
             <div className="shrink-0">
@@ -92,11 +92,14 @@ export default function HomePage() {
                 {cases.map((c) => (
                   <div
                     key={c.id}
-                    className="bg-[#fdf6ee] border border-[#e8ddd0] rounded-xl p-3"
+                    className="bg-white border border-[#e8ddd0] rounded-xl p-3"
                   >
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <figure>
-                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                        <figcaption className="mb-1 text-[9px] uppercase tracking-wider text-[#111111]">
+                          BEFORE
+                        </figcaption>
+                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                           <Image
                             src={c.before_image}
                             alt={`${c.title} Before`}
@@ -106,15 +109,15 @@ export default function HomePage() {
                             unoptimized
                           />
                         </div>
-                        <figcaption className="mt-1 text-[9px] uppercase tracking-wider text-[#9CA3AF]">
-                          BEFORE
-                        </figcaption>
                       </figure>
-                      <span className="text-[20px] font-black text-[#111111] pb-4">
+                      <span className="text-[20px] font-black text-[#111111]">
                         →
                       </span>
                       <figure>
-                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                        <figcaption className="mb-1 text-[9px] uppercase tracking-wider text-[#111111]">
+                          AFTER
+                        </figcaption>
+                        <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                           <Image
                             src={c.after_image}
                             alt={`${c.title} After`}
@@ -124,9 +127,6 @@ export default function HomePage() {
                             unoptimized
                           />
                         </div>
-                        <figcaption className="mt-1 text-[9px] uppercase tracking-wider text-[#111111]">
-                          AFTER
-                        </figcaption>
                       </figure>
                     </div>
                   </div>
@@ -138,13 +138,13 @@ export default function HomePage() {
                 {cases.map((c) => (
                   <div
                     key={c.id}
-                    className="bg-[#fdf6ee] border border-[#e8ddd0] rounded-xl p-4 space-y-1.5"
+                    className="bg-white border border-[#e8ddd0] rounded-xl p-4 space-y-1.5"
                   >
                     <figure>
-                      <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF]">
+                      <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#111111]">
                         BEFORE
                       </figcaption>
-                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                         <Image
                           src={c.before_image}
                           alt={`${c.title} Before`}
@@ -162,7 +162,7 @@ export default function HomePage() {
                       <figcaption className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#111111]">
                         AFTER
                       </figcaption>
-                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-white relative">
+                      <div className="aspect-[3/2] border border-[#e8ddd0] rounded-lg overflow-hidden bg-[#fdf6ee] relative">
                         <Image
                           src={c.after_image}
                           alt={`${c.title} After`}
@@ -182,7 +182,7 @@ export default function HomePage() {
       </section>
 
       {/* 2화면: 서비스 + 푸터 */}
-      <section className="snap-start h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
+      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
         <Container className="py-4 md:py-8 w-full flex-1 flex items-center">
           <div className="w-full">
             <ServiceSections config={config} />

@@ -29,7 +29,7 @@ export function Header() {
                 {i > 0 && <span className="text-[#E5E7EB]">|</span>}
                 <Link
                   href={item.href}
-                  className="text-[11px] md:text-[14px] font-medium text-[#111111] hover:text-[#6B7280] transition-colors whitespace-nowrap"
+                  className="text-[11px] md:text-[14px] font-bold text-[#111111] hover:text-[#6B7280] transition-colors whitespace-nowrap"
                 >
                   {item.label}
                 </Link>
