@@ -29,8 +29,6 @@ export function Footer({ config }: FooterProps) {
     businessNumber: config?.footer_label_business_number_spacing || undefined,
     phone: config?.footer_label_phone_spacing || undefined,
   };
-  const leftW = config?.footer_left_width || "4.5em";
-  const rightW = config?.footer_right_width || "7.5em";
   return (
     <footer className="border-t border-[#E5E7EB]">
       <Container className="py-6 md:py-8 text-[11px] md:text-[12px] text-[#6B7280] leading-7">
@@ -38,18 +36,14 @@ export function Footer({ config }: FooterProps) {
           <tbody>
             <tr>
               <td className="pr-1">·</td>
-              <td style={{ letterSpacing: spacing.name, width: leftW }}>
-                {label.name}
-              </td>
+              <td style={{ letterSpacing: spacing.name }}>{label.name}</td>
               <td className="px-1">:</td>
               <td>
                 {info.name} ({info.englishName})
               </td>
               <td className="px-2 text-[#E5E7EB]">|</td>
               <td className="pr-1">·</td>
-              <td
-                style={{ letterSpacing: spacing.businessNumber, width: rightW }}
-              >
+              <td style={{ letterSpacing: spacing.businessNumber }}>
                 {label.businessNumber}
               </td>
               <td className="px-1">:</td>
@@ -57,22 +51,18 @@ export function Footer({ config }: FooterProps) {
             </tr>
             <tr>
               <td className="pr-1">·</td>
-              <td style={{ letterSpacing: spacing.ceo, width: leftW }}>
-                {label.ceo}
-              </td>
+              <td style={{ letterSpacing: spacing.ceo }}>{label.ceo}</td>
               <td className="px-1">:</td>
               <td>{info.ceo}</td>
               <td className="px-2 text-[#E5E7EB]">|</td>
               <td className="pr-1">·</td>
-              <td style={{ letterSpacing: spacing.phone, width: rightW }}>
-                {label.phone}
-              </td>
+              <td style={{ letterSpacing: spacing.phone }}>{label.phone}</td>
               <td className="px-1">:</td>
               <td className="whitespace-nowrap">{info.phone}</td>
             </tr>
             <tr>
               <td className="pr-1">·</td>
-              <td style={{ letterSpacing: spacing.address, width: leftW }}>
+              <td style={{ letterSpacing: spacing.address }}>
                 {label.address}
               </td>
               <td className="px-1">:</td>
