@@ -123,6 +123,9 @@ function initSchema(db: Database.Database) {
   );
   insert.run("service_rental_caption", "임대차의 모든업무");
 
+  insert.run("footer_colon_left_offset", "0px");
+  insert.run("footer_colon_right_offset", "0px");
+
   insert.run("schema_version", "3");
 
   // 기본 리모델링 사례 삽입

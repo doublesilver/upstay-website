@@ -257,13 +257,7 @@ function ImageSection({
   return (
     <div>
       <div className="flex items-center gap-3 mb-2">
-        <span
-          className={`text-[11px] font-bold tracking-wider px-2 py-0.5 rounded ${
-            type === "before"
-              ? "bg-[#111] text-white"
-              : "bg-emerald-500 text-white"
-          }`}
-        >
+        <span className="text-[11px] font-bold tracking-wider text-[#111]">
           {label}
         </span>
         <span className="text-[12px] text-[#999]">{images.length}장</span>
@@ -288,55 +282,57 @@ function ImageSection({
         />
       </div>
 
-      {images.length === 0 ? (
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="w-full py-6 border-2 border-dashed border-[#DDD] rounded-xl text-[13px] text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all"
-        >
-          클릭하여 {label} 이미지 업로드
-        </button>
-      ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={images.map((img) => `img-${img.id}`)}
-            strategy={horizontalListSortingStrategy}
+      <div className="border border-[#DDD] rounded-lg p-3">
+        {images.length === 0 ? (
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full py-6 border-2 border-dashed border-[#DDD] rounded-xl text-[13px] text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all"
           >
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {images.map((img) => (
-                <SortableThumb
-                  key={img.id}
-                  img={img}
-                  isPrimary={img.match_order === 0}
-                  onSetPrimary={() => onSetPrimary(caseId, img.id, type)}
-                  onDelete={() => onDeleteImage(img.id)}
-                  onEdit={() =>
-                    img.image_url &&
-                    onEdit({
-                      imageId: img.id,
-                      caseId,
-                      type,
-                      src: img.image_url,
-                    })
-                  }
-                  onWatermark={() =>
-                    img.image_url &&
-                    onWatermark({
-                      imageId: img.id,
-                      caseId,
-                      type,
-                      src: img.image_url,
-                    })
-                  }
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-      )}
+            클릭하여 {label} 이미지 업로드
+          </button>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={images.map((img) => `img-${img.id}`)}
+              strategy={horizontalListSortingStrategy}
+            >
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {images.map((img) => (
+                  <SortableThumb
+                    key={img.id}
+                    img={img}
+                    isPrimary={img.match_order === 0}
+                    onSetPrimary={() => onSetPrimary(caseId, img.id, type)}
+                    onDelete={() => onDeleteImage(img.id)}
+                    onEdit={() =>
+                      img.image_url &&
+                      onEdit({
+                        imageId: img.id,
+                        caseId,
+                        type,
+                        src: img.image_url,
+                      })
+                    }
+                    onWatermark={() =>
+                      img.image_url &&
+                      onWatermark({
+                        imageId: img.id,
+                        caseId,
+                        type,
+                        src: img.image_url,
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </div>
     </div>
   );
 }
@@ -425,47 +421,26 @@ function SortableCase({
 
         <button
           onClick={() => onToggleExpand(c.id)}
-          className="text-[#999] hover:text-[#333] transition-colors shrink-0"
+          className="text-[12px] text-[#999] hover:text-[#333] transition-colors shrink-0"
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`transition-transform ${expanded ? "rotate-90" : ""}`}
-          >
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          {expanded ? "접기" : "보기"}
         </button>
 
-        <input
-          type="text"
-          value={c.title}
-          onChange={(e) => onTitleChange(c.id, e.target.value)}
-          onBlur={() => onTitleBlur(c.id)}
-          placeholder="설명에 들어갈 내용을 작성해 주세요"
-          className="flex-1 text-[15px] font-medium text-[#111] outline-none border-b border-transparent focus:border-[#DDD] pb-1 transition-all"
-        />
+        <span className="flex-1 text-[15px] font-medium text-[#111] truncate">
+          {c.title || "설명 없음"}
+        </span>
 
         <div className="flex items-center gap-1 shrink-0">
-          <span className="text-[11px] text-[#BBB] mr-1">
-            B:{beforeImages.length} A:{afterImages.length}
-          </span>
-          <button
-            onClick={() => onToggleMain(c.id, c.show_on_main ? 0 : 1)}
-            className={`text-[20px] transition-all ${
-              c.show_on_main
-                ? "text-yellow-400 drop-shadow-sm"
-                : "text-[#DDD] hover:text-yellow-200"
-            }`}
-            title={c.show_on_main ? "대표 사례 (메인 노출)" : "대표 선정하기"}
+          <select
+            value={c.show_on_main}
+            onChange={(e) => onToggleMain(c.id, Number(e.target.value))}
+            className="text-[12px] text-[#666] border border-[#DDD] rounded-lg px-2 py-1 outline-none hover:border-[#999] transition-all"
           >
-            ★
-          </button>
+            <option value={0}>미노출</option>
+            <option value={1}>메인1</option>
+            <option value={2}>메인2</option>
+            <option value={3}>메인3</option>
+          </select>
           <button
             onClick={() => onDelete(c.id)}
             className="p-1.5 rounded-lg text-[#CCC] hover:text-red-500 hover:bg-red-50 transition-all"
@@ -511,6 +486,14 @@ function SortableCase({
             onReorder={onReorderImages}
             onEdit={onEdit}
             onWatermark={onWatermark}
+          />
+          <textarea
+            value={c.title}
+            onChange={(e) => onTitleChange(c.id, e.target.value)}
+            onBlur={() => onTitleBlur(c.id)}
+            placeholder="설명을 입력해 주세요"
+            rows={2}
+            className="w-full text-[14px] text-[#111] outline-none border border-[#DDD] rounded-lg p-3 resize-none focus:border-[#999] transition-all placeholder:text-[#CCC]"
           />
         </div>
       )}
@@ -601,7 +584,7 @@ export default function RemodelingAdminPage() {
       next.add(id);
       return next;
     });
-    flash("새 사례가 추가되었습니다");
+    flash("새 폴더가 추가되었습니다");
   };
 
   const handleDelete = async (id: number) => {
@@ -616,10 +599,20 @@ export default function RemodelingAdminPage() {
   };
 
   const handleToggleMain = async (id: number, val: number) => {
-    if (val === 1) {
-      const featured = cases.filter((c) => c.show_on_main && c.id !== id);
-      if (featured.length >= 4) {
-        alert("대표 사례는 최대 4개까지 선정할 수 있습니다.");
+    if (val >= 1 && val <= 3) {
+      const conflict = cases.find((c) => c.show_on_main === val && c.id !== id);
+      if (conflict) {
+        const currentCase = cases.find((c) => c.id === id);
+        const oldVal = currentCase?.show_on_main || 0;
+        setCases((prev) =>
+          prev.map((c) => {
+            if (c.id === id) return { ...c, show_on_main: val };
+            if (c.id === conflict.id) return { ...c, show_on_main: oldVal };
+            return c;
+          }),
+        );
+        await save({ id: conflict.id, show_on_main: oldVal });
+        await save({ id, show_on_main: val });
         return;
       }
     }
@@ -773,17 +766,14 @@ export default function RemodelingAdminPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-[26px] font-bold text-[#111] tracking-tight">
-            리모델링 사례
+            사진등록
           </h1>
-          <p className="mt-1 text-[14px] text-[#888]">
-            Before/After 사례를 관리합니다
-          </p>
         </div>
         <button
           onClick={handleAdd}
           className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
         >
-          + 새 사례
+          + 새폴더
         </button>
       </div>
 

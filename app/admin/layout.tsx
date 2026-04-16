@@ -28,7 +28,7 @@ const navItems = [
     ),
   },
   {
-    label: "리모델링 사건등록",
+    label: "리모델링 사진등록",
     href: "/admin/remodeling",
     icon: (
       <svg

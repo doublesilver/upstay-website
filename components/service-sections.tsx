@@ -45,7 +45,7 @@ function ServiceSection({
   const ts = titleStyle || {};
   const ds = descStyle || {};
   return (
-    <div className="bg-[#fdf6ee] border border-[#e8ddd0] rounded-xl px-4 py-2.5 md:px-6 md:py-3.5">
+    <div className="bg-[#fdf6ee] border border-[#111111] rounded-xl px-4 py-2.5 md:px-6 md:py-3.5">
       <h2
         className="text-[14px] md:text-[17px] font-bold tracking-tight text-[#111111] mb-1.5"
         style={styledCss(ts)}
@@ -57,7 +57,7 @@ function ServiceSection({
         )}
         {title}
       </h2>
-      <div className="bg-white border border-[#e8ddd0] rounded-lg px-3 py-2 md:px-4 md:py-2.5">
+      <div className="bg-white border border-[#111111] rounded-lg px-3 py-2 md:px-4 md:py-2.5">
         <div className="flex justify-between items-start">
           <p
             className="text-[12px] md:text-[14px] font-bold text-[#111111] leading-relaxed whitespace-pre-line"
