@@ -79,7 +79,22 @@ export default function HomePage() {
           <div className="bg-[#fdf6ee] border border-[#e8ddd0] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
             <div className="shrink-0">
               <Link href="/remodeling" className="inline-block">
-                <h2 className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors">
+                <h2
+                  className="text-[16px] md:text-[22px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
+                  style={(() => {
+                    try {
+                      const s = JSON.parse(
+                        config.remodeling_section_title_style || "{}",
+                      );
+                      const css: Record<string, string> = {};
+                      if (s.fontSize) css.fontSize = s.fontSize;
+                      if (s.fontWeight) css.fontWeight = s.fontWeight;
+                      return css;
+                    } catch {
+                      return {};
+                    }
+                  })()}
+                >
                   {config.remodeling_section_title || "리모델링 사례보기"} →
                 </h2>
               </Link>

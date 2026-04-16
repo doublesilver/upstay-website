@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Toast } from "@/components/admin/toast";
+import {
+  StyleToolbar,
+  parseStyle,
+  type TextStyle,
+} from "@/components/admin/style-toolbar";
 
 function getToken() {
   return sessionStorage.getItem("admin_token") || "";
@@ -62,6 +67,12 @@ export default function ConfigPage() {
       });
   }, []);
 
+  const getStyle = (key: string): TextStyle =>
+    parseStyle(config[`${key}_style`] || "{}");
+  const setStyle = (key: string) => (style: TextStyle) => {
+    setConfig((prev) => ({ ...prev, [`${key}_style`]: JSON.stringify(style) }));
+  };
+
   const set =
     (key: keyof Config) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -116,6 +127,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 메인 타이틀
               </label>
+              <StyleToolbar
+                value={getStyle("hero_title")}
+                onChange={setStyle("hero_title")}
+              />
               <textarea
                 value={config.hero_title}
                 onChange={set("hero_title")}
@@ -131,6 +146,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 서브타이틀
               </label>
+              <StyleToolbar
+                value={getStyle("hero_subtitle")}
+                onChange={setStyle("hero_subtitle")}
+              />
               <input
                 type="text"
                 value={config.hero_subtitle}
@@ -156,6 +175,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 섹션 제목
               </label>
+              <StyleToolbar
+                value={getStyle("remodeling_section_title")}
+                onChange={setStyle("remodeling_section_title")}
+              />
               <input
                 type="text"
                 value={config.remodeling_section_title}
@@ -168,6 +191,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 더보기 버튼 문구
               </label>
+              <StyleToolbar
+                value={getStyle("remodeling_more_text")}
+                onChange={setStyle("remodeling_more_text")}
+              />
               <input
                 type="text"
                 value={config.remodeling_more_text}
@@ -193,6 +220,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 페이지 제목
               </label>
+              <StyleToolbar
+                value={getStyle("remodeling_page_title")}
+                onChange={setStyle("remodeling_page_title")}
+              />
               <input
                 type="text"
                 value={config.remodeling_page_title}
@@ -204,6 +235,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 페이지 부제목
               </label>
+              <StyleToolbar
+                value={getStyle("remodeling_page_subtitle")}
+                onChange={setStyle("remodeling_page_subtitle")}
+              />
               <input
                 type="text"
                 value={config.remodeling_page_subtitle}
@@ -228,6 +263,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 카테고리 제목
               </label>
+              <StyleToolbar
+                value={getStyle("service_remodeling_title")}
+                onChange={setStyle("service_remodeling_title")}
+              />
               <input
                 type="text"
                 value={config.service_remodeling_title}
@@ -239,6 +278,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 서비스 내용
               </label>
+              <StyleToolbar
+                value={getStyle("service_remodeling_desc")}
+                onChange={setStyle("service_remodeling_desc")}
+              />
               <textarea
                 value={config.service_remodeling_desc}
                 onChange={set("service_remodeling_desc")}
@@ -262,6 +305,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 카테고리 제목
               </label>
+              <StyleToolbar
+                value={getStyle("service_building_title")}
+                onChange={setStyle("service_building_title")}
+              />
               <input
                 type="text"
                 value={config.service_building_title}
@@ -273,6 +320,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 서비스 내용
               </label>
+              <StyleToolbar
+                value={getStyle("service_building_desc")}
+                onChange={setStyle("service_building_desc")}
+              />
               <textarea
                 value={config.service_building_desc}
                 onChange={set("service_building_desc")}
@@ -296,6 +347,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 카테고리 제목
               </label>
+              <StyleToolbar
+                value={getStyle("service_rental_title")}
+                onChange={setStyle("service_rental_title")}
+              />
               <input
                 type="text"
                 value={config.service_rental_title}
@@ -307,6 +362,10 @@ export default function ConfigPage() {
               <label className="block text-[13px] font-medium text-[#333] mb-1.5">
                 서비스 내용
               </label>
+              <StyleToolbar
+                value={getStyle("service_rental_desc")}
+                onChange={setStyle("service_rental_desc")}
+              />
               <textarea
                 value={config.service_rental_desc}
                 onChange={set("service_rental_desc")}
