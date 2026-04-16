@@ -12,6 +12,16 @@ function getToken() {
   return sessionStorage.getItem("admin_token") || "";
 }
 
+async function apiFetch(url: string, options?: RequestInit) {
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    sessionStorage.removeItem("admin_token");
+    window.location.href = "/admin";
+    throw new Error("Unauthorized");
+  }
+  return res;
+}
+
 interface Config {
   remodeling_section_title: string;
   remodeling_page_title: string;
@@ -58,13 +68,14 @@ export default function ConfigPage() {
   const [toast, setToast] = useState("");
 
   useEffect(() => {
-    fetch("/api/admin/config", {
+    apiFetch("/api/admin/config", {
       headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then((r) => r.json())
       .then((data) => {
         setConfig((prev) => ({ ...prev, ...data }));
-      });
+      })
+      .catch(() => setToast("불러오기 실패"));
   }, []);
 
   const getStyle = (key: string): TextStyle =>
@@ -81,16 +92,21 @@ export default function ConfigPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    const res = await fetch("/api/admin/config", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify(config),
-    });
-    setSaving(false);
-    setToast(res.ok ? "저장되었습니다" : "저장 실패");
+    try {
+      const res = await apiFetch("/api/admin/config", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(config),
+      });
+      setToast(res.ok ? "저장되었습니다" : "저장 실패");
+    } catch {
+      setToast("저장 실패");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

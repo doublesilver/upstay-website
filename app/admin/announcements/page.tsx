@@ -23,6 +23,16 @@ function getHeaders() {
   };
 }
 
+async function apiFetch(url: string, options?: RequestInit) {
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    sessionStorage.removeItem("admin_token");
+    window.location.href = "/admin";
+    throw new Error("Unauthorized");
+  }
+  return res;
+}
+
 export default function AnnouncementsAdminPage() {
   const [items, setItems] = useState<Announcement[]>([]);
   const [editing, setEditing] = useState<Announcement | null>(null);
@@ -30,9 +40,10 @@ export default function AnnouncementsAdminPage() {
   const [deleting, setDeleting] = useState<number | null>(null);
 
   const load = useCallback(() => {
-    fetch("/api/admin/announcements", { headers: getHeaders() })
+    apiFetch("/api/admin/announcements", { headers: getHeaders() })
       .then((r) => r.json())
-      .then(setItems);
+      .then(setItems)
+      .catch(() => setToast("불러오기 실패"));
   }, []);
 
   useEffect(load, [load]);
@@ -40,34 +51,46 @@ export default function AnnouncementsAdminPage() {
   const handleSave = async () => {
     if (!editing) return;
     const method = editing.id ? "PUT" : "POST";
-    await fetch("/api/admin/announcements", {
-      method,
-      headers: getHeaders(),
-      body: JSON.stringify(editing),
-    });
-    setEditing(null);
-    setToast(editing.id ? "수정되었습니다" : "등록되었습니다");
-    load();
+    try {
+      await apiFetch("/api/admin/announcements", {
+        method,
+        headers: getHeaders(),
+        body: JSON.stringify(editing),
+      });
+      setEditing(null);
+      setToast(editing.id ? "수정되었습니다" : "등록되었습니다");
+      load();
+    } catch {
+      setToast("저장 실패");
+    }
   };
 
   const handleDelete = async (id: number) => {
-    await fetch("/api/admin/announcements", {
-      method: "DELETE",
-      headers: getHeaders(),
-      body: JSON.stringify({ id }),
-    });
-    setDeleting(null);
-    setToast("삭제되었습니다");
-    load();
+    try {
+      await apiFetch("/api/admin/announcements", {
+        method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify({ id }),
+      });
+      setDeleting(null);
+      setToast("삭제되었습니다");
+      load();
+    } catch {
+      setToast("삭제 실패");
+    }
   };
 
   const handleToggleVisible = async (item: Announcement) => {
-    await fetch("/api/admin/announcements", {
-      method: "PUT",
-      headers: getHeaders(),
-      body: JSON.stringify({ ...item, is_visible: item.is_visible ? 0 : 1 }),
-    });
-    load();
+    try {
+      await apiFetch("/api/admin/announcements", {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify({ ...item, is_visible: item.is_visible ? 0 : 1 }),
+      });
+      load();
+    } catch {
+      setToast("변경 실패");
+    }
   };
 
   const newItem = (): Announcement => ({
