@@ -7,28 +7,7 @@ import { useEffect, useState } from "react";
 
 const navItems = [
   {
-    label: "대시보드",
-    href: "/admin",
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    label: "리모델링 사진등록",
+    label: "사진등록",
     href: "/admin/remodeling",
     icon: (
       <svg
