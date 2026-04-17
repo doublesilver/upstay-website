@@ -27,8 +27,7 @@ import {
   GripVertical,
   Plus,
 } from "lucide-react";
-import { ImageEditor } from "@/components/admin/image-editor";
-import { WatermarkEditor } from "@/components/admin/watermark-editor";
+import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
 
 interface CaseImage {
@@ -47,13 +46,6 @@ interface Case {
   created_at: string;
   images: CaseImage[];
 }
-
-type EditorTarget = {
-  imageId: number;
-  caseId: number;
-  type: "before" | "after";
-  src: string;
-};
 
 function getToken() {
   return sessionStorage.getItem("admin_token") || "";
@@ -107,21 +99,15 @@ function getImagesByType(images: CaseImage[], type: "before" | "after") {
 function SortableThumb({
   img,
   isPrimary,
-  editMode,
   checked,
   onToggleCheck,
   onSetPrimary,
-  onEdit,
-  onWatermark,
 }: {
   img: CaseImage;
   isPrimary: boolean;
-  editMode: boolean;
   checked: boolean;
   onToggleCheck: () => void;
   onSetPrimary: () => void;
-  onEdit: () => void;
-  onWatermark: () => void;
 }) {
   const {
     attributes,
@@ -130,7 +116,7 @@ function SortableThumb({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: `img-${img.id}`, disabled: editMode });
+  } = useSortable({ id: `img-${img.id}` });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -142,9 +128,7 @@ function SortableThumb({
       ref={setNodeRef}
       style={style}
       className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all ${
-        editMode && checked
-          ? "border-[#111] ring-2 ring-[#111]"
-          : "border-[#E5E5E5]"
+        checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#E5E5E5]"
       }`}
     >
       {img.image_url ? (
@@ -153,10 +137,9 @@ function SortableThumb({
           <img
             src={img.image_url_wm || img.image_url}
             alt=""
-            className={`w-full h-full object-cover ${editMode ? "cursor-pointer" : ""}`}
-            onClick={editMode ? onToggleCheck : undefined}
-            {...(!editMode ? attributes : {})}
-            {...(!editMode ? listeners : {})}
+            className="w-full h-full object-cover"
+            {...attributes}
+            {...listeners}
           />
           {img.image_url_wm && (
             <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[8px] px-1 py-0.5 rounded">
@@ -167,82 +150,54 @@ function SortableThumb({
       ) : (
         <div
           className="w-full h-full bg-[#F5F5F5] flex items-center justify-center text-[#CCC]"
-          {...(!editMode ? attributes : {})}
-          {...(!editMode ? listeners : {})}
+          {...attributes}
+          {...listeners}
         >
           <ImageOff size={20} />
         </div>
       )}
 
-      {editMode && (
-        <>
-          <span
-            onClick={onToggleCheck}
-            className={`absolute top-1 left-1 w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer z-10 ${
-              checked
-                ? "bg-[#111] border-[#111] text-white"
-                : "bg-white/90 border-[#DDD]"
-            }`}
+      <span
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleCheck();
+        }}
+        className={`absolute top-1 left-1 w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer z-10 transition-opacity ${
+          checked
+            ? "bg-[#111] border-[#111] text-white opacity-100"
+            : "bg-white/90 border-[#DDD] opacity-0 group-hover:opacity-100"
+        }`}
+      >
+        {checked && (
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            {checked && (
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            )}
-          </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onSetPrimary();
-            }}
-            className={`absolute top-1 right-1 text-[14px] z-10 ${
-              isPrimary
-                ? "text-yellow-400 drop-shadow"
-                : "text-white/80 hover:text-yellow-300"
-            }`}
-            title={isPrimary ? "대표 이미지" : "대표로 설정"}
-          >
-            ★
-          </button>
-          {img.image_url && (
-            <div className="absolute inset-x-0 bottom-0 flex gap-1 p-1 bg-gradient-to-t from-black/60 to-transparent">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit();
-                }}
-                className="bg-white/90 text-[#333] rounded px-1.5 py-0.5 text-[9px] font-medium hover:bg-white"
-              >
-                편집
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onWatermark();
-                }}
-                className="bg-white/90 text-[#333] rounded px-1.5 py-0.5 text-[9px] font-medium hover:bg-white"
-              >
-                WM
-              </button>
-            </div>
-          )}
-        </>
-      )}
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+      </span>
 
-      {!editMode && isPrimary && (
-        <span className="absolute top-1 right-1 text-yellow-400 drop-shadow text-[14px] z-10">
-          ★
-        </span>
-      )}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onSetPrimary();
+        }}
+        className={`absolute top-1 right-1 text-[14px] z-10 transition-opacity ${
+          isPrimary
+            ? "text-yellow-400 drop-shadow opacity-100"
+            : "text-white/80 opacity-0 group-hover:opacity-100 hover:text-yellow-300"
+        }`}
+        title={isPrimary ? "대표 이미지" : "대표로 설정"}
+      >
+        ★
+      </button>
     </div>
   );
 }
@@ -283,25 +238,21 @@ function ImageSection({
   type,
   images,
   uploading,
-  editMode,
   checkedIds,
-  onToggleEditMode,
+  onOpenEdit,
   onToggleCheck,
   onBulkUpload,
   onBulkDeleteAll,
   onDeleteSelected,
   onSetPrimary,
   onReorder,
-  onEdit,
-  onWatermark,
 }: {
   caseId: number;
   type: "before" | "after";
   images: CaseImage[];
   uploading?: boolean;
-  editMode: boolean;
   checkedIds: Set<number>;
-  onToggleEditMode: () => void;
+  onOpenEdit: (caseId: number, type: "before" | "after") => void;
   onToggleCheck: (imageId: number) => void;
   onBulkUpload: (
     caseId: number,
@@ -321,8 +272,6 @@ function ImageSection({
     oldIndex: number,
     newIndex: number,
   ) => void;
-  onEdit: (target: EditorTarget) => void;
-  onWatermark: (target: EditorTarget) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(
@@ -352,16 +301,16 @@ function ImageSection({
           disabled={uploading}
         />
         <ToolbarButton
-          onClick={onToggleEditMode}
+          onClick={() => onOpenEdit(caseId, type)}
           icon={<SquarePen size={14} />}
-          label={editMode ? "완료" : "편집"}
-          tone={editMode ? "active" : "default"}
+          label="편집"
+          disabled={images.length === 0}
         />
         <ToolbarButton
           onClick={() => onDeleteSelected(caseId, type)}
           icon={<CheckSquare size={14} />}
           label={`선택 삭제${checkedIds.size > 0 ? ` (${checkedIds.size})` : ""}`}
-          disabled={!editMode || checkedIds.size === 0}
+          disabled={checkedIds.size === 0}
           tone="danger"
         />
         <ToolbarButton
@@ -414,28 +363,9 @@ function ImageSection({
                     key={img.id}
                     img={img}
                     isPrimary={img.match_order === 0}
-                    editMode={editMode}
                     checked={checkedIds.has(img.id)}
                     onToggleCheck={() => onToggleCheck(img.id)}
                     onSetPrimary={() => onSetPrimary(caseId, img.id, type)}
-                    onEdit={() =>
-                      img.image_url &&
-                      onEdit({
-                        imageId: img.id,
-                        caseId,
-                        type,
-                        src: img.image_url,
-                      })
-                    }
-                    onWatermark={() =>
-                      img.image_url &&
-                      onWatermark({
-                        imageId: img.id,
-                        caseId,
-                        type,
-                        src: img.image_url,
-                      })
-                    }
                   />
                 ))}
               </div>
@@ -450,12 +380,9 @@ function ImageSection({
 function SortableCase({
   c,
   uploading,
-  getEditMode,
   getChecked,
-  onToggleEditMode,
+  onOpenEdit,
   onToggleCheck,
-  onEdit,
-  onWatermark,
   onToggleMain,
   onDelete,
   onTitleChange,
@@ -469,16 +396,13 @@ function SortableCase({
 }: {
   c: Case;
   uploading?: boolean;
-  getEditMode: (type: "before" | "after") => boolean;
   getChecked: (type: "before" | "after") => Set<number>;
-  onToggleEditMode: (caseId: number, type: "before" | "after") => void;
+  onOpenEdit: (caseId: number, type: "before" | "after") => void;
   onToggleCheck: (
     caseId: number,
     type: "before" | "after",
     imageId: number,
   ) => void;
-  onEdit: (target: EditorTarget) => void;
-  onWatermark: (target: EditorTarget) => void;
   onToggleMain: (id: number, val: number) => void;
   onDelete: (id: number) => void;
   onTitleChange: (id: number, title: string) => void;
@@ -552,17 +476,14 @@ function SortableCase({
             type={t}
             images={t === "before" ? beforeImages : afterImages}
             uploading={uploading}
-            editMode={getEditMode(t)}
             checkedIds={getChecked(t)}
-            onToggleEditMode={() => onToggleEditMode(c.id, t)}
+            onOpenEdit={onOpenEdit}
             onToggleCheck={(imgId) => onToggleCheck(c.id, t, imgId)}
             onBulkUpload={onBulkUpload}
             onBulkDeleteAll={onBulkDeleteAll}
             onDeleteSelected={onDeleteSelected}
             onSetPrimary={onSetPrimary}
             onReorder={onReorderImages}
-            onEdit={onEdit}
-            onWatermark={onWatermark}
           />
         ))}
 
@@ -612,12 +533,13 @@ function SortableCase({
 export default function RemodelingAdminPage() {
   const [cases, setCases] = useState<Case[]>([]);
   const [toast, setToast] = useState("");
-  const [editTarget, setEditTarget] = useState<EditorTarget | null>(null);
-  const [wmTarget, setWmTarget] = useState<EditorTarget | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [editorSection, setEditorSection] = useState<{
+    caseId: number;
+    type: "before" | "after";
+  } | null>(null);
 
-  const [editModeKeys, setEditModeKeys] = useState<Set<string>>(new Set());
   const [checkedMap, setCheckedMap] = useState<Map<string, Set<number>>>(
     new Map(),
   );
@@ -659,24 +581,6 @@ export default function RemodelingAdminPage() {
     } catch {}
   };
 
-  const toggleEditMode = (caseId: number, type: "before" | "after") => {
-    const k = sectionKey(caseId, type);
-    setEditModeKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(k)) {
-        next.delete(k);
-        setCheckedMap((cp) => {
-          const cn = new Map(cp);
-          cn.delete(k);
-          return cn;
-        });
-      } else {
-        next.add(k);
-      }
-      return next;
-    });
-  };
-
   const toggleCheck = (
     caseId: number,
     type: "before" | "after",
@@ -693,16 +597,10 @@ export default function RemodelingAdminPage() {
     });
   };
 
-  const clearSectionState = (caseId: number, type: "before" | "after") => {
-    const k = sectionKey(caseId, type);
+  const clearSectionChecks = (caseId: number, type: "before" | "after") => {
     setCheckedMap((p) => {
       const n = new Map(p);
-      n.delete(k);
-      return n;
-    });
-    setEditModeKeys((p) => {
-      const n = new Set(p);
-      n.delete(k);
+      n.delete(sectionKey(caseId, type));
       return n;
     });
   };
@@ -860,7 +758,7 @@ export default function RemodelingAdminPage() {
           }),
         ),
       );
-      clearSectionState(caseId, type);
+      clearSectionChecks(caseId, type);
       load();
       flash(`${type.toUpperCase()} 이미지가 모두 삭제되었습니다`);
     } catch {}
@@ -884,7 +782,7 @@ export default function RemodelingAdminPage() {
           }),
         ),
       );
-      clearSectionState(caseId, type);
+      clearSectionChecks(caseId, type);
       load();
       flash(`${ids.length}장이 삭제되었습니다`);
     } catch {}
@@ -961,23 +859,12 @@ export default function RemodelingAdminPage() {
     } catch {}
   };
 
-  const handleEditorSave = async (blob: Blob) => {
-    if (!editTarget) return;
-    const url = await uploadFile(blob);
-    await saveImage({ id: editTarget.imageId, image_url: url });
-    setEditTarget(null);
-    load();
-    flash("편집이 저장되었습니다");
-  };
-
-  const handleWatermarkSave = async (blob: Blob) => {
-    if (!wmTarget) return;
-    const url = await uploadFile(blob);
-    await saveImage({ id: wmTarget.imageId, image_url_wm: url });
-    setWmTarget(null);
-    load();
-    flash("워터마크가 적용되었습니다");
-  };
+  const editorImages = editorSection
+    ? getImagesByType(
+        cases.find((c) => c.id === editorSection.caseId)?.images ?? [],
+        editorSection.type,
+      )
+    : [];
 
   return (
     <div>
@@ -1008,14 +895,13 @@ export default function RemodelingAdminPage() {
                 key={c.id}
                 c={c}
                 uploading={uploading}
-                getEditMode={(t) => editModeKeys.has(sectionKey(c.id, t))}
                 getChecked={(t) =>
                   checkedMap.get(sectionKey(c.id, t)) ?? new Set()
                 }
-                onToggleEditMode={toggleEditMode}
+                onOpenEdit={(cid, t) =>
+                  setEditorSection({ caseId: cid, type: t })
+                }
                 onToggleCheck={toggleCheck}
-                onEdit={setEditTarget}
-                onWatermark={setWmTarget}
                 onToggleMain={handleToggleMain}
                 onDelete={(id) => setDeleting(id)}
                 onTitleChange={handleTitleChange}
@@ -1078,19 +964,32 @@ export default function RemodelingAdminPage() {
         </div>
       )}
 
-      {editTarget && (
-        <ImageEditor
-          src={editTarget.src}
-          onSave={handleEditorSave}
-          onCancel={() => setEditTarget(null)}
-        />
-      )}
-
-      {wmTarget && (
-        <WatermarkEditor
-          src={wmTarget.src}
-          onSave={handleWatermarkSave}
-          onCancel={() => setWmTarget(null)}
+      {editorSection && editorImages.length > 0 && (
+        <ImageEditModal
+          images={editorImages}
+          initialImageId={editorImages[0].id}
+          sectionLabel={`${editorSection.type === "before" ? "BEFORE" : "AFTER"} · ${editorImages.length}장`}
+          onApplyOne={async (id, blob) => {
+            const url = await uploadFile(blob);
+            await saveImage({ id, image_url: url });
+            load();
+            flash("변경사항이 적용되었습니다");
+          }}
+          onApplyAll={async (ids, getBlob) => {
+            flash(`${ids.length}장 처리 중...`);
+            let success = 0;
+            for (const id of ids) {
+              const blob = await getBlob(id);
+              if (!blob) continue;
+              const url = await uploadFile(blob);
+              await saveImage({ id, image_url: url });
+              success++;
+            }
+            load();
+            flash(`${success}/${ids.length}장에 전체 적용 완료`);
+            setEditorSection(null);
+          }}
+          onCancel={() => setEditorSection(null)}
         />
       )}
 
