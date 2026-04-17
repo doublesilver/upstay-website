@@ -5,7 +5,7 @@ import {
   getSiteConfig,
 } from "@/lib/home-data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default function HomePage() {
   return (

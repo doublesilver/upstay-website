@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { blurDataURL } from "@/lib/shimmer";
 import { use, useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { Container } from "@/components/container";
 
@@ -164,6 +165,9 @@ export default function RemodelingDetailPage({
                     fill
                     className="object-cover"
                     priority
+                    quality={70}
+                    placeholder="blur"
+                    blurDataURL={blurDataURL()}
                   />
                   {befores.length > 1 && (
                     <>
@@ -201,6 +205,9 @@ export default function RemodelingDetailPage({
                           alt={`${data.title} Before ${i + 1}`}
                           fill
                           className="object-cover"
+                          quality={70}
+                          placeholder="blur"
+                          blurDataURL={blurDataURL()}
                         />
                       </button>
                     ))}
@@ -223,7 +230,9 @@ export default function RemodelingDetailPage({
                     alt={`${data.title} After ${afterIdx + 1}`}
                     fill
                     className="object-cover"
-                    priority
+                    quality={70}
+                    placeholder="blur"
+                    blurDataURL={blurDataURL()}
                   />
                   {afters.length > 1 && (
                     <>
@@ -261,6 +270,9 @@ export default function RemodelingDetailPage({
                           alt={`${data.title} After ${i + 1}`}
                           fill
                           className="object-cover"
+                          quality={70}
+                          placeholder="blur"
+                          blurDataURL={blurDataURL()}
                         />
                       </button>
                     ))}

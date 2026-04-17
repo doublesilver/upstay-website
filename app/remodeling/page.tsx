@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { getAllCases } from "@/lib/home-data";
+import { blurDataURL } from "@/lib/shimmer";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default function RemodelingPage() {
   const cases = getAllCases();
@@ -41,6 +42,9 @@ export default function RemodelingPage() {
                           fill
                           className="object-cover"
                           sizes="20vw"
+                          quality={70}
+                          placeholder="blur"
+                          blurDataURL={blurDataURL()}
                         />
                       </div>
                     ))}
@@ -65,6 +69,9 @@ export default function RemodelingPage() {
                           fill
                           className="object-cover"
                           sizes="20vw"
+                          quality={70}
+                          placeholder="blur"
+                          blurDataURL={blurDataURL()}
                         />
                       </div>
                     ))}

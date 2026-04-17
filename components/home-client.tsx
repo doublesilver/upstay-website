@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { blurDataURL } from "@/lib/shimmer";
 import { useEffect, useRef, useState } from "react";
 import { Container } from "@/components/container";
 import { ServiceSections } from "@/components/service-sections";
@@ -73,7 +74,7 @@ export function HomeClient({
 
             {/* 3카드: BEFORE 2x2 → AFTER 2x2 */}
             <div className="mt-3 md:mt-4 flex-1 min-h-0 space-y-3 md:space-y-4 overflow-y-auto">
-              {initialCases.slice(0, 3).map((c) => {
+              {initialCases.slice(0, 3).map((c, cIndex) => {
                 const befores = c.before_images?.length
                   ? c.before_images
                   : [c.before_image].filter(Boolean);
@@ -103,6 +104,12 @@ export function HomeClient({
                                 fill
                                 className="object-cover"
                                 sizes="20vw"
+                                quality={70}
+                                placeholder="blur"
+                                blurDataURL={blurDataURL()}
+                                {...(cIndex === 0 && j === 0
+                                  ? { priority: true, fetchPriority: "high" }
+                                  : {})}
                               />
                             </div>
                           ))}
@@ -127,6 +134,9 @@ export function HomeClient({
                                 fill
                                 className="object-cover"
                                 sizes="20vw"
+                                quality={70}
+                                placeholder="blur"
+                                blurDataURL={blurDataURL()}
                               />
                             </div>
                           ))}

@@ -139,6 +139,8 @@ function SortableThumb({
             src={img.image_url_wm || img.image_url}
             alt=""
             draggable={false}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover pointer-events-none select-none"
           />
           {img.image_url_wm && (

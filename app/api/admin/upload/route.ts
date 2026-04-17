@@ -6,7 +6,8 @@ import { verifyToken, unauthorized } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-const UPLOAD_DIR = path.join(process.cwd(), "data", "uploads");
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
+const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 
 const MAGIC_NUMBERS: Record<string, number[][]> = {
   jpg: [[0xff, 0xd8, 0xff]],
