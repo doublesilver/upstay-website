@@ -82,18 +82,13 @@ function errMsg(e: unknown): string {
 async function uploadFiles(files: File[]): Promise<string[]> {
   const fd = new FormData();
   files.forEach((f) => fd.append("files", f, f.name));
-  try {
-    const res = await apiFetch("/api/admin/upload", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${getToken()}` },
-      body: fd,
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.urls || [];
-  } catch {
-    return [];
-  }
+  const res = await apiFetch("/api/admin/upload", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}` },
+    body: fd,
+  });
+  const data = await res.json();
+  return data.urls || [];
 }
 
 async function uploadFile(file: Blob): Promise<string> {
