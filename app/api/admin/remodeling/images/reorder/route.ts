@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
   const db = getDb();
   const stmt = db.prepare("UPDATE case_images SET match_order=? WHERE id=?");
   const tx = db.transaction((rows: { id: number; match_order: number }[]) => {
+    for (const r of rows) stmt.run(-r.id, r.id);
     for (const r of rows) stmt.run(r.match_order, r.id);
   });
   tx(items);

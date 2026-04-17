@@ -64,7 +64,19 @@ async function apiFetch(url: string, options?: RequestInit) {
     window.location.href = "/admin";
     throw new Error("Unauthorized");
   }
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const data = await res.clone().json();
+      detail = data?.error ? `: ${data.error}` : "";
+    } catch {}
+    throw new Error(`${res.status} ${res.statusText}${detail}`);
+  }
   return res;
+}
+
+function errMsg(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
 }
 
 async function uploadFiles(files: File[]): Promise<string[]> {
@@ -561,29 +573,25 @@ export default function RemodelingAdminPage() {
     apiFetch("/api/admin/remodeling", { headers: getHeaders() })
       .then((r) => r.json())
       .then(setCases)
-      .catch(() => {});
+      .catch((e) => setToast(`불러오기 실패: ${errMsg(e)}`));
   }, []);
 
   useEffect(load, [load]);
 
   const save = async (c: Partial<Case> & { id: number }) => {
-    try {
-      await apiFetch("/api/admin/remodeling", {
-        method: "PUT",
-        headers: getHeaders(),
-        body: JSON.stringify(c),
-      });
-    } catch {}
+    await apiFetch("/api/admin/remodeling", {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(c),
+    });
   };
 
   const saveImage = async (data: { id: number; [key: string]: unknown }) => {
-    try {
-      await apiFetch("/api/admin/remodeling/images", {
-        method: "PUT",
-        headers: getHeaders(),
-        body: JSON.stringify(data),
-      });
-    } catch {}
+    await apiFetch("/api/admin/remodeling/images", {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
   };
 
   const toggleCheck = (
@@ -626,7 +634,11 @@ export default function RemodelingAdminPage() {
         }),
       });
       flash("순서가 변경되었습니다");
-    } catch {}
+      load();
+    } catch (e) {
+      flash(`순서 변경 실패: ${errMsg(e)}`);
+      load();
+    }
   };
 
   const handleAdd = async () => {
@@ -642,7 +654,9 @@ export default function RemodelingAdminPage() {
       });
       load();
       flash("새 폴더가 추가되었습니다");
-    } catch {}
+    } catch (e) {
+      flash(`추가 실패: ${errMsg(e)}`);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -655,7 +669,9 @@ export default function RemodelingAdminPage() {
       setDeleting(null);
       load();
       flash("삭제되었습니다");
-    } catch {}
+    } catch (e) {
+      flash(`삭제 실패: ${errMsg(e)}`);
+    }
   };
 
   const handleToggleMain = (id: number, val: number) => {
@@ -685,12 +701,16 @@ export default function RemodelingAdminPage() {
           x.show_on_main === c.show_on_main &&
           x.id !== id),
     );
-    await Promise.all(
-      targets.map((t) =>
-        save({ id: t.id, title: t.title, show_on_main: t.show_on_main }),
-      ),
-    );
-    flash("저장되었습니다");
+    try {
+      await Promise.all(
+        targets.map((t) =>
+          save({ id: t.id, title: t.title, show_on_main: t.show_on_main }),
+        ),
+      );
+      flash("저장되었습니다");
+    } catch (e) {
+      flash(`저장 실패: ${errMsg(e)}`);
+    }
   };
 
   const handleBulkUpload = async (
@@ -708,6 +728,7 @@ export default function RemodelingAdminPage() {
     flash(`${files.length}장 업로드 중...`);
     setUploading(true);
     let success = 0;
+    let failedReason = "";
 
     try {
       const fileArray = Array.from(files);
@@ -715,23 +736,33 @@ export default function RemodelingAdminPage() {
 
       for (let i = 0; i < urls.length; i++) {
         const nextOrder = maxOrder + i + 1;
-        const res = await apiFetch("/api/admin/remodeling/images", {
-          method: "POST",
-          headers: getHeaders(),
-          body: JSON.stringify({
-            case_id: caseId,
-            type,
-            match_order: nextOrder,
-            image_url: urls[i],
-          }),
-        });
-        if (res.ok) success++;
+        try {
+          await apiFetch("/api/admin/remodeling/images", {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({
+              case_id: caseId,
+              type,
+              match_order: nextOrder,
+              image_url: urls[i],
+            }),
+          });
+          success++;
+        } catch (e) {
+          failedReason = errMsg(e);
+        }
       }
-    } catch {}
+    } catch (e) {
+      failedReason = errMsg(e);
+    }
 
     setUploading(false);
     load();
-    flash(`${success}/${files.length}장 업로드 완료`);
+    if (success === files.length) {
+      flash(`${success}장 업로드 완료`);
+    } else {
+      flash(`${success}/${files.length}장 업로드 완료 (실패: ${failedReason})`);
+    }
   };
 
   const handleBulkDeleteAll = async (
@@ -761,7 +792,9 @@ export default function RemodelingAdminPage() {
       clearSectionChecks(caseId, type);
       load();
       flash(`${type.toUpperCase()} 이미지가 모두 삭제되었습니다`);
-    } catch {}
+    } catch (e) {
+      flash(`삭제 실패: ${errMsg(e)}`);
+    }
   };
 
   const handleDeleteSelected = async (
@@ -785,7 +818,9 @@ export default function RemodelingAdminPage() {
       clearSectionChecks(caseId, type);
       load();
       flash(`${ids.length}장이 삭제되었습니다`);
-    } catch {}
+    } catch (e) {
+      flash(`삭제 실패: ${errMsg(e)}`);
+    }
   };
 
   const handleSetPrimary = async (
@@ -819,7 +854,9 @@ export default function RemodelingAdminPage() {
       });
       load();
       flash("대표 이미지가 설정되었습니다");
-    } catch {}
+    } catch (e) {
+      flash(`대표 설정 실패: ${errMsg(e)}`);
+    }
   };
 
   const handleReorderImages = async (
@@ -856,7 +893,12 @@ export default function RemodelingAdminPage() {
           })),
         }),
       });
-    } catch {}
+      flash("이미지 순서 저장됨");
+      load();
+    } catch (e) {
+      flash(`이미지 순서 저장 실패: ${errMsg(e)}`);
+      load();
+    }
   };
 
   const editorImages = editorSection

@@ -27,8 +27,8 @@ export default function RemodelingPage() {
             >
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <div>
-                  <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
-                    BEFORE ( 전 )
+                  <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#666] mb-1 font-medium">
+                    BEFORE (전)
                   </p>
                   <div className="grid grid-cols-2 gap-1">
                     {befores.slice(0, 4).map((url, j) => (
@@ -54,8 +54,8 @@ export default function RemodelingPage() {
                   &rarr;
                 </span>
                 <div>
-                  <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
-                    AFTER ( 후 )
+                  <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#666] mb-1 font-medium">
+                    AFTER (후)
                   </p>
                   <div className="grid grid-cols-2 gap-1">
                     {afters.slice(0, 4).map((url, j) => (
