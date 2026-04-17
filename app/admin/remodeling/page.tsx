@@ -922,16 +922,10 @@ export default function RemodelingAdminPage() {
       {deleting !== null && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
-            <div className="px-6 py-6 text-center">
-              <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
-                <Trash2 size={24} />
-              </div>
+            <div className="px-6 py-8 text-center">
               <h3 className="text-[17px] font-bold text-[#111]">
-                사례를 삭제하시겠습니까?
+                삭제하시겠습니까?
               </h3>
-              <p className="mt-2 text-[13px] text-[#888]">
-                삭제된 사례와 이미지는 복구할 수 없습니다
-              </p>
             </div>
             <div className="px-6 py-4 border-t border-[#EBEBEB] flex gap-3">
               <button
