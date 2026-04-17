@@ -103,7 +103,9 @@ export function Footer({ config = {} }: { config?: Record<string, string> }) {
               <td className="px-1">
                 <span style={{ position: "relative", left: colonLeft }}>:</span>
               </td>
-              <td colSpan={6}>{c("footer_address", companyInfo.address)}</td>
+              <td colSpan={6} style={{ whiteSpace: "pre-wrap" }}>
+                {c("footer_address", companyInfo.address)}
+              </td>
             </tr>
           </tbody>
         </table>
