@@ -17,6 +17,16 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import {
+  Upload,
+  SquarePen,
+  CheckSquare,
+  Trash2,
+  Trash,
+  ImageOff,
+  GripVertical,
+  Plus,
+} from "lucide-react";
 import { ImageEditor } from "@/components/admin/image-editor";
 import { WatermarkEditor } from "@/components/admin/watermark-editor";
 import { Toast } from "@/components/admin/toast";
@@ -83,7 +93,7 @@ async function uploadFiles(files: File[]): Promise<string[]> {
   }
 }
 
-async function uploadFile(file: Blob, name?: string): Promise<string> {
+async function uploadFile(file: Blob): Promise<string> {
   const urls = await uploadFiles([file as File]);
   return urls[0] || "";
 }
@@ -97,15 +107,19 @@ function getImagesByType(images: CaseImage[], type: "before" | "after") {
 function SortableThumb({
   img,
   isPrimary,
+  editMode,
+  checked,
+  onToggleCheck,
   onSetPrimary,
-  onDelete,
   onEdit,
   onWatermark,
 }: {
   img: CaseImage;
   isPrimary: boolean;
+  editMode: boolean;
+  checked: boolean;
+  onToggleCheck: () => void;
   onSetPrimary: () => void;
-  onDelete: () => void;
   onEdit: () => void;
   onWatermark: () => void;
 }) {
@@ -116,7 +130,7 @@ function SortableThumb({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: `img-${img.id}` });
+  } = useSortable({ id: `img-${img.id}`, disabled: editMode });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -127,7 +141,11 @@ function SortableThumb({
     <div
       ref={setNodeRef}
       style={style}
-      className="relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border border-[#E5E5E5]"
+      className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all ${
+        editMode && checked
+          ? "border-[#111] ring-2 ring-[#111]"
+          : "border-[#E5E5E5]"
+      }`}
     >
       {img.image_url ? (
         <>
@@ -135,12 +153,13 @@ function SortableThumb({
           <img
             src={img.image_url_wm || img.image_url}
             alt=""
-            className="w-full h-full object-cover"
-            {...attributes}
-            {...listeners}
+            className={`w-full h-full object-cover ${editMode ? "cursor-pointer" : ""}`}
+            onClick={editMode ? onToggleCheck : undefined}
+            {...(!editMode ? attributes : {})}
+            {...(!editMode ? listeners : {})}
           />
           {img.image_url_wm && (
-            <span className="absolute top-1 left-1 bg-[#111]/70 text-white text-[8px] px-1 py-0.5 rounded">
+            <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[8px] px-1 py-0.5 rounded">
               WM
             </span>
           )}
@@ -148,63 +167,114 @@ function SortableThumb({
       ) : (
         <div
           className="w-full h-full bg-[#F5F5F5] flex items-center justify-center text-[#CCC]"
-          {...attributes}
-          {...listeners}
+          {...(!editMode ? attributes : {})}
+          {...(!editMode ? listeners : {})}
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <path d="m21 15-5-5L5 21" />
-          </svg>
+          <ImageOff size={20} />
         </div>
       )}
 
-      <button
-        onClick={onSetPrimary}
-        className={`absolute top-1 right-1 text-[14px] transition-all z-10 ${
-          isPrimary
-            ? "text-yellow-400 drop-shadow"
-            : "text-white/60 opacity-0 group-hover:opacity-100 hover:text-yellow-300"
-        }`}
-        title={isPrimary ? "대표 이미지" : "대표로 설정"}
-      >
-        ★
-      </button>
+      {editMode && (
+        <>
+          <span
+            onClick={onToggleCheck}
+            className={`absolute top-1 left-1 w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer z-10 ${
+              checked
+                ? "bg-[#111] border-[#111] text-white"
+                : "bg-white/90 border-[#DDD]"
+            }`}
+          >
+            {checked && (
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            )}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onSetPrimary();
+            }}
+            className={`absolute top-1 right-1 text-[14px] z-10 ${
+              isPrimary
+                ? "text-yellow-400 drop-shadow"
+                : "text-white/80 hover:text-yellow-300"
+            }`}
+            title={isPrimary ? "대표 이미지" : "대표로 설정"}
+          >
+            ★
+          </button>
+          {img.image_url && (
+            <div className="absolute inset-x-0 bottom-0 flex gap-1 p-1 bg-gradient-to-t from-black/60 to-transparent">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
+                className="bg-white/90 text-[#333] rounded px-1.5 py-0.5 text-[9px] font-medium hover:bg-white"
+              >
+                편집
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onWatermark();
+                }}
+                className="bg-white/90 text-[#333] rounded px-1.5 py-0.5 text-[9px] font-medium hover:bg-white"
+              >
+                WM
+              </button>
+            </div>
+          )}
+        </>
+      )}
 
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-end justify-center gap-1 pb-1 opacity-0 group-hover:opacity-100">
-        {img.image_url && (
-          <>
-            <button
-              onClick={onEdit}
-              className="bg-white/90 text-[#333] rounded px-1.5 py-0.5 text-[9px] font-medium hover:bg-white"
-            >
-              편집
-            </button>
-            <button
-              onClick={onWatermark}
-              className="bg-white/90 text-[#333] rounded px-1.5 py-0.5 text-[9px] font-medium hover:bg-white"
-            >
-              WM
-            </button>
-          </>
-        )}
-      </div>
-
-      <button
-        onClick={onDelete}
-        className="absolute top-1 left-1 w-5 h-5 bg-red-500/80 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all z-10"
-        title="삭제"
-      >
-        ✕
-      </button>
+      {!editMode && isPrimary && (
+        <span className="absolute top-1 right-1 text-yellow-400 drop-shadow text-[14px] z-10">
+          ★
+        </span>
+      )}
     </div>
+  );
+}
+
+function ToolbarButton({
+  onClick,
+  icon,
+  label,
+  disabled,
+  tone,
+}: {
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  disabled?: boolean;
+  tone?: "default" | "danger" | "active";
+}) {
+  const cls =
+    tone === "danger"
+      ? "border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300"
+      : tone === "active"
+        ? "border-[#111] bg-[#111] text-white"
+        : "border-[#DDD] text-[#555] hover:text-[#111] hover:border-[#999]";
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex items-center gap-1.5 text-[12px] border rounded-lg px-2.5 py-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${cls}`}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   );
 }
 
@@ -213,9 +283,13 @@ function ImageSection({
   type,
   images,
   uploading,
+  editMode,
+  checkedIds,
+  onToggleEditMode,
+  onToggleCheck,
   onBulkUpload,
-  onDeleteImage,
-  onBulkDelete,
+  onBulkDeleteAll,
+  onDeleteSelected,
   onSetPrimary,
   onReorder,
   onEdit,
@@ -225,13 +299,17 @@ function ImageSection({
   type: "before" | "after";
   images: CaseImage[];
   uploading?: boolean;
+  editMode: boolean;
+  checkedIds: Set<number>;
+  onToggleEditMode: () => void;
+  onToggleCheck: (imageId: number) => void;
   onBulkUpload: (
     caseId: number,
     type: "before" | "after",
     files: FileList,
   ) => void;
-  onDeleteImage: (caseId: number, imageId: number) => void;
-  onBulkDelete: (caseId: number, type: "before" | "after") => void;
+  onBulkDeleteAll: (caseId: number, type: "before" | "after") => void;
+  onDeleteSelected: (caseId: number, type: "before" | "after") => void;
   onSetPrimary: (
     caseId: number,
     imageId: number,
@@ -263,22 +341,40 @@ function ImageSection({
   };
 
   const label = type === "before" ? "BEFORE" : "AFTER";
-  const primaryImg = images.find((img) => img.match_order === 0);
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-2">
-        <span className="text-[11px] font-bold tracking-wider text-[#111]">
-          {label}
-        </span>
-        <span className="text-[12px] text-[#999]">{images.length}장</span>
-        <button
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <ToolbarButton
           onClick={() => fileRef.current?.click()}
+          icon={<Upload size={14} />}
+          label={uploading ? "업로드 중..." : "업로드"}
           disabled={uploading}
-          className={`ml-auto text-[12px] border rounded-lg px-3 py-1 transition-all ${uploading ? "text-[#CCC] border-[#EEE] cursor-not-allowed" : "text-[#666] hover:text-[#111] border-[#DDD] hover:border-[#999]"}`}
-        >
-          {uploading ? "업로드 중..." : "+ 업로드"}
-        </button>
+        />
+        <ToolbarButton
+          onClick={onToggleEditMode}
+          icon={<SquarePen size={14} />}
+          label={editMode ? "완료" : "편집"}
+          tone={editMode ? "active" : "default"}
+        />
+        <ToolbarButton
+          onClick={() => onDeleteSelected(caseId, type)}
+          icon={<CheckSquare size={14} />}
+          label={`선택 삭제${checkedIds.size > 0 ? ` (${checkedIds.size})` : ""}`}
+          disabled={!editMode || checkedIds.size === 0}
+          tone="danger"
+        />
+        <ToolbarButton
+          onClick={() => onBulkDeleteAll(caseId, type)}
+          icon={<Trash size={14} />}
+          label="전체 삭제"
+          disabled={images.length === 0}
+          tone="danger"
+        />
+        <span className="ml-auto text-[12px] text-[#666] font-medium">
+          {label} <span className="text-[#BBB]">·</span>{" "}
+          <span className="text-[#111]">{images.length}장</span>
+        </span>
         <input
           ref={fileRef}
           type="file"
@@ -294,11 +390,11 @@ function ImageSection({
         />
       </div>
 
-      <div className="border border-[#DDD] rounded-lg p-3">
+      <div className="border border-[#DDD] rounded-lg p-3 bg-[#FAFAFA]">
         {images.length === 0 ? (
           <button
             onClick={() => fileRef.current?.click()}
-            className="w-full py-6 border-2 border-dashed border-[#DDD] rounded-xl text-[13px] text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all"
+            className="w-full py-8 border-2 border-dashed border-[#DDD] rounded-xl text-[13px] text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all bg-white"
           >
             클릭하여 {label} 이미지 업로드
           </button>
@@ -312,14 +408,16 @@ function ImageSection({
               items={images.map((img) => `img-${img.id}`)}
               strategy={horizontalListSortingStrategy}
             >
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
                 {images.map((img) => (
                   <SortableThumb
                     key={img.id}
                     img={img}
                     isPrimary={img.match_order === 0}
+                    editMode={editMode}
+                    checked={checkedIds.has(img.id)}
+                    onToggleCheck={() => onToggleCheck(img.id)}
                     onSetPrimary={() => onSetPrimary(caseId, img.id, type)}
-                    onDelete={() => onDeleteImage(caseId, img.id)}
                     onEdit={() =>
                       img.image_url &&
                       onEdit({
@@ -345,61 +443,54 @@ function ImageSection({
           </DndContext>
         )}
       </div>
-      {images.length > 0 && (
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={() => onBulkDelete(caseId, type)}
-            className="text-[11px] text-red-500 hover:text-red-700 transition-colors"
-          >
-            일괄 삭제
-          </button>
-          <button
-            disabled
-            className="text-[11px] text-[#CCC] cursor-not-allowed"
-            title="준비 중"
-          >
-            일괄 워터마크
-          </button>
-        </div>
-      )}
     </div>
   );
 }
 
 function SortableCase({
   c,
-  expanded,
   uploading,
-  onToggleExpand,
+  getEditMode,
+  getChecked,
+  onToggleEditMode,
+  onToggleCheck,
   onEdit,
   onWatermark,
   onToggleMain,
   onDelete,
   onTitleChange,
   onTitleBlur,
+  onRegister,
   onBulkUpload,
-  onDeleteImage,
-  onBulkDelete,
+  onBulkDeleteAll,
+  onDeleteSelected,
   onSetPrimary,
   onReorderImages,
 }: {
   c: Case;
-  expanded: boolean;
   uploading?: boolean;
-  onToggleExpand: (id: number) => void;
+  getEditMode: (type: "before" | "after") => boolean;
+  getChecked: (type: "before" | "after") => Set<number>;
+  onToggleEditMode: (caseId: number, type: "before" | "after") => void;
+  onToggleCheck: (
+    caseId: number,
+    type: "before" | "after",
+    imageId: number,
+  ) => void;
   onEdit: (target: EditorTarget) => void;
   onWatermark: (target: EditorTarget) => void;
   onToggleMain: (id: number, val: number) => void;
   onDelete: (id: number) => void;
   onTitleChange: (id: number, title: string) => void;
   onTitleBlur: (id: number) => void;
+  onRegister: (id: number) => void;
   onBulkUpload: (
     caseId: number,
     type: "before" | "after",
     files: FileList,
   ) => void;
-  onDeleteImage: (caseId: number, imageId: number) => void;
-  onBulkDelete: (caseId: number, type: "before" | "after") => void;
+  onBulkDeleteAll: (caseId: number, type: "before" | "after") => void;
+  onDeleteSelected: (caseId: number, type: "before" | "after") => void;
   onSetPrimary: (
     caseId: number,
     imageId: number,
@@ -435,127 +526,103 @@ function SortableCase({
       style={style}
       className="bg-white border border-[#EBEBEB] rounded-2xl overflow-hidden hover:shadow-sm transition-all"
     >
-      <div className="flex items-center gap-3 px-5 py-4">
-        <button
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-[#CCC] hover:text-[#666] transition-colors shrink-0"
-          title="드래그하여 순서 변경"
-        >
-          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
-            <circle cx="5" cy="3" r="1.2" />
-            <circle cx="11" cy="3" r="1.2" />
-            <circle cx="5" cy="8" r="1.2" />
-            <circle cx="11" cy="8" r="1.2" />
-            <circle cx="5" cy="13" r="1.2" />
-            <circle cx="11" cy="13" r="1.2" />
-          </svg>
-        </button>
-
-        <button
-          onClick={() => onToggleExpand(c.id)}
-          className="text-[12px] text-[#999] hover:text-[#333] transition-colors shrink-0"
-        >
-          {expanded ? "접기" : "보기"}
-        </button>
-
-        <span className="flex-1 text-[15px] font-medium text-[#111] truncate">
-          {c.title || "설명 없음"}
-        </span>
-
-        <div className="flex items-center gap-1 shrink-0">
-          {(
-            [
-              [0, "미노출"],
-              [1, "메인1"],
-              [2, "메인2"],
-              [3, "메인3"],
-            ] as [number, string][]
-          ).map(([val, label]) => (
-            <button
-              key={val}
-              onClick={() => onToggleMain(c.id, val)}
-              className={`px-2 py-0.5 rounded text-[11px] transition-all ${
-                c.show_on_main === val
-                  ? "bg-[#111] text-white"
-                  : "bg-white text-[#999] border border-[#DDD]"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+      <div className="px-5 pt-4 pb-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-[#CCC] hover:text-[#666] transition-colors shrink-0 p-1"
+            title="드래그하여 순서 변경"
+          >
+            <GripVertical size={18} />
+          </button>
           <button
             onClick={() => onDelete(c.id)}
-            className="p-1.5 rounded-lg text-[#CCC] hover:text-red-500 hover:bg-red-50 transition-all"
-            title="삭제"
+            className="ml-auto p-1.5 rounded-lg text-[#CCC] hover:text-red-500 hover:bg-red-50 transition-all"
+            title="사례 삭제"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="3,6 5,6 21,6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
+            <Trash2 size={16} />
           </button>
         </div>
-      </div>
 
-      {expanded && (
-        <div className="px-5 pb-5 space-y-4 border-t border-[#F0F0F0] pt-4">
+        {(["before", "after"] as const).map((t) => (
           <ImageSection
+            key={t}
             caseId={c.id}
-            type="before"
-            images={beforeImages}
+            type={t}
+            images={t === "before" ? beforeImages : afterImages}
             uploading={uploading}
+            editMode={getEditMode(t)}
+            checkedIds={getChecked(t)}
+            onToggleEditMode={() => onToggleEditMode(c.id, t)}
+            onToggleCheck={(imgId) => onToggleCheck(c.id, t, imgId)}
             onBulkUpload={onBulkUpload}
-            onDeleteImage={onDeleteImage}
-            onBulkDelete={onBulkDelete}
+            onBulkDeleteAll={onBulkDeleteAll}
+            onDeleteSelected={onDeleteSelected}
             onSetPrimary={onSetPrimary}
             onReorder={onReorderImages}
             onEdit={onEdit}
             onWatermark={onWatermark}
           />
-          <ImageSection
-            caseId={c.id}
-            type="after"
-            images={afterImages}
-            uploading={uploading}
-            onBulkUpload={onBulkUpload}
-            onDeleteImage={onDeleteImage}
-            onBulkDelete={onBulkDelete}
-            onSetPrimary={onSetPrimary}
-            onReorder={onReorderImages}
-            onEdit={onEdit}
-            onWatermark={onWatermark}
-          />
-          <textarea
+        ))}
+
+        <div className="flex items-center gap-3">
+          <label className="text-[13px] font-medium text-[#333] shrink-0">
+            내용
+          </label>
+          <input
+            type="text"
             value={c.title}
             onChange={(e) => onTitleChange(c.id, e.target.value)}
             onBlur={() => onTitleBlur(c.id)}
             placeholder="설명을 입력해 주세요"
-            rows={2}
-            className="w-full text-[14px] text-[#111] outline-none border border-[#DDD] rounded-lg p-3 resize-none focus:border-[#999] transition-all placeholder:text-[#CCC]"
+            className="flex-1 text-[14px] text-[#111] outline-none border border-[#DDD] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#CCC]"
           />
         </div>
-      )}
+      </div>
+
+      <div className="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex items-center justify-end gap-2">
+        {([1, 2, 3] as const).map((val) => {
+          const active = c.show_on_main === val;
+          return (
+            <button
+              key={val}
+              onClick={() => onToggleMain(c.id, active ? 0 : val)}
+              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
+                active
+                  ? "bg-[#111] text-white border border-[#111]"
+                  : "bg-white text-[#666] border border-[#DDD] hover:border-[#999] hover:text-[#111]"
+              }`}
+            >
+              메인{val}
+            </button>
+          );
+        })}
+        <button
+          onClick={() => onRegister(c.id)}
+          className="bg-[#111] text-white rounded-lg px-4 py-1.5 text-[12px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
+        >
+          등록
+        </button>
+      </div>
     </div>
   );
 }
 
 export default function RemodelingAdminPage() {
   const [cases, setCases] = useState<Case[]>([]);
-  const [expandedIds, setExpandedIds] = useState<Set<number> | "all">("all");
   const [toast, setToast] = useState("");
   const [editTarget, setEditTarget] = useState<EditorTarget | null>(null);
   const [wmTarget, setWmTarget] = useState<EditorTarget | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  const [editModeKeys, setEditModeKeys] = useState<Set<string>>(new Set());
+  const [checkedMap, setCheckedMap] = useState<Map<string, Set<number>>>(
+    new Map(),
+  );
+  const sectionKey = (caseId: number, type: "before" | "after") =>
+    `${type}-${caseId}`;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -592,17 +659,51 @@ export default function RemodelingAdminPage() {
     } catch {}
   };
 
-  const toggleExpand = (id: number) => {
-    setExpandedIds((prev) => {
-      if (prev === "all") {
-        const all = new Set(cases.map((c) => c.id));
-        all.delete(id);
-        return all;
-      }
+  const toggleEditMode = (caseId: number, type: "before" | "after") => {
+    const k = sectionKey(caseId, type);
+    setEditModeKeys((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(k)) {
+        next.delete(k);
+        setCheckedMap((cp) => {
+          const cn = new Map(cp);
+          cn.delete(k);
+          return cn;
+        });
+      } else {
+        next.add(k);
+      }
       return next;
+    });
+  };
+
+  const toggleCheck = (
+    caseId: number,
+    type: "before" | "after",
+    imageId: number,
+  ) => {
+    const k = sectionKey(caseId, type);
+    setCheckedMap((prev) => {
+      const next = new Map(prev);
+      const set = new Set(next.get(k) ?? []);
+      if (set.has(imageId)) set.delete(imageId);
+      else set.add(imageId);
+      next.set(k, set);
+      return next;
+    });
+  };
+
+  const clearSectionState = (caseId: number, type: "before" | "after") => {
+    const k = sectionKey(caseId, type);
+    setCheckedMap((p) => {
+      const n = new Map(p);
+      n.delete(k);
+      return n;
+    });
+    setEditModeKeys((p) => {
+      const n = new Set(p);
+      n.delete(k);
+      return n;
     });
   };
 
@@ -627,7 +728,7 @@ export default function RemodelingAdminPage() {
 
   const handleAdd = async () => {
     try {
-      const res = await apiFetch("/api/admin/remodeling", {
+      await apiFetch("/api/admin/remodeling", {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
@@ -636,14 +737,7 @@ export default function RemodelingAdminPage() {
           show_on_main: 0,
         }),
       });
-      const { id } = await res.json();
       load();
-      setExpandedIds((prev) => {
-        const next =
-          prev === "all" ? new Set(cases.map((c) => c.id)) : new Set(prev);
-        next.add(id);
-        return next;
-      });
       flash("새 폴더가 추가되었습니다");
     } catch {}
   };
@@ -694,6 +788,13 @@ export default function RemodelingAdminPage() {
     if (c) await save({ id, title: c.title });
   };
 
+  const handleRegister = async (id: number) => {
+    const c = cases.find((c) => c.id === id);
+    if (!c) return;
+    await save({ id, title: c.title });
+    flash("등록되었습니다");
+  };
+
   const handleBulkUpload = async (
     caseId: number,
     type: "before" | "after",
@@ -735,20 +836,10 @@ export default function RemodelingAdminPage() {
     flash(`${success}/${files.length}장 업로드 완료`);
   };
 
-  const handleDeleteImage = async (caseId: number, imageId: number) => {
-    if (!window.confirm("이 이미지를 삭제하시겠습니까?")) return;
-    try {
-      await apiFetch("/api/admin/remodeling/images", {
-        method: "DELETE",
-        headers: getHeaders(),
-        body: JSON.stringify({ id: imageId, case_id: caseId }),
-      });
-      load();
-      flash("이미지가 삭제되었습니다");
-    } catch {}
-  };
-
-  const handleBulkDelete = async (caseId: number, type: "before" | "after") => {
+  const handleBulkDeleteAll = async (
+    caseId: number,
+    type: "before" | "after",
+  ) => {
     const caseData = cases.find((c) => c.id === caseId);
     if (!caseData) return;
     const imgs = getImagesByType(caseData.images, type);
@@ -769,8 +860,33 @@ export default function RemodelingAdminPage() {
           }),
         ),
       );
+      clearSectionState(caseId, type);
       load();
       flash(`${type.toUpperCase()} 이미지가 모두 삭제되었습니다`);
+    } catch {}
+  };
+
+  const handleDeleteSelected = async (
+    caseId: number,
+    type: "before" | "after",
+  ) => {
+    const ids = Array.from(checkedMap.get(sectionKey(caseId, type)) ?? []);
+    if (ids.length === 0) return;
+    if (!window.confirm(`선택한 이미지 ${ids.length}장을 삭제하시겠습니까?`))
+      return;
+    try {
+      await Promise.all(
+        ids.map((imageId) =>
+          apiFetch("/api/admin/remodeling/images", {
+            method: "DELETE",
+            headers: getHeaders(),
+            body: JSON.stringify({ id: imageId, case_id: caseId }),
+          }),
+        ),
+      );
+      clearSectionState(caseId, type);
+      load();
+      flash(`${ids.length}장이 삭제되었습니다`);
     } catch {}
   };
 
@@ -847,7 +963,7 @@ export default function RemodelingAdminPage() {
 
   const handleEditorSave = async (blob: Blob) => {
     if (!editTarget) return;
-    const url = await uploadFile(blob, "edited.jpg");
+    const url = await uploadFile(blob);
     await saveImage({ id: editTarget.imageId, image_url: url });
     setEditTarget(null);
     load();
@@ -856,7 +972,7 @@ export default function RemodelingAdminPage() {
 
   const handleWatermarkSave = async (blob: Blob) => {
     if (!wmTarget) return;
-    const url = await uploadFile(blob, "watermarked.jpg");
+    const url = await uploadFile(blob);
     await saveImage({ id: wmTarget.imageId, image_url_wm: url });
     setWmTarget(null);
     load();
@@ -866,16 +982,14 @@ export default function RemodelingAdminPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-[26px] font-bold text-[#111] tracking-tight">
-            사진등록
-          </h1>
-        </div>
+        <h1 className="text-[26px] font-bold text-[#111] tracking-tight">
+          사진등록
+        </h1>
         <button
           onClick={handleAdd}
-          className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
+          className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all inline-flex items-center gap-1.5"
         >
-          + 새폴더
+          <Plus size={16} />새 폴더
         </button>
       </div>
 
@@ -893,18 +1007,23 @@ export default function RemodelingAdminPage() {
               <SortableCase
                 key={c.id}
                 c={c}
-                expanded={expandedIds === "all" || expandedIds.has(c.id)}
                 uploading={uploading}
-                onToggleExpand={toggleExpand}
+                getEditMode={(t) => editModeKeys.has(sectionKey(c.id, t))}
+                getChecked={(t) =>
+                  checkedMap.get(sectionKey(c.id, t)) ?? new Set()
+                }
+                onToggleEditMode={toggleEditMode}
+                onToggleCheck={toggleCheck}
                 onEdit={setEditTarget}
                 onWatermark={setWmTarget}
                 onToggleMain={handleToggleMain}
                 onDelete={(id) => setDeleting(id)}
                 onTitleChange={handleTitleChange}
                 onTitleBlur={handleTitleBlur}
+                onRegister={handleRegister}
                 onBulkUpload={handleBulkUpload}
-                onDeleteImage={handleDeleteImage}
-                onBulkDelete={handleBulkDelete}
+                onBulkDeleteAll={handleBulkDeleteAll}
+                onDeleteSelected={handleDeleteSelected}
                 onSetPrimary={handleSetPrimary}
                 onReorderImages={handleReorderImages}
               />
@@ -915,21 +1034,8 @@ export default function RemodelingAdminPage() {
 
       {cases.length === 0 && (
         <div className="bg-white border border-[#EBEBEB] rounded-2xl py-20 text-center">
-          <div className="w-16 h-16 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#CCC"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <path d="m21 15-5-5L5 21" />
-            </svg>
+          <div className="w-16 h-16 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#CCC]">
+            <ImageOff size={28} />
           </div>
           <p className="text-[15px] font-medium text-[#999]">
             등록된 사례가 없습니다
@@ -944,20 +1050,8 @@ export default function RemodelingAdminPage() {
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
             <div className="px-6 py-6 text-center">
-              <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#EF4444"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="3,6 5,6 21,6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
+              <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                <Trash2 size={24} />
               </div>
               <h3 className="text-[17px] font-bold text-[#111]">
                 사례를 삭제하시겠습니까?
