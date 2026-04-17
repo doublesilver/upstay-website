@@ -17,17 +17,13 @@ export interface Announcement {
   created_at: string;
 }
 
-export function getMainCases(): RemodelingCase[] {
+function buildCases(
+  rows: { id: number; title: string }[],
+  imageLimit?: number,
+): RemodelingCase[] {
+  if (rows.length === 0) return [];
   const db = getDb();
-  const cases = db
-    .prepare(
-      "SELECT id, title FROM remodeling_cases WHERE show_on_main >= 1 ORDER BY show_on_main ASC",
-    )
-    .all() as { id: number; title: string }[];
-
-  if (cases.length === 0) return [];
-
-  const caseIds = cases.map((c) => c.id);
+  const caseIds = rows.map((c) => c.id);
   const allImages = db
     .prepare(
       `SELECT case_id, type, match_order, image_url, image_url_wm FROM case_images WHERE case_id IN (${caseIds.map(() => "?").join(",")}) ORDER BY match_order ASC, type ASC`,
@@ -45,7 +41,7 @@ export function getMainCases(): RemodelingCase[] {
     imageMap.get(img.case_id)!.push(img);
   }
 
-  return cases.map((c) => {
+  return rows.map((c) => {
     const images = imageMap.get(c.id) || [];
     const befores = images
       .filter((i) => i.type === "before")
@@ -60,10 +56,28 @@ export function getMainCases(): RemodelingCase[] {
       title: c.title,
       before_image: befores[0] || "",
       after_image: afters[0] || "",
-      before_images: befores.slice(0, 4),
-      after_images: afters.slice(0, 4),
+      before_images: imageLimit ? befores.slice(0, imageLimit) : befores,
+      after_images: imageLimit ? afters.slice(0, imageLimit) : afters,
     };
   });
+}
+
+export function getMainCases(): RemodelingCase[] {
+  const db = getDb();
+  const cases = db
+    .prepare(
+      "SELECT id, title FROM remodeling_cases WHERE show_on_main >= 1 ORDER BY show_on_main ASC",
+    )
+    .all() as { id: number; title: string }[];
+  return buildCases(cases, 4);
+}
+
+export function getAllCases(): RemodelingCase[] {
+  const db = getDb();
+  const cases = db
+    .prepare("SELECT id, title FROM remodeling_cases ORDER BY sort_order ASC")
+    .all() as { id: number; title: string }[];
+  return buildCases(cases, 4);
 }
 
 export function getVisibleAnnouncements(): Announcement[] {

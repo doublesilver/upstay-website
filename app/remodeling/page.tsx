@@ -1,38 +1,12 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
 import { Container } from "@/components/container";
+import { getAllCases } from "@/lib/home-data";
 
-interface RemodelingCase {
-  id: number;
-  title: string;
-  before_image: string;
-  after_image: string;
-  before_images: string[];
-  after_images: string[];
-}
+export const dynamic = "force-dynamic";
 
 export default function RemodelingPage() {
-  return (
-    <Suspense>
-      <RemodelingPageInner />
-    </Suspense>
-  );
-}
-
-function RemodelingPageInner() {
-  const [cases, setCases] = useState<RemodelingCase[]>([]);
-
-  useEffect(() => {
-    fetch("/api/remodeling?all=true")
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) setCases(data);
-      })
-      .catch(() => {});
-  }, []);
+  const cases = getAllCases();
 
   return (
     <Container className="pt-8 pb-12 md:pt-16 md:pb-16">
@@ -53,7 +27,7 @@ function RemodelingPageInner() {
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <div>
                   <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
-                    BEFORE
+                    BEFORE ( 전 )
                   </p>
                   <div className="grid grid-cols-2 gap-1">
                     {befores.slice(0, 4).map((url, j) => (
@@ -77,7 +51,7 @@ function RemodelingPageInner() {
                 </span>
                 <div>
                   <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#111] mb-1 font-medium">
-                    AFTER
+                    AFTER ( 후 )
                   </p>
                   <div className="grid grid-cols-2 gap-1">
                     {afters.slice(0, 4).map((url, j) => (
