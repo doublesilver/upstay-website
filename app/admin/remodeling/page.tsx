@@ -21,7 +21,6 @@ import {
   Upload,
   SquarePen,
   CheckSquare,
-  Trash2,
   Trash,
   ImageOff,
   GripVertical,

@@ -102,7 +102,7 @@ export default function HomePage() {
       <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
           <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
-            <div className="shrink-0">
+            <div className="shrink-0 flex items-center justify-between gap-3">
               <Link
                 href="/remodeling"
                 className="inline-block bg-white border border-[#ccc] rounded px-1 py-px hover:border-[#999] transition-colors"
@@ -114,6 +114,12 @@ export default function HomePage() {
                   {config.remodeling_section_title || "리모델링 사례보기"} →
                 </h2>
               </Link>
+              <span
+                className="text-[10px] md:text-[13px] text-[#666] font-medium shrink-0"
+                style={{ whiteSpace: "pre" }}
+              >
+                Before ( 전 ) → After ( 후 )
+              </span>
             </div>
 
             {/* 3카드: BEFORE 2x2 → AFTER 2x2 */}
