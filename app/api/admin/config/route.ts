@@ -17,12 +17,6 @@ export async function GET(req: NextRequest) {
 const ALLOWED_KEYS = new Set([
   "slogan_text",
   "slogan_text_style",
-  "remodeling_section_title",
-  "remodeling_section_title_style",
-  "remodeling_page_title",
-  "remodeling_page_title_style",
-  "remodeling_page_subtitle",
-  "remodeling_page_subtitle_style",
   "service_remodeling_title",
   "service_remodeling_title_style",
   "service_remodeling_desc",

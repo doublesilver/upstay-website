@@ -107,17 +107,14 @@ export default function AnnouncementsAdminPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-[26px] font-bold text-[#111] tracking-tight">
-            공지사항
+            팝업창
           </h1>
-          <p className="mt-1 text-[14px] text-[#888]">
-            메인 페이지 팝업으로 표시됩니다
-          </p>
         </div>
         <button
           onClick={() => setEditing(newItem())}
           className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
         >
-          + 새 공지
+          + 새 팝업
         </button>
       </div>
 
@@ -125,38 +122,17 @@ export default function AnnouncementsAdminPage() {
       {editing && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
-            <div className="px-6 py-5 border-b border-[#EBEBEB]">
-              <h3 className="text-[18px] font-bold text-[#111]">
-                {editing.id ? "공지 수정" : "새 공지 작성"}
-              </h3>
-            </div>
             <div className="px-6 py-5 space-y-4">
               <div>
-                <label className="block text-[13px] font-medium text-[#333] mb-2">
-                  제목
-                </label>
-                <input
-                  type="text"
-                  value={editing.title}
-                  onChange={(e) =>
-                    setEditing({ ...editing, title: e.target.value })
-                  }
-                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
-                  placeholder="공지 제목"
-                />
-              </div>
-              <div>
-                <label className="block text-[13px] font-medium text-[#333] mb-2">
-                  내용
-                </label>
                 <textarea
                   value={editing.content}
                   onChange={(e) =>
                     setEditing({ ...editing, content: e.target.value })
                   }
                   rows={5}
+                  aria-label="팝업 내용"
                   className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)] resize-none"
-                  placeholder="공지 내용 (선택)"
+                  placeholder="팝업 내용"
                 />
               </div>
               <div className="flex items-center gap-3">
@@ -209,7 +185,7 @@ export default function AnnouncementsAdminPage() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={!editing.title}
+                disabled={!editing.content}
                 className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 transition-all"
               >
                 저장
@@ -223,28 +199,10 @@ export default function AnnouncementsAdminPage() {
       {deleting !== null && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
-            <div className="px-6 py-6 text-center">
-              <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#EF4444"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="3,6 5,6 21,6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-              </div>
+            <div className="px-6 py-8 text-center">
               <h3 className="text-[17px] font-bold text-[#111]">
-                공지를 삭제하시겠습니까?
+                삭제하시겠습니까?
               </h3>
-              <p className="mt-2 text-[13px] text-[#888]">
-                삭제된 공지는 복구할 수 없습니다
-              </p>
             </div>
             <div className="px-6 py-4 border-t border-[#EBEBEB] flex gap-3">
               <button
@@ -274,7 +232,7 @@ export default function AnnouncementsAdminPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2.5">
                 <h3 className="text-[15px] font-semibold text-[#111] truncate">
-                  {item.title}
+                  {item.title || item.content?.slice(0, 30) || "(빈 팝업)"}
                 </h3>
                 <span
                   className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${

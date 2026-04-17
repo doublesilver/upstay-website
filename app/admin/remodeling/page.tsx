@@ -319,8 +319,7 @@ function ImageSection({
           tone="danger"
         />
         <span className="ml-auto text-[12px] text-[#666] font-medium">
-          {label} <span className="text-[#BBB]">·</span>{" "}
-          <span className="text-[#111]">{images.length}장</span>
+          {label} <span className="text-[#111]">( {images.length}장 )</span>
         </span>
         <input
           ref={fileRef}
@@ -447,23 +446,36 @@ function SortableCase({
       className="bg-white border border-[#EBEBEB] rounded-2xl overflow-hidden hover:shadow-sm transition-all"
     >
       <div className="px-5 pt-5 pb-5 space-y-4">
-        {(["before", "after"] as const).map((t) => (
-          <ImageSection
-            key={t}
-            caseId={c.id}
-            type={t}
-            images={t === "before" ? beforeImages : afterImages}
-            uploading={uploading}
-            checkedIds={getChecked(t)}
-            onOpenEdit={onOpenEdit}
-            onToggleCheck={(imgId) => onToggleCheck(c.id, t, imgId)}
-            onBulkUpload={onBulkUpload}
-            onBulkDeleteAll={onBulkDeleteAll}
-            onDeleteSelected={onDeleteSelected}
-            onSetPrimary={onSetPrimary}
-            onReorder={onReorderImages}
-          />
-        ))}
+        <ImageSection
+          caseId={c.id}
+          type="before"
+          images={beforeImages}
+          uploading={uploading}
+          checkedIds={getChecked("before")}
+          onOpenEdit={onOpenEdit}
+          onToggleCheck={(imgId) => onToggleCheck(c.id, "before", imgId)}
+          onBulkUpload={onBulkUpload}
+          onBulkDeleteAll={onBulkDeleteAll}
+          onDeleteSelected={onDeleteSelected}
+          onSetPrimary={onSetPrimary}
+          onReorder={onReorderImages}
+        />
+        <div className="border-t border-[#EBEBEB]" />
+        <ImageSection
+          caseId={c.id}
+          type="after"
+          images={afterImages}
+          uploading={uploading}
+          checkedIds={getChecked("after")}
+          onOpenEdit={onOpenEdit}
+          onToggleCheck={(imgId) => onToggleCheck(c.id, "after", imgId)}
+          onBulkUpload={onBulkUpload}
+          onBulkDeleteAll={onBulkDeleteAll}
+          onDeleteSelected={onDeleteSelected}
+          onSetPrimary={onSetPrimary}
+          onReorder={onReorderImages}
+        />
+        <div className="border-t border-[#EBEBEB]" />
 
         <div className="flex items-center gap-3">
           <label className="text-[13px] font-medium text-[#333] shrink-0">

@@ -27,7 +27,7 @@ const navItems = [
     ),
   },
   {
-    label: "팝업창설정",
+    label: "팝업창",
     href: "/admin/announcements",
     icon: (
       <svg
@@ -48,7 +48,7 @@ const navItems = [
     ),
   },
   {
-    label: "메인창 수정",
+    label: "메인창",
     href: "/admin/config",
     icon: (
       <svg

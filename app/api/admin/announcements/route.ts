@@ -14,14 +14,17 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
   const { title, content, is_visible, dismiss_duration } = await req.json();
-  if (!title)
-    return Response.json({ error: "title required" }, { status: 400 });
   const db = getDb();
   const result = db
     .prepare(
       "INSERT INTO announcements (title, content, is_visible, dismiss_duration) VALUES (?, ?, ?, ?)",
     )
-    .run(title, content || "", is_visible ?? 1, dismiss_duration || "none");
+    .run(
+      title || "",
+      content || "",
+      is_visible ?? 1,
+      dismiss_duration || "none",
+    );
   return Response.json({ id: result.lastInsertRowid });
 }
 

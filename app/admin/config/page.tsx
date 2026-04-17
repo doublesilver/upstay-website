@@ -23,9 +23,7 @@ async function apiFetch(url: string, options?: RequestInit) {
 }
 
 interface Config {
-  remodeling_section_title: string;
-  remodeling_page_title: string;
-  remodeling_page_subtitle: string;
+  slogan_text: string;
   service_remodeling_title: string;
   service_remodeling_desc: string;
   service_remodeling_caption: string;
@@ -39,9 +37,7 @@ interface Config {
 }
 
 const defaultConfig: Config = {
-  remodeling_section_title: "",
-  remodeling_page_title: "",
-  remodeling_page_subtitle: "",
+  slogan_text: "",
   service_remodeling_title: "",
   service_remodeling_desc: "",
   service_remodeling_caption: "",
@@ -52,12 +48,6 @@ const defaultConfig: Config = {
   service_rental_desc: "",
   service_rental_caption: "",
 };
-
-function Hint({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[12px] text-[#999] mt-1 leading-relaxed">{children}</p>
-  );
-}
 
 const inputCls =
   "w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]";
@@ -114,33 +104,26 @@ export default function ConfigPage() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-[26px] font-bold text-[#111] tracking-tight">
-            편집기
+            메인창
           </h1>
-          <p className="mt-1 text-[14px] text-[#888]">
-            사이트에 표시되는 문구를 수정합니다. 저장하면 즉시 반영됩니다.
-          </p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving}
           className="bg-[#111] text-white rounded-xl px-6 py-3 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] disabled:opacity-40 transition-all shrink-0"
         >
-          {saving ? "저장 중..." : "변경사항 저장"}
+          {saving ? "저장 중..." : "저장"}
         </button>
       </div>
 
       <div className="space-y-10">
         {/* 헤더 */}
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <h2 className="text-[16px] font-bold text-[#111] mb-1">헤더</h2>
-          <p className="text-[13px] text-[#999] mb-6">
-            상단 헤더에 표시되는 슬로건 문구입니다
-          </p>
+          <h2 className="text-[16px] font-bold text-[#111] mb-6">
+            헤더 ( 상단 헤더에 표시되는 슬로건 문구입니다 )
+          </h2>
           <div className="space-y-5">
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                슬로건
-              </label>
               <StyleToolbar
                 value={getStyle("slogan_text")}
                 onChange={setStyle("slogan_text")}
@@ -149,79 +132,7 @@ export default function ConfigPage() {
                 type="text"
                 value={config.slogan_text ?? ""}
                 onChange={set("slogan_text")}
-                className={inputCls}
-              />
-              <Hint>헤더 네비게이션 아래에 표시되는 슬로건 문구입니다.</Hint>
-            </div>
-          </div>
-        </section>
-
-        {/* 리모델링 섹션 (메인 페이지) */}
-        <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <h2 className="text-[16px] font-bold text-[#111] mb-1">
-            리모델링 섹션 (메인 페이지)
-          </h2>
-          <p className="text-[13px] text-[#999] mb-6">
-            메인 페이지에서 Before/After 사진 위에 표시되는 제목과 버튼
-            문구입니다
-          </p>
-          <div className="space-y-5">
-            <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                섹션 제목
-              </label>
-              <StyleToolbar
-                value={getStyle("remodeling_section_title")}
-                onChange={setStyle("remodeling_section_title")}
-              />
-              <input
-                type="text"
-                value={config.remodeling_section_title}
-                onChange={set("remodeling_section_title")}
-                className={inputCls}
-              />
-              <Hint>Before/After 사진 영역 상단에 표시되는 제목입니다.</Hint>
-            </div>
-          </div>
-        </section>
-
-        {/* 리모델링 페이지 */}
-        <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <h2 className="text-[16px] font-bold text-[#111] mb-1">
-            리모델링 페이지
-          </h2>
-          <p className="text-[13px] text-[#999] mb-6">
-            &ldquo;리모델링&rdquo; 메뉴를 클릭했을 때 나오는 전용 페이지의 상단
-            문구입니다
-          </p>
-          <div className="space-y-5">
-            <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                페이지 제목
-              </label>
-              <StyleToolbar
-                value={getStyle("remodeling_page_title")}
-                onChange={setStyle("remodeling_page_title")}
-              />
-              <input
-                type="text"
-                value={config.remodeling_page_title}
-                onChange={set("remodeling_page_title")}
-                className={inputCls}
-              />
-            </div>
-            <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                페이지 부제목
-              </label>
-              <StyleToolbar
-                value={getStyle("remodeling_page_subtitle")}
-                onChange={setStyle("remodeling_page_subtitle")}
-              />
-              <input
-                type="text"
-                value={config.remodeling_page_subtitle}
-                onChange={set("remodeling_page_subtitle")}
+                aria-label="슬로건"
                 className={inputCls}
               />
             </div>
@@ -231,17 +142,10 @@ export default function ConfigPage() {
         {/* 서비스 소개 - 리모델링 */}
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
           <h2 className="text-[16px] font-bold text-[#111] mb-1">
-            서비스 소개 — 리모델링
+            안내 카테고리 (1)
           </h2>
-          <p className="text-[13px] text-[#999] mb-6">
-            모든 페이지 하단의 &ldquo;서비스 안내&rdquo; 영역 중 리모델링
-            카테고리입니다
-          </p>
           <div className="space-y-5">
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                카테고리 제목
-              </label>
               <StyleToolbar
                 value={getStyle("service_remodeling_title")}
                 onChange={setStyle("service_remodeling_title")}
@@ -250,13 +154,11 @@ export default function ConfigPage() {
                 type="text"
                 value={config.service_remodeling_title}
                 onChange={set("service_remodeling_title")}
+                aria-label="안내 카테고리 1 제목"
                 className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                서비스 내용
-              </label>
               <StyleToolbar
                 value={getStyle("service_remodeling_desc")}
                 onChange={setStyle("service_remodeling_desc")}
@@ -265,13 +167,11 @@ export default function ConfigPage() {
                 value={config.service_remodeling_desc}
                 onChange={set("service_remodeling_desc")}
                 rows={3}
+                aria-label="안내 카테고리 1 내용"
                 className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                서비스 캡션
-              </label>
               <StyleToolbar
                 value={getStyle("service_remodeling_caption")}
                 onChange={setStyle("service_remodeling_caption")}
@@ -280,6 +180,7 @@ export default function ConfigPage() {
                 type="text"
                 value={config.service_remodeling_caption}
                 onChange={set("service_remodeling_caption")}
+                aria-label="안내 카테고리 1 보조"
                 className={inputCls}
               />
             </div>
@@ -289,16 +190,10 @@ export default function ConfigPage() {
         {/* 서비스 소개 - 건물관리 */}
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
           <h2 className="text-[16px] font-bold text-[#111] mb-1">
-            서비스 소개 — 건물관리
+            안내 카테고리 (2)
           </h2>
-          <p className="text-[13px] text-[#999] mb-6">
-            서비스 안내 영역 중 건물관리 카테고리입니다
-          </p>
           <div className="space-y-5">
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                카테고리 제목
-              </label>
               <StyleToolbar
                 value={getStyle("service_building_title")}
                 onChange={setStyle("service_building_title")}
@@ -307,13 +202,11 @@ export default function ConfigPage() {
                 type="text"
                 value={config.service_building_title}
                 onChange={set("service_building_title")}
+                aria-label="안내 카테고리 2 제목"
                 className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                서비스 내용
-              </label>
               <StyleToolbar
                 value={getStyle("service_building_desc")}
                 onChange={setStyle("service_building_desc")}
@@ -322,13 +215,11 @@ export default function ConfigPage() {
                 value={config.service_building_desc}
                 onChange={set("service_building_desc")}
                 rows={3}
+                aria-label="안내 카테고리 2 내용"
                 className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                서비스 캡션
-              </label>
               <StyleToolbar
                 value={getStyle("service_building_caption")}
                 onChange={setStyle("service_building_caption")}
@@ -337,6 +228,7 @@ export default function ConfigPage() {
                 type="text"
                 value={config.service_building_caption}
                 onChange={set("service_building_caption")}
+                aria-label="안내 카테고리 2 보조"
                 className={inputCls}
               />
             </div>
@@ -346,16 +238,10 @@ export default function ConfigPage() {
         {/* 서비스 소개 - 임대관리 */}
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
           <h2 className="text-[16px] font-bold text-[#111] mb-1">
-            서비스 소개 — 임대관리
+            안내 카테고리 (3)
           </h2>
-          <p className="text-[13px] text-[#999] mb-6">
-            서비스 안내 영역 중 임대관리 카테고리입니다
-          </p>
           <div className="space-y-5">
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                카테고리 제목
-              </label>
               <StyleToolbar
                 value={getStyle("service_rental_title")}
                 onChange={setStyle("service_rental_title")}
@@ -364,13 +250,11 @@ export default function ConfigPage() {
                 type="text"
                 value={config.service_rental_title}
                 onChange={set("service_rental_title")}
+                aria-label="안내 카테고리 3 제목"
                 className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                서비스 내용
-              </label>
               <StyleToolbar
                 value={getStyle("service_rental_desc")}
                 onChange={setStyle("service_rental_desc")}
@@ -379,13 +263,11 @@ export default function ConfigPage() {
                 value={config.service_rental_desc}
                 onChange={set("service_rental_desc")}
                 rows={3}
+                aria-label="안내 카테고리 3 내용"
                 className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                서비스 캡션
-              </label>
               <StyleToolbar
                 value={getStyle("service_rental_caption")}
                 onChange={setStyle("service_rental_caption")}
@@ -394,6 +276,7 @@ export default function ConfigPage() {
                 type="text"
                 value={config.service_rental_caption}
                 onChange={set("service_rental_caption")}
+                aria-label="안내 카테고리 3 보조"
                 className={inputCls}
               />
             </div>
