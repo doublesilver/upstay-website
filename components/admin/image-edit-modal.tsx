@@ -32,7 +32,7 @@ interface Props {
 const DEFAULT_SETTINGS: EditSettings = {
   sharpness: 100,
   brightness: 100,
-  wmOpacity: 0,
+  wmOpacity: 50,
   wmScale: 20,
   wmPos: { x: 0.5, y: 0.5 },
 };

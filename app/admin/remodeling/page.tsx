@@ -386,7 +386,6 @@ function SortableCase({
   onToggleMain,
   onDelete,
   onTitleChange,
-  onTitleBlur,
   onRegister,
   onBulkUpload,
   onBulkDeleteAll,
@@ -406,7 +405,6 @@ function SortableCase({
   onToggleMain: (id: number, val: number) => void;
   onDelete: (id: number) => void;
   onTitleChange: (id: number, title: string) => void;
-  onTitleBlur: (id: number) => void;
   onRegister: (id: number) => void;
   onBulkUpload: (
     caseId: number,
@@ -495,9 +493,8 @@ function SortableCase({
             type="text"
             value={c.title}
             onChange={(e) => onTitleChange(c.id, e.target.value)}
-            onBlur={() => onTitleBlur(c.id)}
             placeholder="설명을 입력해 주세요"
-            className="flex-1 text-[14px] text-[#111] outline-none border border-[#DDD] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#CCC]"
+            className="flex-1 text-[14px] text-[#111] outline-none border border-[#DDD] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#111]/40"
           />
         </div>
       </div>
@@ -523,7 +520,7 @@ function SortableCase({
           onClick={() => onRegister(c.id)}
           className="bg-[#111] text-white rounded-lg px-4 py-1.5 text-[12px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
         >
-          등록
+          저장
         </button>
       </div>
     </div>
@@ -653,44 +650,39 @@ export default function RemodelingAdminPage() {
     } catch {}
   };
 
-  const handleToggleMain = async (id: number, val: number) => {
-    if (val >= 1 && val <= 3) {
-      const conflict = cases.find((c) => c.show_on_main === val && c.id !== id);
-      if (conflict) {
-        const currentCase = cases.find((c) => c.id === id);
-        const oldVal = currentCase?.show_on_main || 0;
-        setCases((prev) =>
-          prev.map((c) => {
-            if (c.id === id) return { ...c, show_on_main: val };
-            if (c.id === conflict.id) return { ...c, show_on_main: oldVal };
-            return c;
-          }),
-        );
-        await save({ id: conflict.id, show_on_main: oldVal });
-        await save({ id, show_on_main: val });
-        return;
-      }
-    }
+  const handleToggleMain = (id: number, val: number) => {
     setCases((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, show_on_main: val } : c)),
+      prev.map((c) => {
+        if (val >= 1 && val <= 3 && c.show_on_main === val && c.id !== id) {
+          return { ...c, show_on_main: 0 };
+        }
+        if (c.id === id) return { ...c, show_on_main: val };
+        return c;
+      }),
     );
-    await save({ id, show_on_main: val });
   };
 
   const handleTitleChange = (id: number, title: string) => {
     setCases((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)));
   };
 
-  const handleTitleBlur = async (id: number) => {
-    const c = cases.find((c) => c.id === id);
-    if (c) await save({ id, title: c.title });
-  };
-
   const handleRegister = async (id: number) => {
     const c = cases.find((c) => c.id === id);
     if (!c) return;
-    await save({ id, title: c.title });
-    flash("등록되었습니다");
+    const targets = cases.filter(
+      (x) =>
+        x.id === id ||
+        (c.show_on_main >= 1 &&
+          c.show_on_main <= 3 &&
+          x.show_on_main === c.show_on_main &&
+          x.id !== id),
+    );
+    await Promise.all(
+      targets.map((t) =>
+        save({ id: t.id, title: t.title, show_on_main: t.show_on_main }),
+      ),
+    );
+    flash("저장되었습니다");
   };
 
   const handleBulkUpload = async (
@@ -905,7 +897,6 @@ export default function RemodelingAdminPage() {
                 onToggleMain={handleToggleMain}
                 onDelete={(id) => setDeleting(id)}
                 onTitleChange={handleTitleChange}
-                onTitleBlur={handleTitleBlur}
                 onRegister={handleRegister}
                 onBulkUpload={handleBulkUpload}
                 onBulkDeleteAll={handleBulkDeleteAll}
