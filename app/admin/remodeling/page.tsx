@@ -126,7 +126,9 @@ function SortableThumb({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all ${
+      {...attributes}
+      {...listeners}
+      className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all cursor-grab active:cursor-grabbing touch-none ${
         checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#E5E5E5]"
       }`}
     >
@@ -136,27 +138,23 @@ function SortableThumb({
           <img
             src={img.image_url_wm || img.image_url}
             alt=""
-            className="w-full h-full object-cover"
-            {...attributes}
-            {...listeners}
+            draggable={false}
+            className="w-full h-full object-cover pointer-events-none select-none"
           />
           {img.image_url_wm && (
-            <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[8px] px-1 py-0.5 rounded">
+            <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[8px] px-1 py-0.5 rounded pointer-events-none">
               WM
             </span>
           )}
         </>
       ) : (
-        <div
-          className="w-full h-full bg-[#F5F5F5] flex items-center justify-center text-[#CCC]"
-          {...attributes}
-          {...listeners}
-        >
+        <div className="w-full h-full bg-[#F5F5F5] flex items-center justify-center text-[#CCC] pointer-events-none">
           <ImageOff size={20} />
         </div>
       )}
 
       <span
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           onToggleCheck();
@@ -184,6 +182,7 @@ function SortableThumb({
       </span>
 
       <button
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           onSetPrimary();
