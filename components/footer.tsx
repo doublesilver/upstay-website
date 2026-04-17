@@ -46,8 +46,8 @@ export function Footer({ config = {} }: { config?: Record<string, string> }) {
                 <span style={{ position: "relative", left: colonLeft }}>:</span>
               </td>
               <td>
-                {c("footer_name", companyInfo.name)} (
-                {c("footer_english_name", companyInfo.englishName)})
+                {c("footer_name", companyInfo.name)} ({" "}
+                {c("footer_english_name", companyInfo.englishName)} )
               </td>
               <td className="px-2 text-[#E5E7EB]">|</td>
               <td className="pr-1">·</td>
