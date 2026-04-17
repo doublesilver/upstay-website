@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
+import { invalidatePublicCache } from "@/lib/cache";
 
 export async function GET(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
@@ -67,5 +68,6 @@ export async function PUT(req: NextRequest) {
       stmt.run(key, value as string);
     }
   }
+  invalidatePublicCache();
   return Response.json({ ok: true });
 }

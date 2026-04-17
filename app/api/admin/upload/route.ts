@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
+import { randomBytes } from "crypto";
 import path from "path";
 import { verifyToken, unauthorized } from "@/lib/auth";
 
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    const filename = `${Date.now()}-${randomBytes(8).toString("hex")}${ext}`;
     await writeFile(path.join(UPLOAD_DIR, filename), buffer);
     saved.push(filename);
   }

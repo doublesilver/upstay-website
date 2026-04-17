@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { readFile } from "fs/promises";
+import { readFile, stat } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 
@@ -23,6 +23,11 @@ export async function GET(
   const filePath = path.resolve(UPLOAD_DIR, filename);
 
   if (!filePath.startsWith(path.resolve(UPLOAD_DIR)) || !existsSync(filePath)) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  const fileStat = await stat(filePath);
+  if (!fileStat.isFile()) {
     return new Response("Not found", { status: 404 });
   }
 

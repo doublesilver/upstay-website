@@ -66,7 +66,7 @@ export function getMainCases(): RemodelingCase[] {
   const db = getDb();
   const cases = db
     .prepare(
-      "SELECT id, title FROM remodeling_cases WHERE show_on_main >= 1 ORDER BY show_on_main ASC",
+      "SELECT id, title FROM remodeling_cases WHERE show_on_main >= 1 ORDER BY show_on_main ASC, sort_order ASC, id ASC",
     )
     .all() as { id: number; title: string }[];
   return buildCases(cases, 4);

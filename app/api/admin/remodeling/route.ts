@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
+import { invalidatePublicCache } from "@/lib/cache";
 import fs from "fs";
 import path from "path";
+
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
 
 export async function GET(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
@@ -29,6 +32,7 @@ export async function POST(req: NextRequest) {
       "INSERT INTO remodeling_cases (title, sort_order, show_on_main) VALUES (?, ?, ?)",
     )
     .run(title || "", sort_order ?? 0, show_on_main ?? 1);
+  invalidatePublicCache();
   return Response.json({ id: result.lastInsertRowid });
 }
 
@@ -54,6 +58,7 @@ export async function PUT(req: NextRequest) {
   db.prepare(`UPDATE remodeling_cases SET ${sets.join(", ")} WHERE id=?`).run(
     ...vals,
   );
+  invalidatePublicCache();
   return Response.json({ ok: true });
 }
 
@@ -72,12 +77,13 @@ export async function DELETE(req: NextRequest) {
     for (const url of [img.image_url, img.image_url_wm]) {
       if (url && url.startsWith("/api/uploads/")) {
         const filename = url.replace("/api/uploads/", "");
-        const filepath = path.join(process.cwd(), "data", "uploads", filename);
+        const filepath = path.join(DATA_DIR, "uploads", filename);
         try {
           fs.unlinkSync(filepath);
         } catch {}
       }
     }
   }
+  invalidatePublicCache();
   return Response.json({ ok: true });
 }

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
+import { invalidatePublicCache } from "@/lib/cache";
 
 export async function POST(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
@@ -16,6 +17,7 @@ export async function POST(req: NextRequest) {
       "INSERT INTO case_images (case_id, type, match_order, image_url) VALUES (?, ?, ?, ?)",
     )
     .run(case_id, type, match_order, image_url || "");
+  invalidatePublicCache();
   return Response.json({ id: result.lastInsertRowid });
 }
 
@@ -41,6 +43,7 @@ export async function PUT(req: NextRequest) {
   db.prepare(`UPDATE case_images SET ${sets.join(", ")} WHERE id=?`).run(
     ...vals,
   );
+  invalidatePublicCache();
   return Response.json({ ok: true });
 }
 
@@ -57,5 +60,6 @@ export async function DELETE(req: NextRequest) {
   if (row.case_id !== case_id)
     return Response.json({ error: "case_id mismatch" }, { status: 403 });
   db.prepare("DELETE FROM case_images WHERE id = ?").run(id);
+  invalidatePublicCache();
   return Response.json({ ok: true });
 }

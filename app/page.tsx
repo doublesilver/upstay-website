@@ -5,7 +5,7 @@ import {
   getSiteConfig,
 } from "@/lib/home-data";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export default function HomePage() {
   return (

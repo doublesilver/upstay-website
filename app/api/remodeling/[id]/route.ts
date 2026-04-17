@@ -7,11 +7,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  const numId = Number(id);
+  if (!Number.isFinite(numId)) {
+    return Response.json({ error: "invalid id" }, { status: 400 });
+  }
   const db = getDb();
 
   const caseRow = db
     .prepare("SELECT id, title FROM remodeling_cases WHERE id = ?")
-    .get(Number(id)) as { id: number; title: string } | undefined;
+    .get(numId) as { id: number; title: string } | undefined;
 
   if (!caseRow) {
     return Response.json({ error: "Not found" }, { status: 404 });
