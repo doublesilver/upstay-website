@@ -448,25 +448,7 @@ function SortableCase({
       style={style}
       className="bg-white border border-[#EBEBEB] rounded-2xl overflow-hidden hover:shadow-sm transition-all"
     >
-      <div className="px-5 pt-4 pb-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <button
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing text-[#CCC] hover:text-[#666] transition-colors shrink-0 p-1"
-            title="드래그하여 순서 변경"
-          >
-            <GripVertical size={18} />
-          </button>
-          <button
-            onClick={() => onDelete(c.id)}
-            className="ml-auto p-1.5 rounded-lg text-[#CCC] hover:text-red-500 hover:bg-red-50 transition-all"
-            title="사례 삭제"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-
+      <div className="px-5 pt-5 pb-5 space-y-4">
         {(["before", "after"] as const).map((t) => (
           <ImageSection
             key={t}
@@ -499,7 +481,21 @@ function SortableCase({
         </div>
       </div>
 
-      <div className="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex items-center justify-end gap-2">
+      <div className="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex items-center gap-2">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-[#999] hover:text-[#111] transition-colors shrink-0 p-1"
+          title="드래그하여 순서 변경"
+        >
+          <GripVertical size={18} />
+        </button>
+        <button
+          onClick={() => onDelete(c.id)}
+          className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#DDD] hover:border-[#999] hover:text-[#111] transition-all"
+        >
+          창삭제
+        </button>
         {([1, 2, 3] as const).map((val) => {
           const active = c.show_on_main === val;
           return (
