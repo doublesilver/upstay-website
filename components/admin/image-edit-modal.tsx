@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X, RotateCcw } from "lucide-react";
+import { RotateCcw, X } from "lucide-react";
 
 export interface EditableImage {
   id: number;
@@ -14,6 +14,7 @@ export interface EditSettings {
   brightness: number;
   wmOpacity: number;
   wmScale: number;
+  wmThickness: number;
   wmPos: { x: number; y: number };
 }
 
@@ -34,10 +35,11 @@ const DEFAULT_SETTINGS: EditSettings = {
   brightness: 100,
   wmOpacity: 50,
   wmScale: 20,
+  wmThickness: 0,
   wmPos: { x: 0.5, y: 0.5 },
 };
 
-const POS_GRID: { label: string; x: number; y: number }[] = [
+const POS_GRID = [
   { label: "↖", x: 0.15, y: 0.12 },
   { label: "↑", x: 0.5, y: 0.12 },
   { label: "↗", x: 0.85, y: 0.12 },
@@ -62,7 +64,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 async function renderToBlob(
   imageSrc: string,
   logoImg: HTMLImageElement | null,
-  s: EditSettings,
+  settings: EditSettings,
 ): Promise<Blob | null> {
   const base = await loadImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -71,22 +73,26 @@ async function renderToBlob(
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  ctx.filter = `brightness(${s.brightness}%) contrast(${s.sharpness}%)`;
+  ctx.filter = `brightness(${settings.brightness}%) contrast(${settings.sharpness}%)`;
   ctx.drawImage(base, 0, 0);
   ctx.filter = "none";
 
-  if (logoImg && s.wmOpacity > 0) {
-    const logoW = base.width * (s.wmScale / 100);
+  if (logoImg && settings.wmOpacity > 0) {
+    const logoW = base.width * (settings.wmScale / 100);
     const logoH = (logoImg.height / logoImg.width) * logoW;
-    const x = s.wmPos.x * base.width - logoW / 2;
-    const y = s.wmPos.y * base.height - logoH / 2;
-    ctx.globalAlpha = s.wmOpacity / 100;
+    const x = settings.wmPos.x * base.width - logoW / 2;
+    const y = settings.wmPos.y * base.height - logoH / 2;
+
+    ctx.save();
+    ctx.globalAlpha = settings.wmOpacity / 100;
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.shadowBlur = settings.wmThickness;
     ctx.drawImage(logoImg, x, y, logoW, logoH);
-    ctx.globalAlpha = 1;
+    ctx.restore();
   }
 
   return new Promise<Blob | null>((resolve) =>
-    canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92),
+    canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.92),
   );
 }
 
@@ -98,16 +104,20 @@ export function ImageEditModal({
   onApplyAll,
   onCancel,
 }: Props) {
-  const [currentId, setCurrentId] = useState<number>(initialImageId);
+  const [currentId, setCurrentId] = useState(initialImageId);
   const [settings, setSettings] = useState<EditSettings>(DEFAULT_SETTINGS);
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const current = useMemo(
-    () => images.find((i) => i.id === currentId) ?? images[0],
+    () => images.find((image) => image.id === currentId) ?? images[0],
     [images, currentId],
   );
+
+  useEffect(() => {
+    setCurrentId(initialImageId);
+  }, [initialImageId]);
 
   useEffect(() => {
     loadImage("/logo.png")
@@ -116,11 +126,12 @@ export function ImageEditModal({
   }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onCancel();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [onCancel]);
 
   const reset = () => setSettings(DEFAULT_SETTINGS);
@@ -136,18 +147,17 @@ export function ImageEditModal({
   const applyAll = async () => {
     setSaving("all");
     await onApplyAll(
-      images.map((i) => i.id),
+      images.map((image) => image.id),
       async (id) => {
-        const img = images.find((x) => x.id === id);
-        if (!img) return null;
-        return renderToBlob(img.image_url, logoImg, settings);
+        const image = images.find((item) => item.id === id);
+        if (!image) return null;
+        return renderToBlob(image.image_url, logoImg, settings);
       },
     );
     setSaving(null);
   };
 
-  const cssFilter = `brightness(${settings.brightness}%) contrast(${settings.sharpness}%)`;
-
+  const imageFilter = `brightness(${settings.brightness}%) contrast(${settings.sharpness}%)`;
   const logoW =
     previewRef.current && logoImg
       ? previewRef.current.clientWidth * (settings.wmScale / 100)
@@ -159,12 +169,13 @@ export function ImageEditModal({
       <div className="bg-white rounded-2xl w-full max-w-[1100px] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
         <div className="flex items-center justify-between px-6 py-3 border-b border-[#EBEBEB]">
           <h3 className="text-[16px] font-bold text-[#111]">
-            사진 편집{" "}
+            사진 편집
             <span className="text-[12px] font-medium text-[#999] ml-1">
               {sectionLabel}
             </span>
           </h3>
           <button
+            type="button"
             onClick={onCancel}
             className="w-8 h-8 rounded-full hover:bg-[#F7F7F7] flex items-center justify-center text-[#999] hover:text-[#111] transition-all"
           >
@@ -175,11 +186,7 @@ export function ImageEditModal({
         <div className="flex-1 min-h-0 flex">
           <div className="flex-1 min-w-0 flex flex-col bg-[#FAFAFA]">
             <div className="flex-1 min-h-0 flex items-center justify-center p-4">
-              <div
-                ref={previewRef}
-                className="relative max-w-full max-h-full"
-                style={{ lineHeight: 0 }}
-              >
+              <div ref={previewRef} className="relative max-w-full max-h-full">
                 {current && (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -187,7 +194,7 @@ export function ImageEditModal({
                       src={current.image_url}
                       alt=""
                       className="max-h-[58vh] max-w-full object-contain block"
-                      style={{ filter: cssFilter }}
+                      style={{ filter: imageFilter }}
                     />
                     {logoImg && settings.wmOpacity > 0 && logoW > 0 && (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -201,6 +208,7 @@ export function ImageEditModal({
                           left: `calc(${settings.wmPos.x * 100}% - ${logoW / 2}px)`,
                           top: `calc(${settings.wmPos.y * 100}% - ${logoH / 2}px)`,
                           opacity: settings.wmOpacity / 100,
+                          filter: `drop-shadow(0 0 ${settings.wmThickness}px rgba(0,0,0,0.5))`,
                         }}
                       />
                     )}
@@ -211,19 +219,20 @@ export function ImageEditModal({
 
             <div className="border-t border-[#EBEBEB] px-3 py-2 bg-white">
               <div className="flex gap-1.5 overflow-x-auto">
-                {images.map((img) => (
+                {images.map((image) => (
                   <button
-                    key={img.id}
-                    onClick={() => setCurrentId(img.id)}
+                    key={image.id}
+                    type="button"
+                    onClick={() => setCurrentId(image.id)}
                     className={`w-16 h-16 rounded-md overflow-hidden border-2 shrink-0 transition-all ${
-                      img.id === currentId
+                      image.id === currentId
                         ? "border-[#111]"
                         : "border-transparent hover:border-[#DDD]"
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={img.image_url_wm || img.image_url}
+                      src={image.image_url_wm || image.image_url}
                       alt=""
                       className="w-full h-full object-cover"
                     />
@@ -237,14 +246,16 @@ export function ImageEditModal({
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
               <div>
                 <p className="text-[11px] font-bold tracking-wider text-[#999] mb-3">
-                  사진 수정
+                  사진 보정
                 </p>
                 <Slider
-                  label="선명함"
+                  label="선명도"
                   value={settings.sharpness}
                   min={50}
                   max={200}
-                  onChange={(v) => setSettings((p) => ({ ...p, sharpness: v }))}
+                  onChange={(value) =>
+                    setSettings((prev) => ({ ...prev, sharpness: value }))
+                  }
                   unit=""
                 />
                 <Slider
@@ -252,8 +263,8 @@ export function ImageEditModal({
                   value={settings.brightness}
                   min={50}
                   max={150}
-                  onChange={(v) =>
-                    setSettings((p) => ({ ...p, brightness: v }))
+                  onChange={(value) =>
+                    setSettings((prev) => ({ ...prev, brightness: value }))
                   }
                   unit=""
                 />
@@ -270,7 +281,9 @@ export function ImageEditModal({
                   value={settings.wmOpacity}
                   min={0}
                   max={100}
-                  onChange={(v) => setSettings((p) => ({ ...p, wmOpacity: v }))}
+                  onChange={(value) =>
+                    setSettings((prev) => ({ ...prev, wmOpacity: value }))
+                  }
                   unit="%"
                 />
                 <Slider
@@ -278,25 +291,39 @@ export function ImageEditModal({
                   value={settings.wmScale}
                   min={5}
                   max={80}
-                  onChange={(v) => setSettings((p) => ({ ...p, wmScale: v }))}
+                  onChange={(value) =>
+                    setSettings((prev) => ({ ...prev, wmScale: value }))
+                  }
                   unit="%"
+                />
+                <Slider
+                  label="두께"
+                  value={settings.wmThickness}
+                  min={0}
+                  max={10}
+                  onChange={(value) =>
+                    setSettings((prev) => ({ ...prev, wmThickness: value }))
+                  }
+                  unit=""
                 />
                 <div className="mt-4">
                   <label className="block text-[12px] text-[#333] mb-2">
                     위치
                   </label>
                   <div className="grid grid-cols-3 gap-1.5">
-                    {POS_GRID.map((g) => {
+                    {POS_GRID.map((item) => {
                       const active =
-                        Math.abs(settings.wmPos.x - g.x) < 0.02 &&
-                        Math.abs(settings.wmPos.y - g.y) < 0.02;
+                        Math.abs(settings.wmPos.x - item.x) < 0.02 &&
+                        Math.abs(settings.wmPos.y - item.y) < 0.02;
+
                       return (
                         <button
-                          key={g.label}
+                          key={item.label}
+                          type="button"
                           onClick={() =>
-                            setSettings((p) => ({
-                              ...p,
-                              wmPos: { x: g.x, y: g.y },
+                            setSettings((prev) => ({
+                              ...prev,
+                              wmPos: { x: item.x, y: item.y },
                             }))
                           }
                           className={`aspect-square rounded-lg text-[16px] transition-all ${
@@ -305,7 +332,7 @@ export function ImageEditModal({
                               : "bg-[#F7F7F7] text-[#666] hover:bg-[#EBEBEB]"
                           }`}
                         >
-                          {g.label}
+                          {item.label}
                         </button>
                       );
                     })}
@@ -316,6 +343,7 @@ export function ImageEditModal({
 
             <div className="border-t border-[#EBEBEB] p-4 flex items-center justify-end gap-2">
               <button
+                type="button"
                 onClick={reset}
                 className="inline-flex items-center gap-1 border border-[#DDD] rounded-lg px-3 py-2 text-[12px] text-[#666] hover:bg-[#F7F7F7] transition-all"
               >
@@ -323,18 +351,20 @@ export function ImageEditModal({
                 초기화
               </button>
               <button
+                type="button"
                 onClick={applyOne}
                 disabled={saving !== null}
                 className="border border-[#DDD] rounded-lg px-4 py-2 text-[12px] text-[#333] hover:bg-[#F7F7F7] disabled:opacity-40 transition-all"
               >
-                {saving === "one" ? "적용 중..." : "적용"}
+                {saving === "one" ? "적용 중.." : "적용"}
               </button>
               <button
+                type="button"
                 onClick={applyAll}
                 disabled={saving !== null || images.length === 0}
                 className="bg-[#111] text-white rounded-lg px-4 py-2 text-[12px] font-semibold hover:bg-[#333] disabled:opacity-40 transition-all"
               >
-                {saving === "all" ? "적용 중..." : "전체 적용"}
+                {saving === "all" ? "적용 중.." : "전체 적용"}
               </button>
             </div>
           </div>
@@ -356,7 +386,7 @@ function Slider({
   value: number;
   min: number;
   max: number;
-  onChange: (v: number) => void;
+  onChange: (value: number) => void;
   unit: string;
 }) {
   return (

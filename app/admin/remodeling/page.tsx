@@ -1,30 +1,30 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DndContext,
   closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
+  type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
   useSortable,
   verticalListSortingStrategy,
-  horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  Upload,
-  SquarePen,
   CheckSquare,
-  Trash,
-  ImageOff,
   GripVertical,
+  ImageOff,
   Plus,
+  SquarePen,
+  Trash,
+  Upload,
 } from "lucide-react";
 import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
@@ -33,11 +33,12 @@ interface CaseImage {
   id: number;
   type: "before" | "after";
   match_order: number;
+  is_starred: number;
   image_url: string;
   image_url_wm: string;
 }
 
-interface Case {
+interface RemodelingCase {
   id: number;
   title: string;
   sort_order: number;
@@ -45,6 +46,8 @@ interface Case {
   created_at: string;
   images: CaseImage[];
 }
+
+const MAX_STARRED_PER_TYPE = 4;
 
 function getToken() {
   return sessionStorage.getItem("admin_token") || "";
@@ -62,7 +65,7 @@ async function apiFetch(url: string, options?: RequestInit) {
   if (res.status === 401) {
     sessionStorage.removeItem("admin_token");
     window.location.href = "/admin";
-    throw new Error("Unauthorized");
+    throw new Error("인증이 만료되었습니다");
   }
   if (!res.ok) {
     let detail = "";
@@ -75,45 +78,79 @@ async function apiFetch(url: string, options?: RequestInit) {
   return res;
 }
 
-function errMsg(e: unknown): string {
-  return e instanceof Error ? e.message : String(e);
-}
-
-async function uploadFiles(files: File[]): Promise<string[]> {
-  const fd = new FormData();
-  files.forEach((f) => fd.append("files", f, f.name));
-  const res = await apiFetch("/api/admin/upload", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${getToken()}` },
-    body: fd,
-  });
-  const data = await res.json();
-  return data.urls || [];
-}
-
-async function uploadFile(file: Blob): Promise<string> {
-  const urls = await uploadFiles([file as File]);
-  return urls[0] || "";
+function errMsg(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function getImagesByType(images: CaseImage[], type: "before" | "after") {
   return images
     .filter((img) => img.type === type)
-    .sort((a, b) => a.match_order - b.match_order);
+    .sort((a, b) => a.match_order - b.match_order || a.id - b.id);
+}
+
+async function uploadFiles(files: File[]) {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("files", file, file.name));
+
+  const res = await apiFetch("/api/admin/upload", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}` },
+    body: formData,
+  });
+  const data = await res.json();
+  return data.urls || [];
+}
+
+async function uploadFile(file: Blob) {
+  const urls = await uploadFiles([file as File]);
+  return urls[0] || "";
+}
+
+function ToolbarButton({
+  onClick,
+  icon,
+  label,
+  disabled,
+  tone = "default",
+}: {
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  disabled?: boolean;
+  tone?: "default" | "danger";
+}) {
+  const toneClass =
+    tone === "danger"
+      ? "border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300"
+      : "border-[#DDD] text-[#555] hover:text-[#111] hover:border-[#999]";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex items-center gap-1.5 text-[12px] border rounded-lg px-2.5 py-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${toneClass}`}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
 }
 
 function SortableThumb({
-  img,
-  isPrimary,
+  image,
   checked,
+  disableStar,
+  onOpenImage,
   onToggleCheck,
-  onSetPrimary,
+  onToggleStar,
 }: {
-  img: CaseImage;
-  isPrimary: boolean;
+  image: CaseImage;
   checked: boolean;
+  disableStar: boolean;
+  onOpenImage: () => void;
   onToggleCheck: () => void;
-  onSetPrimary: () => void;
+  onToggleStar: () => void;
 }) {
   const {
     attributes,
@@ -122,7 +159,8 @@ function SortableThumb({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: `img-${img.id}` });
+  } = useSortable({ id: `img-${image.id}` });
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -135,22 +173,23 @@ function SortableThumb({
       style={style}
       {...attributes}
       {...listeners}
+      onClick={onOpenImage}
       className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all cursor-grab active:cursor-grabbing touch-none ${
         checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#E5E5E5]"
       }`}
     >
-      {img.image_url ? (
+      {image.image_url ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={img.image_url_wm || img.image_url}
+            src={image.image_url_wm || image.image_url}
             alt=""
             draggable={false}
             loading="lazy"
             decoding="async"
             className="w-full h-full object-cover pointer-events-none select-none"
           />
-          {img.image_url_wm && (
+          {image.image_url_wm && (
             <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[8px] px-1 py-0.5 rounded pointer-events-none">
               WM
             </span>
@@ -191,52 +230,30 @@ function SortableThumb({
       </span>
 
       <button
+        type="button"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
-          onSetPrimary();
+          if (!disableStar) onToggleStar();
         }}
         className={`absolute top-1 right-1 text-[14px] z-10 transition-opacity ${
-          isPrimary
+          image.is_starred
             ? "text-yellow-400 drop-shadow opacity-100"
-            : "text-white/80 opacity-0 group-hover:opacity-100 hover:text-yellow-300"
+            : disableStar
+              ? "text-white/70 opacity-30 cursor-not-allowed"
+              : "text-white/80 opacity-0 group-hover:opacity-100 hover:text-yellow-300"
         }`}
-        title={isPrimary ? "대표 이미지" : "대표로 설정"}
+        title={
+          image.is_starred
+            ? "별표 해제"
+            : disableStar
+              ? "별표는 BEFORE/AFTER 각 4개까지 선택 가능합니다"
+              : "별표 선택"
+        }
       >
         ★
       </button>
     </div>
-  );
-}
-
-function ToolbarButton({
-  onClick,
-  icon,
-  label,
-  disabled,
-  tone,
-}: {
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  disabled?: boolean;
-  tone?: "default" | "danger" | "active";
-}) {
-  const cls =
-    tone === "danger"
-      ? "border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300"
-      : tone === "active"
-        ? "border-[#111] bg-[#111] text-white"
-        : "border-[#DDD] text-[#555] hover:text-[#111] hover:border-[#999]";
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`inline-flex items-center gap-1.5 text-[12px] border rounded-lg px-2.5 py-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${cls}`}
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
   );
 }
 
@@ -247,11 +264,12 @@ function ImageSection({
   uploading,
   checkedIds,
   onOpenEdit,
+  onOpenImage,
   onToggleCheck,
   onBulkUpload,
   onBulkDeleteAll,
   onDeleteSelected,
-  onSetPrimary,
+  onToggleStar,
   onReorder,
 }: {
   caseId: number;
@@ -260,6 +278,11 @@ function ImageSection({
   uploading?: boolean;
   checkedIds: Set<number>;
   onOpenEdit: (caseId: number, type: "before" | "after") => void;
+  onOpenImage: (
+    caseId: number,
+    type: "before" | "after",
+    imageId: number,
+  ) => void;
   onToggleCheck: (imageId: number) => void;
   onBulkUpload: (
     caseId: number,
@@ -268,7 +291,7 @@ function ImageSection({
   ) => void;
   onBulkDeleteAll: (caseId: number, type: "before" | "after") => void;
   onDeleteSelected: (caseId: number, type: "before" | "after") => void;
-  onSetPrimary: (
+  onToggleStar: (
     caseId: number,
     imageId: number,
     type: "before" | "after",
@@ -288,15 +311,17 @@ function ImageSection({
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
+
     const ids = images.map((img) => `img-${img.id}`);
-    const oldIdx = ids.indexOf(active.id as string);
-    const newIdx = ids.indexOf(over.id as string);
-    if (oldIdx !== -1 && newIdx !== -1) {
-      onReorder(caseId, type, oldIdx, newIdx);
+    const oldIndex = ids.indexOf(active.id as string);
+    const newIndex = ids.indexOf(over.id as string);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      onReorder(caseId, type, oldIndex, newIndex);
     }
   };
 
   const label = type === "before" ? "BEFORE" : "AFTER";
+  const starredCount = images.filter((img) => img.is_starred === 1).length;
 
   return (
     <div>
@@ -304,7 +329,7 @@ function ImageSection({
         <ToolbarButton
           onClick={() => fileRef.current?.click()}
           icon={<Upload size={14} />}
-          label={uploading ? "업로드 중..." : "업로드"}
+          label={uploading ? "업로드 중.." : "업로드"}
           disabled={uploading}
         />
         <ToolbarButton
@@ -328,7 +353,7 @@ function ImageSection({
           tone="danger"
         />
         <span className="ml-auto text-[12px] text-[#666] font-medium">
-          {label} <span className="text-[#111]">( {images.length}장 )</span>
+          {label} <span className="text-[#111]">({images.length}장)</span>
         </span>
         <input
           ref={fileRef}
@@ -348,10 +373,11 @@ function ImageSection({
       <div className="border border-[#DDD] rounded-lg p-3 bg-[#FAFAFA]">
         {images.length === 0 ? (
           <button
+            type="button"
             onClick={() => fileRef.current?.click()}
             className="w-full py-8 border-2 border-dashed border-[#DDD] rounded-xl text-[13px] text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all bg-white"
           >
-            클릭하여 {label} 이미지 업로드
+            클릭하여 {label} 이미지를 업로드해 주세요
           </button>
         ) : (
           <DndContext
@@ -364,14 +390,17 @@ function ImageSection({
               strategy={horizontalListSortingStrategy}
             >
               <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
-                {images.map((img) => (
+                {images.map((image) => (
                   <SortableThumb
-                    key={img.id}
-                    img={img}
-                    isPrimary={img.match_order === 0}
-                    checked={checkedIds.has(img.id)}
-                    onToggleCheck={() => onToggleCheck(img.id)}
-                    onSetPrimary={() => onSetPrimary(caseId, img.id, type)}
+                    key={image.id}
+                    image={image}
+                    checked={checkedIds.has(image.id)}
+                    disableStar={
+                      image.is_starred !== 1 && starredCount >= MAX_STARRED_PER_TYPE
+                    }
+                    onOpenImage={() => onOpenImage(caseId, type, image.id)}
+                    onToggleCheck={() => onToggleCheck(image.id)}
+                    onToggleStar={() => onToggleStar(caseId, image.id, type)}
                   />
                 ))}
               </div>
@@ -384,10 +413,11 @@ function ImageSection({
 }
 
 function SortableCase({
-  c,
+  item,
   uploading,
   getChecked,
   onOpenEdit,
+  onOpenImage,
   onToggleCheck,
   onToggleMain,
   onDelete,
@@ -396,19 +426,24 @@ function SortableCase({
   onBulkUpload,
   onBulkDeleteAll,
   onDeleteSelected,
-  onSetPrimary,
+  onToggleStar,
   onReorderImages,
 }: {
-  c: Case;
+  item: RemodelingCase;
   uploading?: boolean;
   getChecked: (type: "before" | "after") => Set<number>;
   onOpenEdit: (caseId: number, type: "before" | "after") => void;
+  onOpenImage: (
+    caseId: number,
+    type: "before" | "after",
+    imageId: number,
+  ) => void;
   onToggleCheck: (
     caseId: number,
     type: "before" | "after",
     imageId: number,
   ) => void;
-  onToggleMain: (id: number, val: number) => void;
+  onToggleMain: (id: number, value: number) => void;
   onDelete: (id: number) => void;
   onTitleChange: (id: number, title: string) => void;
   onRegister: (id: number) => void;
@@ -419,7 +454,7 @@ function SortableCase({
   ) => void;
   onBulkDeleteAll: (caseId: number, type: "before" | "after") => void;
   onDeleteSelected: (caseId: number, type: "before" | "after") => void;
-  onSetPrimary: (
+  onToggleStar: (
     caseId: number,
     imageId: number,
     type: "before" | "after",
@@ -438,15 +473,16 @@ function SortableCase({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: c.id });
+  } = useSortable({ id: item.id });
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const beforeImages = getImagesByType(c.images, "before");
-  const afterImages = getImagesByType(c.images, "after");
+  const beforeImages = getImagesByType(item.images, "before");
+  const afterImages = getImagesByType(item.images, "after");
 
   return (
     <div
@@ -456,32 +492,34 @@ function SortableCase({
     >
       <div className="px-5 pt-5 pb-5 space-y-4">
         <ImageSection
-          caseId={c.id}
+          caseId={item.id}
           type="before"
           images={beforeImages}
           uploading={uploading}
           checkedIds={getChecked("before")}
           onOpenEdit={onOpenEdit}
-          onToggleCheck={(imgId) => onToggleCheck(c.id, "before", imgId)}
+          onOpenImage={onOpenImage}
+          onToggleCheck={(imageId) => onToggleCheck(item.id, "before", imageId)}
           onBulkUpload={onBulkUpload}
           onBulkDeleteAll={onBulkDeleteAll}
           onDeleteSelected={onDeleteSelected}
-          onSetPrimary={onSetPrimary}
+          onToggleStar={onToggleStar}
           onReorder={onReorderImages}
         />
         <div className="border-t border-[#EBEBEB]" />
         <ImageSection
-          caseId={c.id}
+          caseId={item.id}
           type="after"
           images={afterImages}
           uploading={uploading}
           checkedIds={getChecked("after")}
           onOpenEdit={onOpenEdit}
-          onToggleCheck={(imgId) => onToggleCheck(c.id, "after", imgId)}
+          onOpenImage={onOpenImage}
+          onToggleCheck={(imageId) => onToggleCheck(item.id, "after", imageId)}
           onBulkUpload={onBulkUpload}
           onBulkDeleteAll={onBulkDeleteAll}
           onDeleteSelected={onDeleteSelected}
-          onSetPrimary={onSetPrimary}
+          onToggleStar={onToggleStar}
           onReorder={onReorderImages}
         />
         <div className="border-t border-[#EBEBEB]" />
@@ -492,8 +530,8 @@ function SortableCase({
           </label>
           <input
             type="text"
-            value={c.title}
-            onChange={(e) => onTitleChange(c.id, e.target.value)}
+            value={item.title}
+            onChange={(e) => onTitleChange(item.id, e.target.value)}
             placeholder="설명을 입력해 주세요"
             className="flex-1 text-[14px] text-[#111] outline-none border border-[#DDD] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#111]/40"
           />
@@ -502,37 +540,44 @@ function SortableCase({
 
       <div className="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex items-center gap-2">
         <button
+          type="button"
           {...attributes}
           {...listeners}
           className="cursor-grab active:cursor-grabbing text-[#999] hover:text-[#111] transition-colors shrink-0 p-1"
-          title="드래그하여 순서 변경"
+          title="드래그하여 순서를 변경합니다"
         >
           <GripVertical size={18} />
         </button>
+
         <button
-          onClick={() => onDelete(c.id)}
+          type="button"
+          onClick={() => onDelete(item.id)}
           className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#DDD] hover:border-[#999] hover:text-[#111] transition-all"
         >
-          창삭제
+          케이스 삭제
         </button>
-        {([1, 2, 3] as const).map((val) => {
-          const active = c.show_on_main === val;
+
+        {([1, 2, 3] as const).map((value) => {
+          const active = item.show_on_main === value;
           return (
             <button
-              key={val}
-              onClick={() => onToggleMain(c.id, active ? 0 : val)}
+              key={value}
+              type="button"
+              onClick={() => onToggleMain(item.id, active ? 0 : value)}
               className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
                 active
                   ? "bg-[#111] text-white border border-[#111]"
                   : "bg-white text-[#666] border border-[#DDD] hover:border-[#999] hover:text-[#111]"
               }`}
             >
-              메인{val}
+              메인{value}
             </button>
           );
         })}
+
         <button
-          onClick={() => onRegister(c.id)}
+          type="button"
+          onClick={() => onRegister(item.id)}
           className="bg-[#111] text-white rounded-lg px-4 py-1.5 text-[12px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
         >
           저장
@@ -543,18 +588,19 @@ function SortableCase({
 }
 
 export default function RemodelingAdminPage() {
-  const [cases, setCases] = useState<Case[]>([]);
+  const [cases, setCases] = useState<RemodelingCase[]>([]);
   const [toast, setToast] = useState("");
   const [deleting, setDeleting] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [editorSection, setEditorSection] = useState<{
     caseId: number;
     type: "before" | "after";
+    initialImageId?: number;
   } | null>(null);
-
   const [checkedMap, setCheckedMap] = useState<Map<string, Set<number>>>(
     new Map(),
   );
+
   const sectionKey = (caseId: number, type: "before" | "after") =>
     `${type}-${caseId}`;
 
@@ -562,22 +608,22 @@ export default function RemodelingAdminPage() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
-  const flash = (m: string) => setToast(m);
+  const flash = (message: string) => setToast(message);
 
   const load = useCallback(() => {
     apiFetch("/api/admin/remodeling", { headers: getHeaders() })
       .then((r) => r.json())
       .then(setCases)
-      .catch((e) => setToast(`불러오기 실패: ${errMsg(e)}`));
+      .catch((error) => flash(`불러오기에 실패했습니다: ${errMsg(error)}`));
   }, []);
 
   useEffect(load, [load]);
 
-  const save = async (c: Partial<Case> & { id: number }) => {
+  const saveCase = async (item: Partial<RemodelingCase> & { id: number }) => {
     await apiFetch("/api/admin/remodeling", {
       method: "PUT",
       headers: getHeaders(),
-      body: JSON.stringify(c),
+      body: JSON.stringify(item),
     });
   };
 
@@ -594,44 +640,49 @@ export default function RemodelingAdminPage() {
     type: "before" | "after",
     imageId: number,
   ) => {
-    const k = sectionKey(caseId, type);
+    const key = sectionKey(caseId, type);
     setCheckedMap((prev) => {
       const next = new Map(prev);
-      const set = new Set(next.get(k) ?? []);
+      const set = new Set(next.get(key) ?? []);
       if (set.has(imageId)) set.delete(imageId);
       else set.add(imageId);
-      next.set(k, set);
+      next.set(key, set);
       return next;
     });
   };
 
   const clearSectionChecks = (caseId: number, type: "before" | "after") => {
-    setCheckedMap((p) => {
-      const n = new Map(p);
-      n.delete(sectionKey(caseId, type));
-      return n;
+    setCheckedMap((prev) => {
+      const next = new Map(prev);
+      next.delete(sectionKey(caseId, type));
+      return next;
     });
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIdx = cases.findIndex((c) => c.id === active.id);
-    const newIdx = cases.findIndex((c) => c.id === over.id);
-    const reordered = arrayMove(cases, oldIdx, newIdx);
+
+    const oldIndex = cases.findIndex((item) => item.id === active.id);
+    const newIndex = cases.findIndex((item) => item.id === over.id);
+    const reordered = arrayMove(cases, oldIndex, newIndex);
     setCases(reordered);
+
     try {
       await apiFetch("/api/admin/remodeling/reorder", {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
-          items: reordered.map((c, i) => ({ id: c.id, sort_order: i + 1 })),
+          items: reordered.map((item, index) => ({
+            id: item.id,
+            sort_order: index + 1,
+          })),
         }),
       });
       flash("순서가 변경되었습니다");
       load();
-    } catch (e) {
-      flash(`순서 변경 실패: ${errMsg(e)}`);
+    } catch (error) {
+      flash(`순서 변경에 실패했습니다: ${errMsg(error)}`);
       load();
     }
   };
@@ -648,9 +699,9 @@ export default function RemodelingAdminPage() {
         }),
       });
       load();
-      flash("새 폴더가 추가되었습니다");
-    } catch (e) {
-      flash(`추가 실패: ${errMsg(e)}`);
+      flash("새 케이스가 추가되었습니다");
+    } catch (error) {
+      flash(`추가에 실패했습니다: ${errMsg(error)}`);
     }
   };
 
@@ -664,47 +715,55 @@ export default function RemodelingAdminPage() {
       setDeleting(null);
       load();
       flash("삭제되었습니다");
-    } catch (e) {
-      flash(`삭제 실패: ${errMsg(e)}`);
+    } catch (error) {
+      flash(`삭제에 실패했습니다: ${errMsg(error)}`);
     }
   };
 
-  const handleToggleMain = (id: number, val: number) => {
+  const handleToggleMain = (id: number, value: number) => {
     setCases((prev) =>
-      prev.map((c) => {
-        if (val >= 1 && val <= 3 && c.show_on_main === val && c.id !== id) {
-          return { ...c, show_on_main: 0 };
+      prev.map((item) => {
+        if (value >= 1 && value <= 3 && item.show_on_main === value && item.id !== id) {
+          return { ...item, show_on_main: 0 };
         }
-        if (c.id === id) return { ...c, show_on_main: val };
-        return c;
+        if (item.id === id) return { ...item, show_on_main: value };
+        return item;
       }),
     );
   };
 
   const handleTitleChange = (id: number, title: string) => {
-    setCases((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)));
+    setCases((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, title } : item)),
+    );
   };
 
   const handleRegister = async (id: number) => {
-    const c = cases.find((c) => c.id === id);
-    if (!c) return;
+    const current = cases.find((item) => item.id === id);
+    if (!current) return;
+
     const targets = cases.filter(
-      (x) =>
-        x.id === id ||
-        (c.show_on_main >= 1 &&
-          c.show_on_main <= 3 &&
-          x.show_on_main === c.show_on_main &&
-          x.id !== id),
+      (item) =>
+        item.id === id ||
+        (current.show_on_main >= 1 &&
+          current.show_on_main <= 3 &&
+          item.show_on_main === current.show_on_main &&
+          item.id !== id),
     );
+
     try {
       await Promise.all(
-        targets.map((t) =>
-          save({ id: t.id, title: t.title, show_on_main: t.show_on_main }),
+        targets.map((item) =>
+          saveCase({
+            id: item.id,
+            title: item.title,
+            show_on_main: item.show_on_main,
+          }),
         ),
       );
       flash("저장되었습니다");
-    } catch (e) {
-      flash(`저장 실패: ${errMsg(e)}`);
+    } catch (error) {
+      flash(`저장에 실패했습니다: ${errMsg(error)}`);
     }
   };
 
@@ -713,15 +772,16 @@ export default function RemodelingAdminPage() {
     type: "before" | "after",
     files: FileList,
   ) => {
-    const caseData = cases.find((c) => c.id === caseId);
+    const caseData = cases.find((item) => item.id === caseId);
     const existing = caseData ? getImagesByType(caseData.images, type) : [];
     const maxOrder = existing.reduce(
-      (max, img) => Math.max(max, img.match_order),
+      (max, image) => Math.max(max, image.match_order),
       0,
     );
 
-    flash(`${files.length}장 업로드 중...`);
+    flash(`${files.length}장 업로드 중..`);
     setUploading(true);
+
     let success = 0;
     let failedReason = "";
 
@@ -729,8 +789,7 @@ export default function RemodelingAdminPage() {
       const fileArray = Array.from(files);
       const urls = await uploadFiles(fileArray);
 
-      for (let i = 0; i < urls.length; i++) {
-        const nextOrder = maxOrder + i + 1;
+      for (let index = 0; index < urls.length; index++) {
         try {
           await apiFetch("/api/admin/remodeling/images", {
             method: "POST",
@@ -738,23 +797,25 @@ export default function RemodelingAdminPage() {
             body: JSON.stringify({
               case_id: caseId,
               type,
-              match_order: nextOrder,
-              image_url: urls[i],
+              match_order: maxOrder + index + 1,
+              image_url: urls[index],
+              is_starred: 0,
             }),
           });
-          success++;
-        } catch (e) {
-          failedReason = errMsg(e);
+          success += 1;
+        } catch (error) {
+          failedReason = errMsg(error);
         }
       }
-    } catch (e) {
-      failedReason = errMsg(e);
+    } catch (error) {
+      failedReason = errMsg(error);
     }
 
     setUploading(false);
     load();
+
     if (success === files.length) {
-      flash(`${success}장 업로드 완료`);
+      flash(`${success}장 업로드가 완료되었습니다`);
     } else {
       flash(`${success}/${files.length}장 업로드 완료 (실패: ${failedReason})`);
     }
@@ -764,31 +825,35 @@ export default function RemodelingAdminPage() {
     caseId: number,
     type: "before" | "after",
   ) => {
-    const caseData = cases.find((c) => c.id === caseId);
+    const caseData = cases.find((item) => item.id === caseId);
     if (!caseData) return;
-    const imgs = getImagesByType(caseData.images, type);
-    if (imgs.length === 0) return;
+
+    const images = getImagesByType(caseData.images, type);
+    if (images.length === 0) return;
+
     if (
       !window.confirm(
-        `${type.toUpperCase()} 이미지 ${imgs.length}장을 모두 삭제하시겠습니까?`,
+        `${type.toUpperCase()} 이미지 ${images.length}장을 모두 삭제하시겠습니까?`,
       )
-    )
+    ) {
       return;
+    }
+
     try {
       await Promise.all(
-        imgs.map((img) =>
+        images.map((image) =>
           apiFetch("/api/admin/remodeling/images", {
             method: "DELETE",
             headers: getHeaders(),
-            body: JSON.stringify({ id: img.id, case_id: caseId }),
+            body: JSON.stringify({ id: image.id, case_id: caseId }),
           }),
         ),
       );
       clearSectionChecks(caseId, type);
       load();
       flash(`${type.toUpperCase()} 이미지가 모두 삭제되었습니다`);
-    } catch (e) {
-      flash(`삭제 실패: ${errMsg(e)}`);
+    } catch (error) {
+      flash(`삭제에 실패했습니다: ${errMsg(error)}`);
     }
   };
 
@@ -798,8 +863,11 @@ export default function RemodelingAdminPage() {
   ) => {
     const ids = Array.from(checkedMap.get(sectionKey(caseId, type)) ?? []);
     if (ids.length === 0) return;
-    if (!window.confirm(`선택한 이미지 ${ids.length}장을 삭제하시겠습니까?`))
+
+    if (!window.confirm(`선택한 이미지 ${ids.length}장을 삭제하시겠습니까?`)) {
       return;
+    }
+
     try {
       await Promise.all(
         ids.map((imageId) =>
@@ -813,44 +881,37 @@ export default function RemodelingAdminPage() {
       clearSectionChecks(caseId, type);
       load();
       flash(`${ids.length}장이 삭제되었습니다`);
-    } catch (e) {
-      flash(`삭제 실패: ${errMsg(e)}`);
+    } catch (error) {
+      flash(`삭제에 실패했습니다: ${errMsg(error)}`);
     }
   };
 
-  const handleSetPrimary = async (
+  const handleToggleStar = async (
     caseId: number,
     imageId: number,
     type: "before" | "after",
   ) => {
-    const caseData = cases.find((c) => c.id === caseId);
+    const caseData = cases.find((item) => item.id === caseId);
     if (!caseData) return;
 
-    const imgs = getImagesByType(caseData.images, type);
-    const currentPrimary = imgs.find((img) => img.match_order === 0);
+    const images = getImagesByType(caseData.images, type);
+    const target = images.find((image) => image.id === imageId);
+    if (!target) return;
 
-    if (currentPrimary && currentPrimary.id === imageId) return;
+    const starredCount = images.filter((image) => image.is_starred === 1).length;
+    const nextValue = target.is_starred ? 0 : 1;
 
-    const items: { id: number; match_order: number }[] = [];
-    let order = 1;
-    for (const img of imgs) {
-      if (img.id === imageId) {
-        items.push({ id: img.id, match_order: 0 });
-      } else {
-        items.push({ id: img.id, match_order: order });
-        order++;
-      }
+    if (!target.is_starred && starredCount >= MAX_STARRED_PER_TYPE) {
+      flash("별표는 BEFORE/AFTER 각 4개까지 선택 가능합니다");
+      return;
     }
+
     try {
-      await apiFetch("/api/admin/remodeling/images/reorder", {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({ items }),
-      });
+      await saveImage({ id: imageId, is_starred: nextValue });
       load();
-      flash("대표 이미지가 설정되었습니다");
-    } catch (e) {
-      flash(`대표 설정 실패: ${errMsg(e)}`);
+      flash(nextValue ? "별표가 설정되었습니다" : "별표가 해제되었습니다");
+    } catch (error) {
+      flash(`별표 변경에 실패했습니다: ${errMsg(error)}`);
     }
   };
 
@@ -860,20 +921,21 @@ export default function RemodelingAdminPage() {
     oldIndex: number,
     newIndex: number,
   ) => {
-    const caseData = cases.find((c) => c.id === caseId);
+    const caseData = cases.find((item) => item.id === caseId);
     if (!caseData) return;
-    const typeImgs = getImagesByType(caseData.images, type);
-    const reorderedImages = arrayMove(typeImgs, oldIndex, newIndex);
+
+    const images = getImagesByType(caseData.images, type);
+    const reorderedImages = arrayMove(images, oldIndex, newIndex);
 
     setCases((prev) =>
-      prev.map((c) => {
-        if (c.id !== caseId) return c;
-        const otherImgs = c.images.filter((img) => img.type !== type);
-        const updatedImgs = reorderedImages.map((img, i) => ({
-          ...img,
-          match_order: i,
+      prev.map((item) => {
+        if (item.id !== caseId) return item;
+        const otherImages = item.images.filter((image) => image.type !== type);
+        const updatedImages = reorderedImages.map((image, index) => ({
+          ...image,
+          match_order: index + 1,
         }));
-        return { ...c, images: [...otherImgs, ...updatedImgs] };
+        return { ...item, images: [...otherImages, ...updatedImages] };
       }),
     );
 
@@ -882,23 +944,23 @@ export default function RemodelingAdminPage() {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
-          items: reorderedImages.map((img, i) => ({
-            id: img.id,
-            match_order: i,
+          items: reorderedImages.map((image, index) => ({
+            id: image.id,
+            match_order: index + 1,
           })),
         }),
       });
-      flash("이미지 순서 저장됨");
+      flash("이미지 순서가 저장되었습니다");
       load();
-    } catch (e) {
-      flash(`이미지 순서 저장 실패: ${errMsg(e)}`);
+    } catch (error) {
+      flash(`이미지 순서 저장에 실패했습니다: ${errMsg(error)}`);
       load();
     }
   };
 
   const editorImages = editorSection
     ? getImagesByType(
-        cases.find((c) => c.id === editorSection.caseId)?.images ?? [],
+        cases.find((item) => item.id === editorSection.caseId)?.images ?? [],
         editorSection.type,
       )
     : [];
@@ -910,10 +972,12 @@ export default function RemodelingAdminPage() {
           사진등록
         </h1>
         <button
+          type="button"
           onClick={handleAdd}
           className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all inline-flex items-center gap-1.5"
         >
-          <Plus size={16} />새 폴더
+          <Plus size={16} />
+          케이스 추가
         </button>
       </div>
 
@@ -923,20 +987,21 @@ export default function RemodelingAdminPage() {
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={cases.map((c) => c.id)}
+          items={cases.map((item) => item.id)}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-4">
-            {cases.map((c) => (
+            {cases.map((item) => (
               <SortableCase
-                key={c.id}
-                c={c}
+                key={item.id}
+                item={item}
                 uploading={uploading}
-                getChecked={(t) =>
-                  checkedMap.get(sectionKey(c.id, t)) ?? new Set()
+                getChecked={(type) =>
+                  checkedMap.get(sectionKey(item.id, type)) ?? new Set()
                 }
-                onOpenEdit={(cid, t) =>
-                  setEditorSection({ caseId: cid, type: t })
+                onOpenEdit={(caseId, type) => setEditorSection({ caseId, type })}
+                onOpenImage={(caseId, type, imageId) =>
+                  setEditorSection({ caseId, type, initialImageId: imageId })
                 }
                 onToggleCheck={toggleCheck}
                 onToggleMain={handleToggleMain}
@@ -946,7 +1011,7 @@ export default function RemodelingAdminPage() {
                 onBulkUpload={handleBulkUpload}
                 onBulkDeleteAll={handleBulkDeleteAll}
                 onDeleteSelected={handleDeleteSelected}
-                onSetPrimary={handleSetPrimary}
+                onToggleStar={handleToggleStar}
                 onReorderImages={handleReorderImages}
               />
             ))}
@@ -960,10 +1025,10 @@ export default function RemodelingAdminPage() {
             <ImageOff size={28} />
           </div>
           <p className="text-[15px] font-medium text-[#999]">
-            등록된 사례가 없습니다
+            등록된 케이스가 없습니다
           </p>
           <p className="mt-1 text-[13px] text-[#CCC]">
-            새 사례를 추가하고 Before/After 사진을 업로드하세요
+            새 케이스를 추가하고 Before/After 사진을 업로드해 주세요
           </p>
         </div>
       )}
@@ -978,12 +1043,14 @@ export default function RemodelingAdminPage() {
             </div>
             <div className="px-6 py-4 border-t border-[#EBEBEB] flex gap-3">
               <button
+                type="button"
                 onClick={() => setDeleting(null)}
                 className="flex-1 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
               >
                 취소
               </button>
               <button
+                type="button"
                 onClick={() => handleDelete(deleting)}
                 className="flex-1 bg-red-500 text-white py-2.5 rounded-xl text-[14px] font-semibold hover:bg-red-600 transition-all"
               >
@@ -997,8 +1064,8 @@ export default function RemodelingAdminPage() {
       {editorSection && editorImages.length > 0 && (
         <ImageEditModal
           images={editorImages}
-          initialImageId={editorImages[0].id}
-          sectionLabel={`${editorSection.type === "before" ? "BEFORE" : "AFTER"} · ${editorImages.length}장`}
+          initialImageId={editorSection.initialImageId ?? editorImages[0].id}
+          sectionLabel={`${editorSection.type === "before" ? "BEFORE" : "AFTER"} 총 ${editorImages.length}장`}
           onApplyOne={async (id, blob) => {
             const url = await uploadFile(blob);
             await saveImage({ id, image_url: url });
@@ -1006,17 +1073,17 @@ export default function RemodelingAdminPage() {
             flash("변경사항이 적용되었습니다");
           }}
           onApplyAll={async (ids, getBlob) => {
-            flash(`${ids.length}장 처리 중...`);
+            flash(`${ids.length}장 처리 중..`);
             let success = 0;
             for (const id of ids) {
               const blob = await getBlob(id);
               if (!blob) continue;
               const url = await uploadFile(blob);
               await saveImage({ id, image_url: url });
-              success++;
+              success += 1;
             }
             load();
-            flash(`${success}/${ids.length}장에 전체 적용 완료`);
+            flash(`${success}/${ids.length}장 전체 적용이 완료되었습니다`);
             setEditorSection(null);
           }}
           onCancel={() => setEditorSection(null)}
