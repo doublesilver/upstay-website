@@ -11,8 +11,8 @@ export async function GET(
   if (!Number.isFinite(numId)) {
     return Response.json({ error: "invalid id" }, { status: 400 });
   }
-  const db = getDb();
 
+  const db = getDb();
   const caseRow = db
     .prepare("SELECT id, title FROM remodeling_cases WHERE id = ?")
     .get(numId) as { id: number; title: string } | undefined;
@@ -23,7 +23,12 @@ export async function GET(
 
   const images = db
     .prepare(
-      "SELECT type, match_order, image_url, image_url_wm FROM case_images WHERE case_id = ? ORDER BY match_order ASC, type ASC",
+      `SELECT type, match_order, image_url, image_url_wm
+       FROM case_images
+       WHERE case_id = ?
+         AND is_starred = 1
+         AND image_url <> ''
+       ORDER BY type ASC, match_order ASC, id ASC`,
     )
     .all(caseRow.id) as {
     type: "before" | "after";
@@ -32,26 +37,19 @@ export async function GET(
     image_url_wm: string;
   }[];
 
-  const pairsMap = new Map<
-    number,
-    { before_image: string; after_image: string }
-  >();
-  for (const img of images) {
-    if (!pairsMap.has(img.match_order)) {
-      pairsMap.set(img.match_order, { before_image: "", after_image: "" });
-    }
-    const pair = pairsMap.get(img.match_order)!;
-    const url = img.image_url_wm || img.image_url;
-    if (img.type === "before") {
-      pair.before_image = url;
-    } else {
-      pair.after_image = url;
-    }
-  }
+  const before_images = images
+    .filter((img) => img.type === "before")
+    .map((img) => img.image_url_wm || img.image_url)
+    .filter(Boolean);
+  const after_images = images
+    .filter((img) => img.type === "after")
+    .map((img) => img.image_url_wm || img.image_url)
+    .filter(Boolean);
 
-  const pairs = Array.from(pairsMap.entries())
-    .sort(([a], [b]) => a - b)
-    .map(([match_order, pair]) => ({ match_order, ...pair }));
-
-  return Response.json({ id: caseRow.id, title: caseRow.title, pairs });
+  return Response.json({
+    id: caseRow.id,
+    title: caseRow.title,
+    before_images,
+    after_images,
+  });
 }

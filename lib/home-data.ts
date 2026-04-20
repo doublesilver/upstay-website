@@ -20,19 +20,35 @@ export interface Announcement {
 function buildCases(
   rows: { id: number; title: string }[],
   imageLimit?: number,
+  starredOnly = false,
 ): RemodelingCase[] {
   if (rows.length === 0) return [];
+
   const db = getDb();
   const caseIds = rows.map((c) => c.id);
+  const filters = [
+    `case_id IN (${caseIds.map(() => "?").join(",")})`,
+    "image_url <> ''",
+  ];
+
+  if (starredOnly) {
+    filters.push("is_starred = 1");
+  }
+
   const allImages = db
     .prepare(
-      `SELECT case_id, type, match_order, image_url, image_url_wm FROM case_images WHERE case_id IN (${caseIds.map(() => "?").join(",")}) ORDER BY match_order ASC, type ASC`,
+      `SELECT case_id, type, match_order, image_url, image_url_wm, is_starred
+       FROM case_images
+       WHERE ${filters.join(" AND ")}
+       ORDER BY match_order ASC, id ASC`,
     )
     .all(...caseIds) as {
     case_id: number;
-    type: string;
+    type: "before" | "after";
+    match_order: number;
     image_url: string;
     image_url_wm: string;
+    is_starred: number;
   }[];
 
   const imageMap = new Map<number, typeof allImages>();
@@ -41,43 +57,50 @@ function buildCases(
     imageMap.get(img.case_id)!.push(img);
   }
 
-  return rows.map((c) => {
-    const images = imageMap.get(c.id) || [];
-    const befores = images
-      .filter((i) => i.type === "before")
-      .map((i) => i.image_url_wm || i.image_url)
-      .filter(Boolean);
-    const afters = images
-      .filter((i) => i.type === "after")
-      .map((i) => i.image_url_wm || i.image_url)
-      .filter(Boolean);
-    return {
-      id: c.id,
-      title: c.title,
-      before_image: befores[0] || "",
-      after_image: afters[0] || "",
-      before_images: imageLimit ? befores.slice(0, imageLimit) : befores,
-      after_images: imageLimit ? afters.slice(0, imageLimit) : afters,
-    };
-  });
+  return rows
+    .map((c) => {
+      const images = imageMap.get(c.id) || [];
+      const befores = images
+        .filter((i) => i.type === "before")
+        .map((i) => i.image_url_wm || i.image_url)
+        .filter(Boolean);
+      const afters = images
+        .filter((i) => i.type === "after")
+        .map((i) => i.image_url_wm || i.image_url)
+        .filter(Boolean);
+
+      return {
+        id: c.id,
+        title: c.title,
+        before_image: befores[0] || "",
+        after_image: afters[0] || "",
+        before_images: imageLimit ? befores.slice(0, imageLimit) : befores,
+        after_images: imageLimit ? afters.slice(0, imageLimit) : afters,
+      };
+    })
+    .filter((item) => item.before_images.length + item.after_images.length > 0);
 }
 
 export function getMainCases(): RemodelingCase[] {
   const db = getDb();
   const cases = db
     .prepare(
-      "SELECT id, title FROM remodeling_cases WHERE show_on_main >= 1 ORDER BY show_on_main ASC, sort_order ASC, id ASC",
+      "SELECT id, title FROM remodeling_cases WHERE show_on_main IN (1, 2, 3) ORDER BY show_on_main ASC, sort_order ASC, id ASC",
     )
     .all() as { id: number; title: string }[];
-  return buildCases(cases, 4);
+
+  return buildCases(cases, 4, true);
 }
 
 export function getAllCases(): RemodelingCase[] {
   const db = getDb();
   const cases = db
-    .prepare("SELECT id, title FROM remodeling_cases ORDER BY sort_order ASC")
+    .prepare(
+      "SELECT id, title FROM remodeling_cases ORDER BY sort_order ASC, id ASC",
+    )
     .all() as { id: number; title: string }[];
-  return buildCases(cases, 4);
+
+  return buildCases(cases, 4, true);
 }
 
 export function getVisibleAnnouncements(): Announcement[] {

@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 interface SiteConfig {
   [key: string]: string;
 }
@@ -21,12 +23,15 @@ function parseStyle(json?: string): TextStyle {
   }
 }
 
-function styledCss(style: TextStyle): React.CSSProperties {
-  const css: React.CSSProperties = {};
+function styledCss(style: TextStyle): CSSProperties {
+  const css: CSSProperties = {};
   if (style.fontSize) css.fontSize = style.fontSize;
-  if (style.fontWeight)
-    css.fontWeight = style.fontWeight as React.CSSProperties["fontWeight"];
+  if (style.fontWeight) css.fontWeight = style.fontWeight as CSSProperties["fontWeight"];
   return css;
+}
+
+function isVisible(value?: string) {
+  return value !== "0";
 }
 
 function ServiceSection({
@@ -44,16 +49,17 @@ function ServiceSection({
 }) {
   const ts = titleStyle || {};
   const ds = descStyle || {};
+
   return (
     <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl px-4 py-2.5 md:px-6 md:py-3.5">
-      <div className="flex items-baseline justify-between mb-1.5">
+      <div className="flex items-baseline justify-between mb-1.5 gap-3">
         <h2
           className="text-[14px] md:text-[17px] font-bold tracking-tight text-[#111111]"
           style={styledCss(ts)}
         >
           {ts.bullet !== false && (
             <span className="mr-1.5 text-[8px] md:text-[10px] align-middle">
-              ●
+              •
             </span>
           )}
           {title}
@@ -78,38 +84,67 @@ function ServiceSection({
 }
 
 const DEFAULT_REMODELING_DESC =
-  "주방, 욕실, 베란다, 현관, 천정, 도배, 바닥, 구멍, 몰딩, 샷시 등 공사에 관한 모든 것";
+  "주방, 욕실, 발코니, 타일, 천정, 도배, 바닥, 목공, 몰딩, 도장 등 공사의 관리 모든 것";
 const DEFAULT_BUILDING_DESC =
-  "설비, 전기, 수도, 주차, 청소 등 수선, 유지, 하자보수의 모든 것";
+  "설비, 전기, 수도, 주차장, 청소 및 보수, 유지, 하자보수 등 모든 것";
 const DEFAULT_RENTAL_DESC =
-  "공실관리, 입퇴실 시 입주자 및 시설물관리,\n월세 관리비 공과금 정산 및 수납독촉,\n민원접수 및 처리, 악성연체자 소송진행";
+  "공실관리 및 입주자 응대와 시설물관리\n월세 관리비 공과금 정산 및 세대납부,\n민원접수 및 처리, 입주안내문 발송진행";
 
 export function ServiceSections({ config }: ServiceSectionsProps) {
+  const sections = [
+    {
+      key: "service_remodeling",
+      visible: isVisible(config?.service_remodeling_visible),
+      title: config?.service_remodeling_title ?? "리모델링",
+      description: config?.service_remodeling_desc ?? DEFAULT_REMODELING_DESC,
+      caption: config?.service_remodeling_caption ?? "공사의 관리 모든 것",
+      titleStyle: parseStyle(config?.service_remodeling_title_style),
+      descStyle: parseStyle(config?.service_remodeling_desc_style),
+    },
+    {
+      key: "service_building",
+      visible: isVisible(config?.service_building_visible),
+      title: config?.service_building_title ?? "건물관리",
+      description: config?.service_building_desc ?? DEFAULT_BUILDING_DESC,
+      caption: config?.service_building_caption ?? "보수, 유지, 하자보수 등 모든 것",
+      titleStyle: parseStyle(config?.service_building_title_style),
+      descStyle: parseStyle(config?.service_building_desc_style),
+    },
+    {
+      key: "service_rental",
+      visible: isVisible(config?.service_rental_visible),
+      title: config?.service_rental_title ?? "임대관리",
+      description: config?.service_rental_desc ?? DEFAULT_RENTAL_DESC,
+      caption: config?.service_rental_caption ?? "임대차의 모든 업무",
+      titleStyle: parseStyle(config?.service_rental_title_style),
+      descStyle: parseStyle(config?.service_rental_desc_style),
+    },
+    {
+      key: "service_category4",
+      visible: isVisible(config?.service_category4_visible),
+      title: config?.service_category4_title ?? "",
+      description: config?.service_category4_desc ?? "",
+      caption: config?.service_category4_caption ?? "",
+      titleStyle: parseStyle(config?.service_category4_style),
+      descStyle: parseStyle(config?.service_category4_style),
+    },
+  ].filter(
+    (section) =>
+      section.visible && (section.title.trim() || section.description.trim()),
+  );
+
   return (
     <div className="space-y-2 md:space-y-3">
-      <ServiceSection
-        title={config?.service_remodeling_title ?? "리모델링"}
-        description={config?.service_remodeling_desc ?? DEFAULT_REMODELING_DESC}
-        caption={config?.service_remodeling_caption ?? "공사에 관한 모든 것"}
-        titleStyle={parseStyle(config?.service_remodeling_title_style)}
-        descStyle={parseStyle(config?.service_remodeling_desc_style)}
-      />
-      <ServiceSection
-        title={config?.service_building_title ?? "건물관리"}
-        description={config?.service_building_desc ?? DEFAULT_BUILDING_DESC}
-        caption={
-          config?.service_building_caption ?? "수선, 유지, 하자보수의 모든 것"
-        }
-        titleStyle={parseStyle(config?.service_building_title_style)}
-        descStyle={parseStyle(config?.service_building_desc_style)}
-      />
-      <ServiceSection
-        title={config?.service_rental_title ?? "임대관리"}
-        description={config?.service_rental_desc ?? DEFAULT_RENTAL_DESC}
-        caption={config?.service_rental_caption ?? "임대차의 모든업무"}
-        titleStyle={parseStyle(config?.service_rental_title_style)}
-        descStyle={parseStyle(config?.service_rental_desc_style)}
-      />
+      {sections.map((section) => (
+        <ServiceSection
+          key={section.key}
+          title={section.title}
+          description={section.description}
+          caption={section.caption}
+          titleStyle={section.titleStyle}
+          descStyle={section.descStyle}
+        />
+      ))}
     </div>
   );
 }
