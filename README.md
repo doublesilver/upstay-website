@@ -17,6 +17,20 @@
 
 ## 실행
 
+## 환경변수 설정
+
+```bash
+cp .env.example .env.local
+```
+
+`.env.local`에 아래 키를 설정한 뒤 실행합니다.
+
+```env
+ADMIN_ID=
+ADMIN_PW=
+JWT_SECRET=
+```
+
 ```bash
 npm install
 npm run dev

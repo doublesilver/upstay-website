@@ -135,29 +135,7 @@ export default function AnnouncementsAdminPage() {
                   placeholder="팝업 내용"
                 />
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setEditing({
-                      ...editing,
-                      is_visible: editing.is_visible ? 0 : 1,
-                    })
-                  }
-                  className={`relative w-11 h-6 rounded-full transition-colors ${
-                    editing.is_visible ? "bg-[#111]" : "bg-[#DDD]"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                      editing.is_visible ? "translate-x-5" : ""
-                    }`}
-                  />
-                </button>
-                <span className="text-[13px] text-[#666]">
-                  {editing.is_visible ? "공개" : "비공개"}
-                </span>
-              </div>
+              <div className="border-t border-[#EBEBEB]" />
               <div>
                 <label className="block text-[13px] font-medium text-[#333] mb-2">
                   팝업 닫기 설정

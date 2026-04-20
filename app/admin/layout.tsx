@@ -174,7 +174,9 @@ export default function AdminLayout({
                     type="text"
                     value={id}
                     onChange={(e) => setId(e.target.value)}
-                    autoComplete="username"
+                    autoComplete="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     className="w-full border border-[#DDD] rounded-xl px-4 py-3.5 text-[15px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
                     placeholder="아이디를 입력하세요"
                   />
