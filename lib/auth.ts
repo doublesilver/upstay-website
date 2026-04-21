@@ -1,10 +1,19 @@
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 
-const ADMIN_ID = process.env.ADMIN_ID || "admin";
-const ADMIN_PW = process.env.ADMIN_PW || "";
-const JWT_SECRET =
-  process.env.JWT_SECRET || "dev-secret-do-not-use-in-prod";
+function requireEnv(key: string): string {
+  const val = process.env[key];
+  if (!val) {
+    throw new Error(
+      `환경변수 ${key}가 설정되지 않았습니다. Railway Variables에 반드시 추가하세요.`,
+    );
+  }
+  return val;
+}
+
+const ADMIN_ID = requireEnv("ADMIN_ID");
+const ADMIN_PW = requireEnv("ADMIN_PW");
+const JWT_SECRET = requireEnv("JWT_SECRET");
 
 export function verifyCredentials(id: string, pw: string): boolean {
   return id === ADMIN_ID && pw === ADMIN_PW;
