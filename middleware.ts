@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 
 const AUTH_COOKIE = "upstay_admin_token";
 const attempts = new Map<string, { count: number; resetAt: number }>();
 const MAX = 10;
 const WINDOW = 15 * 60 * 1000;
 
-export function middleware(req: NextRequest) {
+async function verifyJwtEdge(token: string): Promise<boolean> {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) return false;
+  try {
+    await jwtVerify(token, new TextEncoder().encode(secret));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (pathname === "/api/auth" && req.method === "POST") {
@@ -33,10 +45,16 @@ export function middleware(req: NextRequest) {
   }
 
   if (pathname.startsWith("/admin") && pathname !== "/admin") {
-    if (!req.cookies.has(AUTH_COOKIE)) {
+    const token = req.cookies.get(AUTH_COOKIE)?.value;
+    const valid = token ? await verifyJwtEdge(token) : false;
+    if (!valid) {
       const url = req.nextUrl.clone();
       url.pathname = "/admin";
-      return NextResponse.redirect(url);
+      const res = NextResponse.redirect(url);
+      if (token) {
+        res.cookies.set({ name: AUTH_COOKIE, value: "", maxAge: 0, path: "/" });
+      }
+      return res;
     }
   }
 
