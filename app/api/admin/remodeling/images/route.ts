@@ -6,13 +6,9 @@ import { invalidatePublicCache } from "@/lib/cache";
 export async function POST(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
 
-  const { case_id, type, match_order, image_url, is_starred } =
-    await req.json();
-  if (!case_id || !type || match_order === undefined || match_order === null) {
-    return Response.json(
-      { error: "case_id, type, match_order required" },
-      { status: 400 },
-    );
+  const { case_id, type, image_url, is_starred } = await req.json();
+  if (!case_id || !type) {
+    return Response.json({ error: "case_id, type required" }, { status: 400 });
   }
 
   const db = getDb();
@@ -31,14 +27,22 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const nextOrder = (
+    db
+      .prepare(
+        "SELECT COALESCE(MAX(match_order),0)+1 AS n FROM case_images WHERE case_id=? AND type=?",
+      )
+      .get(case_id, type) as { n: number }
+  ).n;
+
   const result = db
     .prepare(
       "INSERT INTO case_images (case_id, type, match_order, image_url, is_starred) VALUES (?, ?, ?, ?, ?)",
     )
-    .run(case_id, type, match_order, image_url || "", is_starred ? 1 : 0);
+    .run(case_id, type, nextOrder, image_url || "", is_starred ? 1 : 0);
 
   invalidatePublicCache();
-  return Response.json({ id: result.lastInsertRowid });
+  return Response.json({ id: result.lastInsertRowid, match_order: nextOrder });
 }
 
 export async function PUT(req: NextRequest) {

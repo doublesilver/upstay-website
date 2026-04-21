@@ -57,6 +57,9 @@ interface Config {
   service_category4_desc: string;
   service_category4_caption: string;
   service_category4_style: string;
+  service_category4_title_style: string;
+  service_category4_desc_style: string;
+  service_category4_caption_style: string;
   service_category4_visible: string;
   [key: string]: string;
 }
@@ -96,6 +99,9 @@ const defaultConfig: Config = {
   service_category4_desc: "",
   service_category4_caption: "",
   service_category4_style: "{}",
+  service_category4_title_style: "{}",
+  service_category4_desc_style: "{}",
+  service_category4_caption_style: "{}",
   service_category4_visible: "1",
 };
 
@@ -325,10 +331,10 @@ export default function ConfigPage() {
           titleValue={config.service_category4_title}
           descValue={config.service_category4_desc}
           captionValue={config.service_category4_caption}
-          titleStyle={getStyle("service_category4_style")}
-          descStyle={getStyle("service_category4_style")}
-          onTitleStyleChange={setStyle("service_category4_style")}
-          onDescStyleChange={setStyle("service_category4_style")}
+          titleStyle={getStyle("service_category4_title_style")}
+          descStyle={getStyle("service_category4_desc_style")}
+          onTitleStyleChange={setStyle("service_category4_title_style")}
+          onDescStyleChange={setStyle("service_category4_desc_style")}
           onTitleChange={set("service_category4_title")}
           onDescChange={set("service_category4_desc")}
           onCaptionChange={set("service_category4_caption")}

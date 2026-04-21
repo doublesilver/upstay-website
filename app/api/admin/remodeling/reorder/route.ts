@@ -16,7 +16,11 @@ export async function POST(req: NextRequest) {
   const tx = db.transaction((rows: { id: number; sort_order: number }[]) => {
     for (const r of rows) stmt.run(r.sort_order, r.id);
   });
-  tx(items);
+  try {
+    tx(items);
+  } catch (e) {
+    return Response.json({ error: (e as Error).message }, { status: 500 });
+  }
   invalidatePublicCache();
   return Response.json({ ok: true });
 }

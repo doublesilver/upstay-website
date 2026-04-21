@@ -948,6 +948,8 @@ export default function RemodelingAdminPage() {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
+          case_id: caseId,
+          type,
           items: reorderedImages.map((image, index) => ({
             id: image.id,
             match_order: index + 1,

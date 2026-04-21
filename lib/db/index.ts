@@ -22,13 +22,6 @@ export function getDb(): Database.Database {
 }
 
 function initSchema(database: Database.Database) {
-  const tableInfo = database.prepare("PRAGMA table_info(remodeling_cases)").all() as {
-    name: string;
-  }[];
-  if (tableInfo.some((col) => col.name === "before_image")) {
-    database.exec("DROP TABLE IF EXISTS remodeling_cases");
-  }
-
   database.exec(`
     CREATE TABLE IF NOT EXISTS site_config (
       key TEXT PRIMARY KEY,
@@ -70,15 +63,6 @@ function initSchema(database: Database.Database) {
     );
   `);
 
-  const announcementCols = database
-    .prepare("PRAGMA table_info(announcements)")
-    .all() as { name: string }[];
-  if (!announcementCols.some((col) => col.name === "dismiss_duration")) {
-    database.exec(
-      "ALTER TABLE announcements ADD COLUMN dismiss_duration TEXT NOT NULL DEFAULT 'none'",
-    );
-  }
-
   insertDefaultConfig(database);
   seedRemodelingCases(database);
   applyMigrations(database);
@@ -94,7 +78,10 @@ function insertDefaultConfig(database: Database.Database) {
   insert.run("footer_name", "업스테이");
   insert.run("footer_english_name", "up stay");
   insert.run("footer_ceo", "이동훈");
-  insert.run("footer_address", "서울시 강남구 논현로 26길 82 (도곡동 157-26번지) 1층");
+  insert.run(
+    "footer_address",
+    "서울시 강남구 논현로 26길 82 (도곡동 157-26번지) 1층",
+  );
   insert.run("footer_label_name_spacing", "0.4em");
   insert.run("footer_label_ceo_spacing", "0em");
   insert.run("footer_label_business_number_spacing", "0em");
@@ -230,7 +217,18 @@ function applyMigrations(database: Database.Database) {
 
     const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
     const tx = database.transaction(() => {
-      database.exec(sql);
+      try {
+        database.exec(sql);
+      } catch (e) {
+        if (
+          file === "004_add_dismiss_duration.sql" &&
+          String(e).includes("duplicate column")
+        ) {
+          // 기존 배포 DB에는 이미 컬럼 존재 — 마이그레이션 기록만 남김
+        } else {
+          throw e;
+        }
+      }
       insertMigration.run(file);
     });
     tx();

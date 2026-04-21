@@ -20,26 +20,18 @@ export interface Announcement {
 function buildCases(
   rows: { id: number; title: string }[],
   imageLimit?: number,
-  starredOnly = false,
 ): RemodelingCase[] {
   if (rows.length === 0) return [];
 
   const db = getDb();
   const caseIds = rows.map((c) => c.id);
-  const filters = [
-    `case_id IN (${caseIds.map(() => "?").join(",")})`,
-    "image_url <> ''",
-  ];
-
-  if (starredOnly) {
-    filters.push("is_starred = 1");
-  }
+  const placeholders = caseIds.map(() => "?").join(",");
 
   const allImages = db
     .prepare(
       `SELECT case_id, type, match_order, image_url, image_url_wm, is_starred
        FROM case_images
-       WHERE ${filters.join(" AND ")}
+       WHERE case_id IN (${placeholders}) AND image_url <> '' AND is_starred = 1
        ORDER BY match_order ASC, id ASC`,
     )
     .all(...caseIds) as {
@@ -89,7 +81,7 @@ export function getMainCases(): RemodelingCase[] {
     )
     .all() as { id: number; title: string }[];
 
-  return buildCases(cases, 4, true);
+  return buildCases(cases, 4);
 }
 
 export function getAllCases(): RemodelingCase[] {
@@ -100,7 +92,7 @@ export function getAllCases(): RemodelingCase[] {
     )
     .all() as { id: number; title: string }[];
 
-  return buildCases(cases, 4, true);
+  return buildCases(cases, 4);
 }
 
 export function getVisibleAnnouncements(): Announcement[] {

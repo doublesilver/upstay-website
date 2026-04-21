@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
-import { readFile, stat } from "fs/promises";
-import { existsSync } from "fs";
+import { stat } from "fs/promises";
+import { createReadStream, existsSync } from "fs";
+import { Readable } from "stream";
 import path from "path";
 
 const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
@@ -31,13 +32,16 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const buffer = await readFile(filePath);
   const ext = path.extname(filename).toLowerCase();
   const contentType = MIME[ext] || "application/octet-stream";
 
-  return new Response(buffer, {
+  const nodeStream = createReadStream(filePath);
+  const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+
+  return new Response(webStream, {
     headers: {
       "Content-Type": contentType,
+      "Content-Length": String(fileStat.size),
       "Cache-Control": "public, max-age=31536000, immutable",
     },
   });
