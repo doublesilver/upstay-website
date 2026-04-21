@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Toast } from "@/components/admin/toast";
 
 interface Announcement {
@@ -38,6 +38,57 @@ export default function AnnouncementsAdminPage() {
   const [editing, setEditing] = useState<Announcement | null>(null);
   const [toast, setToast] = useState("");
   const [deleting, setDeleting] = useState<number | null>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+
+  const wrapBold = () => {
+    const el = contentRef.current;
+    if (!el || !editing) return;
+    const { selectionStart: s, selectionEnd: e, value } = el;
+    const selected = value.slice(s, e);
+    let newValue: string;
+    let newStart: number;
+    let newEnd: number;
+    if (selected) {
+      newValue = value.slice(0, s) + `**${selected}**` + value.slice(e);
+      newStart = s;
+      newEnd = e + 4;
+    } else {
+      newValue = value.slice(0, s) + "****" + value.slice(s);
+      newStart = s + 2;
+      newEnd = s + 2;
+    }
+    setEditing({ ...editing, content: newValue });
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(newStart, newEnd);
+    });
+  };
+
+  const insertBullet = () => {
+    const el = contentRef.current;
+    if (!el || !editing) return;
+    const { selectionStart: s, selectionEnd: e, value } = el;
+    const lines = value.split("\n");
+    let charCount = 0;
+    let startLine = 0;
+    let endLine = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const lineEnd = charCount + lines[i].length;
+      if (charCount <= s && s <= lineEnd + 1) startLine = i;
+      if (charCount <= e && e <= lineEnd + 1) endLine = i;
+      charCount += lines[i].length + 1;
+    }
+    const newLines = lines.map((line, i) =>
+      i >= startLine && i <= endLine ? "• " + line : line,
+    );
+    const newValue = newLines.join("\n");
+    const added = (endLine - startLine + 1) * 2;
+    setEditing({ ...editing, content: newValue });
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(s + 2, e + added);
+    });
+  };
 
   const load = useCallback(() => {
     apiFetch("/api/admin/announcements", { headers: getHeaders() })
@@ -125,13 +176,14 @@ export default function AnnouncementsAdminPage() {
             <div className="px-6 py-5 space-y-4">
               <div>
                 <textarea
+                  ref={contentRef}
                   value={editing.content}
                   onChange={(e) =>
                     setEditing({ ...editing, content: e.target.value })
                   }
                   rows={5}
                   aria-label="팝업 내용"
-                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)] resize-none"
+                  className="w-full border-2 border-[#111] bg-[#FAFAFA] rounded-xl px-4 py-3 text-[14px] outline-none transition-all resize-none"
                   placeholder="팝업 내용"
                 />
               </div>
@@ -152,20 +204,42 @@ export default function AnnouncementsAdminPage() {
                 </select>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-[#EBEBEB] flex justify-end gap-3">
-              <button
-                onClick={() => setEditing(null)}
-                className="px-5 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!editing.content}
-                className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 transition-all"
-              >
-                저장
-              </button>
+            <div className="px-6 py-4 border-t border-[#EBEBEB] flex items-center justify-between gap-3">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={wrapBold}
+                  className="w-9 h-9 border border-[#DDD] rounded-lg hover:bg-[#F7F7F7] font-bold text-[14px]"
+                  title="굵게"
+                  aria-label="굵게"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  onClick={insertBullet}
+                  className="w-9 h-9 border border-[#DDD] rounded-lg hover:bg-[#F7F7F7] text-[14px]"
+                  title="글머리기호"
+                  aria-label="글머리기호"
+                >
+                  •
+                </button>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setEditing(null)}
+                  className="px-5 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!editing.content}
+                  className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 transition-all"
+                >
+                  저장
+                </button>
+              </div>
             </div>
           </div>
         </div>

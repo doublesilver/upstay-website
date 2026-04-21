@@ -29,6 +29,30 @@ function parseStyle(json?: string): TextStyle {
   }
 }
 
+function renderPopupContent(text: string): React.ReactNode {
+  return text.split("\n").map((line, i) => {
+    const parts: React.ReactNode[] = [];
+    const boldRe = /\*\*(.+?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+    while ((match = boldRe.exec(line)) !== null) {
+      if (match.index > lastIndex)
+        parts.push(line.slice(lastIndex, match.index));
+      parts.push(<strong key={`b-${i}-${key++}`}>{match[1]}</strong>);
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < line.length) parts.push(line.slice(lastIndex));
+    if (parts.length === 0) parts.push(line);
+    return (
+      <span key={i}>
+        {parts}
+        <br />
+      </span>
+    );
+  });
+}
+
 function styleToCss(style: TextStyle): CSSProperties {
   const css: CSSProperties = {};
   if (style.fontSize) css.fontSize = style.fontSize;
@@ -165,12 +189,12 @@ export function HomeClient({
             aria-modal="true"
             className="bg-white rounded-xl shadow-lg w-[90%] max-w-md mx-4 overflow-hidden"
           >
-            <div className="px-5 py-4 max-h-[60vh] overflow-y-auto space-y-3">
+            <div className="px-5 py-4 min-h-[240px] max-h-[60vh] overflow-y-auto space-y-3">
               {initialAnnouncements.map((announcement) => (
                 <div key={announcement.id}>
                   {announcement.content && (
                     <p className="text-[13px] text-[#6B7280] leading-[1.6]">
-                      {announcement.content}
+                      {renderPopupContent(announcement.content)}
                     </p>
                   )}
                 </div>
