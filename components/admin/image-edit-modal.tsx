@@ -116,7 +116,7 @@ export function ImageEditModal({
   }, [initialImageId]);
 
   useEffect(() => {
-    loadImage("/logo.png")
+    loadImage("/watermark.svg")
       .then(setLogoImg)
       .catch(() => setLogoImg(null));
   }, []);
@@ -195,7 +195,7 @@ export function ImageEditModal({
                     {logoImg && settings.wmOpacity > 0 && logoW > 0 && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src="/logo.png"
+                        src="/watermark.svg"
                         alt=""
                         className="absolute pointer-events-none"
                         style={{

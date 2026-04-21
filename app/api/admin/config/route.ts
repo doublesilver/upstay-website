@@ -19,6 +19,9 @@ export async function GET(req: NextRequest) {
 }
 
 const ALLOWED_KEYS = new Set([
+  "header_logo_visible",
+  "header_logo_width",
+  "header_logo_offset_y",
   "slogan_text",
   "slogan_text_style",
   "photo_guide_title",

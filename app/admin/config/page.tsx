@@ -23,6 +23,9 @@ async function apiFetch(url: string, options?: RequestInit) {
 }
 
 interface Config {
+  header_logo_visible: string;
+  header_logo_width: string;
+  header_logo_offset_y: string;
   slogan_text: string;
   slogan_text_style: string;
   photo_guide_title: string;
@@ -59,6 +62,9 @@ interface Config {
 }
 
 const defaultConfig: Config = {
+  header_logo_visible: "0",
+  header_logo_width: "100",
+  header_logo_offset_y: "0",
   slogan_text: "",
   slogan_text_style: "{}",
   photo_guide_title: "리모델링 사례보기",
@@ -180,6 +186,48 @@ export default function ConfigPage() {
             aria-label="헤더 문구"
             className={inputCls}
           />
+        </section>
+
+        <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <h2 className="text-[16px] font-bold text-[#111]">헤더 로고</h2>
+            <VisibilityToggle
+              visible={config.header_logo_visible === "1"}
+              onToggle={() => toggleVisible("header_logo_visible")}
+            />
+          </div>
+          <div
+            className={`space-y-4 transition-opacity ${config.header_logo_visible !== "1" ? "opacity-50" : ""}`}
+          >
+            <div>
+              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                가로 크기 (px)
+              </label>
+              <input
+                type="number"
+                min={40}
+                max={400}
+                value={config.header_logo_width}
+                onChange={set("header_logo_width")}
+                className={inputCls}
+                aria-label="헤더 로고 가로 크기"
+              />
+            </div>
+            <div>
+              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                세로 오프셋 (px, 양수=아래로)
+              </label>
+              <input
+                type="number"
+                min={-30}
+                max={30}
+                value={config.header_logo_offset_y}
+                onChange={set("header_logo_offset_y")}
+                className={inputCls}
+                aria-label="헤더 로고 세로 오프셋"
+              />
+            </div>
+          </div>
         </section>
 
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">

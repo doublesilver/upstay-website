@@ -102,3 +102,17 @@ tar xzf ~/upstay-backups/upstay-YYYYMMDD-HHMMSS.tar.gz
 - 카카오톡 링크: `lib/site.ts`의 `KAKAO_URL` 값을 실제 채널 URL로 수정합니다.
 - 사업자 정보: `lib/site.ts`의 `companyInfo` 값을 수정합니다.
 - Before / After 이미지: `app/remodeling/page.tsx`의 `items` 배열에서 `placehold.co` URL을 실제 이미지 경로(`/public/...` 또는 외부 URL)로 교체합니다.
+
+### 로고·워터마크 이미지 교체
+
+클라이언트가 전달한 Adobe Illustrator (AI) 파일을 아래 경로에 SVG로 덮어쓰면 즉시 반영됩니다.
+
+- `public/logo.svg` — 헤더·관리자 로그인 화면 로고
+- `public/watermark.svg` — 사진 편집 모달에서 적용되는 워터마크
+
+#### AI → SVG 변환 방법
+
+Adobe Illustrator에서 `File → Export → Export As...` → 포맷 `SVG (svg)` 선택 → 저장.
+또는 `File → Export → Export for Screens...` 로 배율/포맷을 지정해 내보낼 수도 있습니다.
+
+SVG로 교체하면 관리자 페이지 `메인창 → 헤더 로고` 섹션에서 노출 토글·가로 크기·세로 오프셋을 세밀하게 조정할 수 있습니다.

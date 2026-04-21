@@ -7,13 +7,31 @@ export function Header({ config }: { config?: Record<string, string> }) {
   return (
     <header className="sticky top-0 z-40 bg-[#F1F8E9] border-b border-[#E5E7EB]">
       <Container className="h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4">
-        {/* 로고 — 이미지 준비 후 교체 예정 */}
-        <Link
-          href="/"
-          className="shrink-0 text-[16px] md:text-[20px] font-bold text-[#111111] tracking-tight"
-        >
-          UPSTAY
-        </Link>
+        {config?.header_logo_visible === "1" ? (
+          <Link href="/" className="shrink-0 block">
+            <Image
+              src="/logo.svg"
+              alt="UPSTAY"
+              width={Number(config.header_logo_width) || 100}
+              height={Math.round(
+                (Number(config.header_logo_width) || 100) * 0.3,
+              )}
+              style={{
+                width: `${Number(config.header_logo_width) || 100}px`,
+                height: "auto",
+                transform: `translateY(${Number(config.header_logo_offset_y) || 0}px)`,
+              }}
+              priority
+            />
+          </Link>
+        ) : (
+          <Link
+            href="/"
+            className="shrink-0 text-[16px] md:text-[20px] font-bold text-[#111111] tracking-tight"
+          >
+            UPSTAY
+          </Link>
+        )}
 
         {/* 네비게이션 + 슬로건 (가운데) */}
         <div className="flex-1 min-w-0 text-center">
