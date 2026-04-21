@@ -4,6 +4,7 @@ import Image, { type ImageProps } from "next/image";
 
 export function ProtectedImage(props: ImageProps) {
   return (
+    // eslint-disable-next-line jsx-a11y/alt-text
     <Image
       {...props}
       draggable={false}

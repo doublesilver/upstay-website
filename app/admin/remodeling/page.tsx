@@ -122,7 +122,7 @@ function ToolbarButton({
   const toneClass =
     tone === "danger"
       ? "border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300"
-      : "border-[#DDD] text-[#555] hover:text-[#111] hover:border-[#999]";
+      : "border-[#111] text-[#555] hover:text-[#111] hover:border-[#999]";
 
   return (
     <button
@@ -175,7 +175,7 @@ function SortableThumb({
       {...listeners}
       onClick={onOpenImage}
       className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all cursor-grab active:cursor-grabbing touch-none ${
-        checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#E5E5E5]"
+        checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#111]"
       }`}
     >
       {image.image_url ? (
@@ -210,7 +210,7 @@ function SortableThumb({
         className={`absolute top-1 left-1 w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer z-10 transition-opacity ${
           checked
             ? "bg-[#111] border-[#111] text-white opacity-100"
-            : "bg-white/90 border-[#DDD] opacity-0 group-hover:opacity-100"
+            : "bg-white/90 border-[#111] opacity-0 group-hover:opacity-100"
         }`}
       >
         {checked && (
@@ -370,12 +370,12 @@ function ImageSection({
         />
       </div>
 
-      <div className="border border-[#DDD] rounded-lg p-3 bg-[#FAFAFA]">
+      <div className="border border-[#111] rounded-lg p-3 bg-[#FAFAFA]">
         {images.length === 0 ? (
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="w-full py-8 border-2 border-dashed border-[#DDD] rounded-xl text-[13px] text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all bg-white"
+            className="w-full py-8 border-2 border-dashed border-[#111] rounded-xl text-[13px] text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all bg-white"
           >
             클릭하여 {label} 이미지를 업로드해 주세요
           </button>
@@ -396,7 +396,8 @@ function ImageSection({
                     image={image}
                     checked={checkedIds.has(image.id)}
                     disableStar={
-                      image.is_starred !== 1 && starredCount >= MAX_STARRED_PER_TYPE
+                      image.is_starred !== 1 &&
+                      starredCount >= MAX_STARRED_PER_TYPE
                     }
                     onOpenImage={() => onOpenImage(caseId, type, image.id)}
                     onToggleCheck={() => onToggleCheck(image.id)}
@@ -488,7 +489,7 @@ function SortableCase({
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white border border-[#EBEBEB] rounded-2xl overflow-hidden hover:shadow-sm transition-all"
+      className="bg-white border border-[#111] rounded-2xl overflow-hidden hover:shadow-sm transition-all"
     >
       <div className="px-5 pt-5 pb-5 space-y-4">
         <ImageSection
@@ -506,7 +507,7 @@ function SortableCase({
           onToggleStar={onToggleStar}
           onReorder={onReorderImages}
         />
-        <div className="border-t border-[#EBEBEB]" />
+        <div className="border-t border-[#111]" />
         <ImageSection
           caseId={item.id}
           type="after"
@@ -522,7 +523,7 @@ function SortableCase({
           onToggleStar={onToggleStar}
           onReorder={onReorderImages}
         />
-        <div className="border-t border-[#EBEBEB]" />
+        <div className="border-t border-[#111]" />
 
         <div className="flex items-center gap-3">
           <label className="text-[13px] font-medium text-[#333] shrink-0">
@@ -533,12 +534,12 @@ function SortableCase({
             value={item.title}
             onChange={(e) => onTitleChange(item.id, e.target.value)}
             placeholder="설명을 입력해 주세요"
-            className="flex-1 text-[14px] text-[#111] outline-none border border-[#DDD] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#111]/40"
+            className="flex-1 text-[14px] text-[#111] outline-none border border-[#111] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#111]/40"
           />
         </div>
       </div>
 
-      <div className="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex items-center gap-2">
+      <div className="px-5 py-3 border-t border-[#111] bg-[#FAFAFA] flex items-center gap-2">
         <button
           type="button"
           {...attributes}
@@ -552,7 +553,7 @@ function SortableCase({
         <button
           type="button"
           onClick={() => onDelete(item.id)}
-          className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#DDD] hover:border-[#999] hover:text-[#111] transition-all"
+          className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
         >
           케이스 삭제
         </button>
@@ -567,7 +568,7 @@ function SortableCase({
               className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
                 active
                   ? "bg-[#111] text-white border border-[#111]"
-                  : "bg-white text-[#666] border border-[#DDD] hover:border-[#999] hover:text-[#111]"
+                  : "bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111]"
               }`}
             >
               메인{value}
@@ -723,7 +724,12 @@ export default function RemodelingAdminPage() {
   const handleToggleMain = (id: number, value: number) => {
     setCases((prev) =>
       prev.map((item) => {
-        if (value >= 1 && value <= 3 && item.show_on_main === value && item.id !== id) {
+        if (
+          value >= 1 &&
+          value <= 3 &&
+          item.show_on_main === value &&
+          item.id !== id
+        ) {
           return { ...item, show_on_main: 0 };
         }
         if (item.id === id) return { ...item, show_on_main: value };
@@ -898,7 +904,9 @@ export default function RemodelingAdminPage() {
     const target = images.find((image) => image.id === imageId);
     if (!target) return;
 
-    const starredCount = images.filter((image) => image.is_starred === 1).length;
+    const starredCount = images.filter(
+      (image) => image.is_starred === 1,
+    ).length;
     const nextValue = target.is_starred ? 0 : 1;
 
     if (!target.is_starred && starredCount >= MAX_STARRED_PER_TYPE) {
@@ -999,7 +1007,9 @@ export default function RemodelingAdminPage() {
                 getChecked={(type) =>
                   checkedMap.get(sectionKey(item.id, type)) ?? new Set()
                 }
-                onOpenEdit={(caseId, type) => setEditorSection({ caseId, type })}
+                onOpenEdit={(caseId, type) =>
+                  setEditorSection({ caseId, type })
+                }
                 onOpenImage={(caseId, type, imageId) =>
                   setEditorSection({ caseId, type, initialImageId: imageId })
                 }
@@ -1020,7 +1030,7 @@ export default function RemodelingAdminPage() {
       </DndContext>
 
       {cases.length === 0 && (
-        <div className="bg-white border border-[#EBEBEB] rounded-2xl py-20 text-center">
+        <div className="bg-white border border-[#111] rounded-2xl py-20 text-center">
           <div className="w-16 h-16 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#CCC]">
             <ImageOff size={28} />
           </div>
@@ -1041,7 +1051,7 @@ export default function RemodelingAdminPage() {
                 삭제하시겠습니까?
               </h3>
             </div>
-            <div className="px-6 py-4 border-t border-[#EBEBEB] flex gap-3">
+            <div className="px-6 py-4 border-t border-[#111] flex gap-3">
               <button
                 type="button"
                 onClick={() => setDeleting(null)}

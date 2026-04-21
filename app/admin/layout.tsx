@@ -99,7 +99,7 @@ export default function AdminLayout({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "아이디 또는 비밀번호가 올바르지 않습니다");
+        setError(data.error || "아이디 또는 비밀번호를 다시 확인해주세요");
         setSubmitting(false);
         return;
       }
@@ -138,7 +138,7 @@ export default function AdminLayout({
             <p className="mt-6 text-[16px] text-[#666] leading-relaxed">
               공간의 가치를
               <br />
-              업스테이가 높여드립니다
+              업스테이가 높여드립니다.
             </p>
           </div>
         </div>
@@ -160,9 +160,6 @@ export default function AdminLayout({
             <h1 className="text-[28px] font-bold text-[#111] tracking-tight">
               관리자 로그인
             </h1>
-            <p className="mt-2 text-[14px] text-[#888]">
-              업스테이 관리 시스템에 접속합니다
-            </p>
 
             <form onSubmit={handleLogin} className="mt-8">
               <div className="space-y-5">
