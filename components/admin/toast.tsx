@@ -4,11 +4,10 @@ import { useEffect, useState } from "react";
 
 interface ToastProps {
   message: string;
-  type?: "success" | "error";
   onClose: () => void;
 }
 
-export function Toast({ message, type = "success", onClose }: ToastProps) {
+export function Toast({ message, onClose }: ToastProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -26,12 +25,8 @@ export function Toast({ message, type = "success", onClose }: ToastProps) {
         visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3"
       }`}
     >
-      <div
-        className={`flex items-center gap-2.5 px-5 py-3 rounded-xl shadow-lg text-[14px] font-medium ${
-          type === "success" ? "bg-[#111] text-white" : "bg-red-500 text-white"
-        }`}
-      >
-        <span>{type === "success" ? "✓" : "!"}</span>
+      <div className="flex items-center gap-2.5 px-5 py-3 rounded-xl shadow-lg text-[14px] font-medium bg-[#111] text-white">
+        <span>✓</span>
         <span>{message}</span>
       </div>
     </div>

@@ -86,6 +86,8 @@ function insertDefaultConfig(database: Database.Database) {
 }
 
 function seedRemodelingCases(database: Database.Database) {
+  if (process.env.SEED_DEMO !== "1") return;
+
   const caseCount = database
     .prepare("SELECT COUNT(*) as cnt FROM remodeling_cases")
     .get() as { cnt: number };

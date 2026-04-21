@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { flushSync } from "react-dom";
 import { Toast } from "@/components/admin/toast";
 import { apiFetch, getHeaders } from "@/lib/admin-api";
 
@@ -38,11 +39,9 @@ export default function AnnouncementsAdminPage() {
       newStart = s + 2;
       newEnd = s + 2;
     }
-    setEditing({ ...editing, content: newValue });
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(newStart, newEnd);
-    });
+    flushSync(() => setEditing({ ...editing, content: newValue }));
+    el.focus();
+    el.setSelectionRange(newStart, newEnd);
   };
 
   const insertBullet = () => {
@@ -64,11 +63,9 @@ export default function AnnouncementsAdminPage() {
     );
     const newValue = newLines.join("\n");
     const added = (endLine - startLine + 1) * 2;
-    setEditing({ ...editing, content: newValue });
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(s + 2, e + added);
-    });
+    flushSync(() => setEditing({ ...editing, content: newValue }));
+    el.focus();
+    el.setSelectionRange(s + 2, e + added);
   };
 
   const load = useCallback(() => {

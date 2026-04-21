@@ -15,7 +15,7 @@ export const navItems = [
 export const companyInfo = {
   name: "업스테이",
   englishName: "up stay",
-  ceo: "안민혁",
+  ceo: "이동훈", // 폴백값 — 실제 렌더는 DB site_config.footer_ceo 사용
   address: "서울시 강남구 학동로 26길 82 (논현동 157-26번지 1층)",
   businessNumber: "308-25-02055",
   phone: "010-3168-0624",
