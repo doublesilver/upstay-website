@@ -137,10 +137,8 @@ export default function AnnouncementsAdminPage() {
               </div>
               <div className="border-t border-[#EBEBEB]" />
               <div>
-                <label className="block text-[13px] font-medium text-[#333] mb-2">
-                  팝업 닫기 설정
-                </label>
                 <select
+                  aria-label="팝업 닫기 설정"
                   value={editing.dismiss_duration || "none"}
                   onChange={(e) =>
                     setEditing({ ...editing, dismiss_duration: e.target.value })

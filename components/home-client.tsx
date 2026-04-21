@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ProtectedImage } from "@/components/protected-image";
 import Link from "next/link";
 import { blurDataURL } from "@/lib/shimmer";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
@@ -32,7 +32,8 @@ function parseStyle(json?: string): TextStyle {
 function styleToCss(style: TextStyle): CSSProperties {
   const css: CSSProperties = {};
   if (style.fontSize) css.fontSize = style.fontSize;
-  if (style.fontWeight) css.fontWeight = style.fontWeight as CSSProperties["fontWeight"];
+  if (style.fontWeight)
+    css.fontWeight = style.fontWeight as CSSProperties["fontWeight"];
   return css;
 }
 
@@ -76,7 +77,9 @@ export function HomeClient({
   }, [initialAnnouncements.length]);
 
   const photoGuideVisible = initialConfig.photo_guide_visible !== "0";
-  const photoGuideStyle = styleToCss(parseStyle(initialConfig.photo_guide_style));
+  const photoGuideStyle = styleToCss(
+    parseStyle(initialConfig.photo_guide_style),
+  );
   const photoGuideTitle =
     initialConfig.photo_guide_title || "리모델링 사례보기";
   const photoGuideCaption =
@@ -235,7 +238,7 @@ function GalleryGrid({
             key={`${label}-${index}-${url}`}
             className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
           >
-            <Image
+            <ProtectedImage
               src={url}
               alt={`${title || "리모델링 사례"} ${label} ${index + 1}번 사진`}
               fill

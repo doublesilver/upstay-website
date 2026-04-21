@@ -15,8 +15,16 @@ export function verifyCredentials(id: string, pw: string): boolean {
   return id === requireEnv("ADMIN_ID") && pw === requireEnv("ADMIN_PW");
 }
 
+function getJwtSecret(): string {
+  const secret = requireEnv("JWT_SECRET");
+  if (secret.length < 32) {
+    throw new Error("JWT_SECRET은 최소 32자 이상이어야 합니다");
+  }
+  return secret;
+}
+
 export function createToken(): string {
-  return jwt.sign({ role: "admin" }, requireEnv("JWT_SECRET"), {
+  return jwt.sign({ role: "admin" }, getJwtSecret(), {
     expiresIn: "7d",
   });
 }
@@ -25,7 +33,7 @@ export function verifyToken(req: NextRequest): boolean {
   const auth = req.headers.get("authorization");
   if (!auth?.startsWith("Bearer ")) return false;
   try {
-    jwt.verify(auth.slice(7), requireEnv("JWT_SECRET"));
+    jwt.verify(auth.slice(7), getJwtSecret());
     return true;
   } catch {
     return false;

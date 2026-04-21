@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ProtectedImage } from "@/components/protected-image";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { getAllCases } from "@/lib/home-data";
@@ -36,7 +36,7 @@ export default function RemodelingPage() {
                         key={j}
                         className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                       >
-                        <Image
+                        <ProtectedImage
                           src={url}
                           alt={`${c.title || "리모델링 사례"} 시공 전 ${j + 1}번째 사진`}
                           fill
@@ -63,7 +63,7 @@ export default function RemodelingPage() {
                         key={j}
                         className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                       >
-                        <Image
+                        <ProtectedImage
                           src={url}
                           alt={`${c.title || "리모델링 사례"} 시공 후 ${j + 1}번째 사진`}
                           fill

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ProtectedImage } from "@/components/protected-image";
 import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Container } from "@/components/container";
@@ -46,7 +46,8 @@ export default function RemodelingDetailPage({
     (direction: number) => {
       if (beforeImages.length === 0) return;
       setBeforeIndex(
-        (index) => (index + direction + beforeImages.length) % beforeImages.length,
+        (index) =>
+          (index + direction + beforeImages.length) % beforeImages.length,
       );
     },
     [beforeImages.length],
@@ -56,7 +57,8 @@ export default function RemodelingDetailPage({
     (direction: number) => {
       if (afterImages.length === 0) return;
       setAfterIndex(
-        (index) => (index + direction + afterImages.length) % afterImages.length,
+        (index) =>
+          (index + direction + afterImages.length) % afterImages.length,
       );
     },
     [afterImages.length],
@@ -98,7 +100,9 @@ export default function RemodelingDetailPage({
 
   return (
     <Container className="pt-4 pb-8 md:pt-8 md:pb-14">
-      {loading && <div className="py-20 text-center text-[#999]">로딩 중..</div>}
+      {loading && (
+        <div className="py-20 text-center text-[#999]">로딩 중..</div>
+      )}
 
       {!loading && !data && (
         <div className="py-20 text-center text-[#999]">
@@ -189,7 +193,7 @@ function GallerySection({
         ref={containerRef}
         className="relative aspect-[2/1] border border-[#ccc] rounded-xl overflow-hidden bg-[#F1F8E9]"
       >
-        <Image
+        <ProtectedImage
           src={images[activeIndex]}
           alt={`${altPrefix} ${activeIndex + 1}`}
           fill
@@ -233,7 +237,7 @@ function GallerySection({
                   : "border border-[#ccc]"
               }`}
             >
-              <Image
+              <ProtectedImage
                 src={url}
                 alt={`${altPrefix} ${index + 1}`}
                 fill

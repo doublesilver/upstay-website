@@ -14,7 +14,6 @@ export interface EditSettings {
   brightness: number;
   wmOpacity: number;
   wmScale: number;
-  wmThickness: number;
   wmPos: { x: number; y: number };
 }
 
@@ -35,7 +34,6 @@ const DEFAULT_SETTINGS: EditSettings = {
   brightness: 100,
   wmOpacity: 50,
   wmScale: 20,
-  wmThickness: 0,
   wmPos: { x: 0.5, y: 0.5 },
 };
 
@@ -85,8 +83,6 @@ async function renderToBlob(
 
     ctx.save();
     ctx.globalAlpha = settings.wmOpacity / 100;
-    ctx.shadowColor = "rgba(0,0,0,0.5)";
-    ctx.shadowBlur = settings.wmThickness;
     ctx.drawImage(logoImg, x, y, logoW, logoH);
     ctx.restore();
   }
@@ -208,7 +204,6 @@ export function ImageEditModal({
                           left: `calc(${settings.wmPos.x * 100}% - ${logoW / 2}px)`,
                           top: `calc(${settings.wmPos.y * 100}% - ${logoH / 2}px)`,
                           opacity: settings.wmOpacity / 100,
-                          filter: `drop-shadow(0 0 ${settings.wmThickness}px rgba(0,0,0,0.5))`,
                         }}
                       />
                     )}
@@ -295,16 +290,6 @@ export function ImageEditModal({
                     setSettings((prev) => ({ ...prev, wmScale: value }))
                   }
                   unit="%"
-                />
-                <Slider
-                  label="두께"
-                  value={settings.wmThickness}
-                  min={0}
-                  max={10}
-                  onChange={(value) =>
-                    setSettings((prev) => ({ ...prev, wmThickness: value }))
-                  }
-                  unit=""
                 />
                 <div className="mt-4">
                   <label className="block text-[12px] text-[#333] mb-2">
