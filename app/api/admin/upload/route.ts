@@ -3,6 +3,7 @@ import { writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import { randomBytes } from "crypto";
 import path from "path";
+import sharp from "sharp";
 import { verifyToken, unauthorized } from "@/lib/auth";
 import { UPLOAD_DIR } from "@/lib/paths";
 
@@ -15,11 +16,42 @@ const MAGIC_NUMBERS: Record<string, number[][]> = {
   webp: [[0x52, 0x49, 0x46, 0x46]],
 };
 
+const MAX_DIMENSION = 2048;
+const QUALITY = 85;
+
 function checkMagic(buffer: Buffer, ext: string): boolean {
   const normalized = ext.replace(".", "").replace("jpeg", "jpg");
   const magics = MAGIC_NUMBERS[normalized];
   if (!magics) return false;
   return magics.some((magic) => magic.every((b, i) => buffer[i] === b));
+}
+
+async function optimize(buffer: Buffer, ext: string): Promise<Buffer> {
+  const normalizedExt = ext
+    .replace(".", "")
+    .toLowerCase()
+    .replace("jpeg", "jpg");
+  if (normalizedExt === "gif") {
+    return buffer;
+  }
+  let pipeline = sharp(buffer, { animated: false }).rotate().resize({
+    width: MAX_DIMENSION,
+    height: MAX_DIMENSION,
+    fit: "inside",
+    withoutEnlargement: true,
+  });
+  if (normalizedExt === "png") {
+    pipeline = pipeline.png({ compressionLevel: 9, adaptiveFiltering: true });
+  } else if (normalizedExt === "webp") {
+    pipeline = pipeline.webp({ quality: QUALITY });
+  } else {
+    pipeline = pipeline.jpeg({
+      quality: QUALITY,
+      progressive: true,
+      mozjpeg: true,
+    });
+  }
+  return await pipeline.toBuffer();
 }
 
 export async function POST(req: NextRequest) {
@@ -61,8 +93,18 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
+    let optimizedBuffer: Buffer;
+    try {
+      optimizedBuffer = await optimize(buffer, ext);
+    } catch (e) {
+      console.warn(
+        "[upload] sharp 최적화 실패, 원본 저장:",
+        (e as Error).message,
+      );
+      optimizedBuffer = buffer;
+    }
     const filename = `${Date.now()}-${randomBytes(8).toString("hex")}${ext}`;
-    await writeFile(path.join(UPLOAD_DIR, filename), buffer);
+    await writeFile(path.join(UPLOAD_DIR, filename), optimizedBuffer);
     saved.push(filename);
   }
 
