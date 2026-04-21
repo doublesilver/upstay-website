@@ -99,7 +99,7 @@ export default function RemodelingDetailPage({
   }, [moveBefore, moveAfter]);
 
   return (
-    <Container className="pt-4 pb-8 md:pt-8 md:pb-14">
+    <Container className="pt-4 pb-4 md:pt-6 md:pb-6 h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] flex flex-col overflow-hidden">
       {loading && (
         <div className="py-20 text-center text-[#999]">로딩 중..</div>
       )}
@@ -112,7 +112,7 @@ export default function RemodelingDetailPage({
 
       {data && (
         <>
-          <div className="mb-5">
+          <div className="mb-3 shrink-0">
             <Link
               href="/remodeling"
               className="text-[13px] text-[#666] hover:text-[#111] transition-colors"
@@ -121,7 +121,7 @@ export default function RemodelingDetailPage({
             </Link>
           </div>
 
-          <div className="space-y-8 md:space-y-10">
+          <div className="flex-1 min-h-0 flex flex-col gap-3 md:gap-4">
             {beforeImages.length > 0 && (
               <GallerySection
                 title="BEFORE"
@@ -136,7 +136,7 @@ export default function RemodelingDetailPage({
             )}
 
             {beforeImages.length > 0 && afterImages.length > 0 && (
-              <div className="border-t border-[#EBEBEB] my-8" />
+              <div className="border-t border-[#EBEBEB] shrink-0" />
             )}
 
             {afterImages.length > 0 && (
@@ -152,9 +152,9 @@ export default function RemodelingDetailPage({
               />
             )}
 
-            <div className="bg-white border border-[#EBEBEB] rounded-2xl px-5 py-5 md:px-6 md:py-6">
-              <p className="mb-2 text-[12px] text-[#999]">설명</p>
-              <p className="text-[14px] text-[#333] leading-[1.8] px-1 md:px-0">
+            <div className="shrink-0 bg-white border border-[#EBEBEB] rounded-2xl px-4 py-3 md:px-5 md:py-4">
+              <p className="mb-1 text-[11px] text-[#999]">설명</p>
+              <p className="text-[13px] md:text-[14px] text-[#333] leading-[1.6]">
                 {data.title || "-"}
               </p>
             </div>
@@ -185,19 +185,19 @@ function GallerySection({
   altPrefix: string;
 }) {
   return (
-    <section className="space-y-3">
-      <p className="text-[11px] uppercase tracking-wider text-[#111] font-medium">
+    <section className="flex-1 min-h-0 flex flex-col gap-2">
+      <p className="shrink-0 text-[11px] uppercase tracking-wider text-[#111] font-medium">
         {title}
       </p>
       <div
         ref={containerRef}
-        className="relative aspect-[2/1] border border-[#ccc] rounded-xl overflow-hidden bg-[#F1F8E9]"
+        className="flex-1 min-h-0 relative border border-[#ccc] rounded-xl overflow-hidden bg-[#F1F8E9]"
       >
         <ProtectedImage
           src={images[activeIndex]}
           alt={`${altPrefix} ${activeIndex + 1}`}
           fill
-          className="object-cover"
+          className="object-contain"
           quality={70}
           priority={title === "BEFORE"}
           placeholder="blur"
@@ -225,13 +225,13 @@ function GallerySection({
         )}
       </div>
       {images.length > 1 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="shrink-0 flex flex-wrap gap-2">
           {images.map((url, index) => (
             <button
               key={`${url}-${index}`}
               type="button"
               onClick={() => onChange(index)}
-              className={`relative w-[56px] h-[56px] md:w-[68px] md:h-[68px] border rounded-lg overflow-hidden bg-[#F1F8E9] ${
+              className={`relative w-[44px] h-[44px] md:w-[56px] md:h-[56px] border rounded-lg overflow-hidden bg-[#F1F8E9] ${
                 index === activeIndex
                   ? "border-2 border-[#111]"
                   : "border border-[#ccc]"

@@ -168,9 +168,7 @@ export default function ConfigPage() {
 
       <div className="space-y-10">
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <h2 className="text-[16px] font-bold text-[#111] mb-6">
-            헤더
-          </h2>
+          <h2 className="text-[16px] font-bold text-[#111] mb-6">헤더</h2>
           <StyleToolbar
             value={getStyle("slogan_text_style")}
             onChange={setStyle("slogan_text_style")}
@@ -225,7 +223,7 @@ export default function ConfigPage() {
         </section>
 
         <ConfigSection
-          title="안내 카테고리 1"
+          title="안내 카테고리 ( 1 )"
           visible={config.service_remodeling_visible !== "0"}
           onToggle={() => toggleVisible("service_remodeling_visible")}
           titleValue={config.service_remodeling_title}
@@ -241,7 +239,7 @@ export default function ConfigPage() {
         />
 
         <ConfigSection
-          title="안내 카테고리 2"
+          title="안내 카테고리 ( 2 )"
           visible={config.service_building_visible !== "0"}
           onToggle={() => toggleVisible("service_building_visible")}
           titleValue={config.service_building_title}
@@ -257,7 +255,7 @@ export default function ConfigPage() {
         />
 
         <ConfigSection
-          title="안내 카테고리 3"
+          title="안내 카테고리 ( 3 )"
           visible={config.service_rental_visible !== "0"}
           onToggle={() => toggleVisible("service_rental_visible")}
           titleValue={config.service_rental_title}
@@ -273,7 +271,7 @@ export default function ConfigPage() {
         />
 
         <ConfigSection
-          title="안내 카테고리 4"
+          title="안내 카테고리 ( 4 )"
           visible={config.service_category4_visible !== "0"}
           onToggle={() => toggleVisible("service_category4_visible")}
           titleValue={config.service_category4_title}
@@ -329,7 +327,9 @@ function ConfigSection({
         <h2 className="text-[16px] font-bold text-[#111]">{title}</h2>
         <VisibilityToggle visible={visible} onToggle={onToggle} />
       </div>
-      <div className={`space-y-5 transition-opacity ${visible ? "" : "opacity-50"}`}>
+      <div
+        className={`space-y-5 transition-opacity ${visible ? "" : "opacity-50"}`}
+      >
         <div>
           <StyleToolbar value={titleStyle} onChange={onTitleStyleChange} />
           <input

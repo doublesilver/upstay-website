@@ -128,7 +128,7 @@ export function HomeClient({
                   </h2>
                 </Link>
                 <span className="text-[9px] md:text-[12px] text-[#888] font-medium shrink-0 mt-0 relative top-[4px]">
-                  {photoGuideCaption}
+                  ( {photoGuideCaption} )
                 </span>
               </div>
             )}
@@ -145,7 +145,7 @@ export function HomeClient({
                 return (
                   <Link
                     key={c.id}
-                    href="/remodeling"
+                    href={`/remodeling/${c.id}`}
                     className="block w-full bg-white border border-[#111111] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
                   >
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -193,9 +193,11 @@ export function HomeClient({
               {initialAnnouncements.map((announcement) => (
                 <div key={announcement.id}>
                   {announcement.content && (
-                    <p className="text-[13px] text-[#6B7280] leading-[1.6]">
-                      {renderPopupContent(announcement.content)}
-                    </p>
+                    <div className="border-2 border-[#111] rounded-xl px-4 py-3 bg-white">
+                      <p className="text-[13px] text-[#111] leading-[1.6]">
+                        {renderPopupContent(announcement.content)}
+                      </p>
+                    </div>
                   )}
                 </div>
               ))}
