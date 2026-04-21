@@ -54,6 +54,49 @@ vercel deploy
 2. Vercel에서 Import 합니다.
 3. Deploy 합니다.
 
+## 테스트
+
+```bash
+npm test        # 단발 실행
+npm run test:watch
+```
+
+`tests/` 디렉토리에 있는 Vitest 단위 테스트를 실행합니다. 현재 커버 범위:
+
+- 사진 순서 변경 2단계 UPDATE 패턴 (UNIQUE 제약 회피)
+- 별표 4개 서버 제한 로직
+- 메인 노출 필터 (별표·이미지 존재 조건)
+
+## 백업
+
+Railway Volume의 `/app/data` (SQLite DB + 업로드 이미지)를 맥북으로 내려받습니다.
+
+```bash
+npm run backup
+# 기본 저장 위치: ~/upstay-backups/upstay-YYYYMMDD-HHMMSS.tar.gz
+# 환경변수로 경로 변경: UPSTAY_BACKUP_DIR=/path npm run backup
+# 기본 14개 유지, 오래된 것은 자동 삭제
+```
+
+### 자동 백업 (macOS launchd)
+
+매일 03:00 자동 실행 설정:
+
+```bash
+cp scripts/com.upstay.backup.plist.example ~/Library/LaunchAgents/com.upstay.backup.plist
+sed -i '' "s|USER_HOME|$HOME|g; s|PROJECT_PATH|$(pwd)|g" ~/Library/LaunchAgents/com.upstay.backup.plist
+launchctl load ~/Library/LaunchAgents/com.upstay.backup.plist
+```
+
+해제: `launchctl unload ~/Library/LaunchAgents/com.upstay.backup.plist`
+
+### 백업 복원
+
+```bash
+tar xzf ~/upstay-backups/upstay-YYYYMMDD-HHMMSS.tar.gz
+# data/ 디렉토리가 추출됨. Railway Volume에 업로드 필요 시 railway ssh로 역전송.
+```
+
 ## 교체 포인트
 
 - 카카오톡 링크: `lib/site.ts`의 `KAKAO_URL` 값을 실제 채널 URL로 수정합니다.

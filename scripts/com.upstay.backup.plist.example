@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  macOS launchd 매일 03:00 자동 백업 설정 예시
+  설치:
+    cp scripts/com.upstay.backup.plist.example ~/Library/LaunchAgents/com.upstay.backup.plist
+    # 플레이스홀더를 실제 경로로 치환:
+    sed -i '' "s|USER_HOME|$HOME|g; s|PROJECT_PATH|$(pwd)|g" ~/Library/LaunchAgents/com.upstay.backup.plist
+    launchctl load ~/Library/LaunchAgents/com.upstay.backup.plist
+  수동 실행:
+    launchctl start com.upstay.backup
+  해제:
+    launchctl unload ~/Library/LaunchAgents/com.upstay.backup.plist
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.upstay.backup</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>PROJECT_PATH/scripts/backup.sh</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>PROJECT_PATH</string>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>3</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>USER_HOME/upstay-backups/backup.log</string>
+  <key>StandardErrorPath</key>
+  <string>USER_HOME/upstay-backups/backup.err</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+</dict>
+</plist>
