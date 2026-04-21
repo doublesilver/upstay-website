@@ -3,9 +3,7 @@ import { stat } from "fs/promises";
 import { createReadStream, existsSync } from "fs";
 import { Readable } from "stream";
 import path from "path";
-
-const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
-const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
+import { UPLOAD_DIR } from "@/lib/paths";
 
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",

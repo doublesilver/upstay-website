@@ -1,8 +1,8 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
+import { DATA_DIR } from "@/lib/paths";
 
-const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "upstay.db");
 const MIGRATIONS_DIR = path.join(process.cwd(), "lib", "db", "migrations");
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Toast } from "@/components/admin/toast";
+import { apiFetch, getHeaders } from "@/lib/admin-api";
 
 interface Announcement {
   id: number;
@@ -10,27 +11,6 @@ interface Announcement {
   is_visible: number;
   dismiss_duration: string;
   created_at: string;
-}
-
-function getToken() {
-  return sessionStorage.getItem("admin_token") || "";
-}
-
-function getHeaders() {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getToken()}`,
-  };
-}
-
-async function apiFetch(url: string, options?: RequestInit) {
-  const res = await fetch(url, options);
-  if (res.status === 401) {
-    sessionStorage.removeItem("admin_token");
-    window.location.href = "/admin";
-    throw new Error("Unauthorized");
-  }
-  return res;
 }
 
 export default function AnnouncementsAdminPage() {

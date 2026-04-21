@@ -4,9 +4,7 @@ import { verifyToken, unauthorized } from "@/lib/auth";
 import { invalidatePublicCache } from "@/lib/cache";
 import fs from "fs";
 import path from "path";
-
-const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
-const UPLOAD_DIR_RESOLVED = path.resolve(DATA_DIR, "uploads");
+import { UPLOAD_DIR_RESOLVED } from "@/lib/paths";
 
 export async function GET(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();

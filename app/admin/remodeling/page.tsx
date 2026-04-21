@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
+import { apiFetch, errMsg, getHeaders, getToken } from "@/lib/admin-api";
 
 interface CaseImage {
   id: number;
@@ -48,39 +49,6 @@ interface RemodelingCase {
 }
 
 const MAX_STARRED_PER_TYPE = 4;
-
-function getToken() {
-  return sessionStorage.getItem("admin_token") || "";
-}
-
-function getHeaders() {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getToken()}`,
-  };
-}
-
-async function apiFetch(url: string, options?: RequestInit) {
-  const res = await fetch(url, options);
-  if (res.status === 401) {
-    sessionStorage.removeItem("admin_token");
-    window.location.href = "/admin";
-    throw new Error("인증이 만료되었습니다");
-  }
-  if (!res.ok) {
-    let detail = "";
-    try {
-      const data = await res.clone().json();
-      detail = data?.error ? `: ${data.error}` : "";
-    } catch {}
-    throw new Error(`${res.status} ${res.statusText}${detail}`);
-  }
-  return res;
-}
-
-function errMsg(error: unknown) {
-  return error instanceof Error ? error.message : String(error);
-}
 
 function getImagesByType(images: CaseImage[], type: "before" | "after") {
   return images
@@ -809,24 +777,26 @@ export default function RemodelingAdminPage() {
       const fileArray = Array.from(files);
       const urls = await uploadFiles(fileArray);
 
-      for (let index = 0; index < urls.length; index++) {
-        try {
-          await apiFetch("/api/admin/remodeling/images", {
+      const results = await Promise.allSettled(
+        urls.map((url: string, index: number) =>
+          apiFetch("/api/admin/remodeling/images", {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify({
               case_id: caseId,
               type,
               match_order: maxOrder + index + 1,
-              image_url: urls[index],
+              image_url: url,
               is_starred: 0,
             }),
-          });
-          success += 1;
-        } catch (error) {
-          failedReason = errMsg(error);
-        }
-      }
+          }),
+        ),
+      );
+      success = results.filter((r) => r.status === "fulfilled").length;
+      const firstFail = results.find((r) => r.status === "rejected") as
+        | PromiseRejectedResult
+        | undefined;
+      if (firstFail) failedReason = errMsg(firstFail.reason);
     } catch (error) {
       failedReason = errMsg(error);
     }

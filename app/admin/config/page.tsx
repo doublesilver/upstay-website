@@ -7,20 +7,7 @@ import {
   parseStyle,
   type TextStyle,
 } from "@/components/admin/style-toolbar";
-
-function getToken() {
-  return sessionStorage.getItem("admin_token") || "";
-}
-
-async function apiFetch(url: string, options?: RequestInit) {
-  const res = await fetch(url, options);
-  if (res.status === 401) {
-    sessionStorage.removeItem("admin_token");
-    window.location.href = "/admin";
-    throw new Error("Unauthorized");
-  }
-  return res;
-}
+import { apiFetch, getHeaders } from "@/lib/admin-api";
 
 interface Config {
   header_logo_visible: string;
@@ -116,7 +103,7 @@ export default function ConfigPage() {
 
   useEffect(() => {
     apiFetch("/api/admin/config", {
-      headers: { Authorization: `Bearer ${getToken()}` },
+      headers: getHeaders(),
     })
       .then((r) => r.json())
       .then((data) => setConfig((prev) => ({ ...prev, ...data })))
@@ -149,10 +136,7 @@ export default function ConfigPage() {
     try {
       const res = await apiFetch("/api/admin/config", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}`,
-        },
+        headers: getHeaders(),
         body: JSON.stringify(config),
       });
       setToast(res.ok ? "저장되었습니다" : "저장에 실패했습니다");

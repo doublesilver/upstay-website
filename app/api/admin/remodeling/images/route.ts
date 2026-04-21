@@ -1,7 +1,10 @@
 import { NextRequest } from "next/server";
+import fs from "fs";
+import path from "path";
 import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
 import { invalidatePublicCache } from "@/lib/cache";
+import { UPLOAD_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
 
 export async function POST(req: NextRequest) {
   if (!verifyToken(req)) return unauthorized();
@@ -120,8 +123,12 @@ export async function DELETE(req: NextRequest) {
 
   const db = getDb();
   const row = db
-    .prepare("SELECT case_id FROM case_images WHERE id = ?")
-    .get(id) as { case_id: number } | undefined;
+    .prepare(
+      "SELECT case_id, image_url, image_url_wm FROM case_images WHERE id = ?",
+    )
+    .get(id) as
+    | { case_id: number; image_url: string; image_url_wm: string }
+    | undefined;
 
   if (!row) return Response.json({ error: "not found" }, { status: 404 });
   if (row.case_id !== case_id) {
@@ -129,6 +136,29 @@ export async function DELETE(req: NextRequest) {
   }
 
   db.prepare("DELETE FROM case_images WHERE id = ?").run(id);
+
+  for (const url of [row.image_url, row.image_url_wm]) {
+    if (!url || !url.startsWith("/api/uploads/")) continue;
+    const filename = url.replace("/api/uploads/", "");
+    const resolved = path.resolve(UPLOAD_DIR, filename);
+    if (
+      !resolved.startsWith(UPLOAD_DIR_RESOLVED + path.sep) &&
+      resolved !== UPLOAD_DIR_RESOLVED
+    ) {
+      console.warn("[images DELETE] traversal 차단:", url);
+      continue;
+    }
+    try {
+      fs.unlinkSync(resolved);
+    } catch (e) {
+      console.warn(
+        "[images DELETE] unlink 실패:",
+        resolved,
+        (e as Error).message,
+      );
+    }
+  }
+
   invalidatePublicCache();
   return Response.json({ ok: true });
 }
