@@ -66,33 +66,45 @@ export async function PUT(req: NextRequest) {
   if (sets.length === 0) return Response.json({ ok: true });
 
   const db = getDb();
-
-  if ("is_starred" in fields && fields.is_starred) {
-    const row = db
-      .prepare("SELECT case_id, type, is_starred FROM case_images WHERE id=?")
-      .get(id) as
-      | { case_id: number; type: string; is_starred: number }
-      | undefined;
-    if (!row) return Response.json({ error: "not found" }, { status: 404 });
-    if (!row.is_starred) {
-      const cnt = db
-        .prepare(
-          "SELECT COUNT(*) as n FROM case_images WHERE case_id=? AND type=? AND is_starred=1",
-        )
-        .get(row.case_id, row.type) as { n: number };
-      if (cnt.n >= 4) {
-        return Response.json(
-          { error: "별표는 BEFORE/AFTER 각 4개까지 선택 가능합니다" },
-          { status: 409 },
-        );
-      }
-    }
-  }
-
   vals.push(id);
-  db.prepare(`UPDATE case_images SET ${sets.join(", ")} WHERE id=?`).run(
-    ...vals,
-  );
+  const sql = `UPDATE case_images SET ${sets.join(", ")} WHERE id=?`;
+
+  try {
+    const tx = db.transaction(() => {
+      if ("is_starred" in fields && fields.is_starred) {
+        const row = db
+          .prepare(
+            "SELECT case_id, type, is_starred FROM case_images WHERE id=?",
+          )
+          .get(id) as
+          | { case_id: number; type: string; is_starred: number }
+          | undefined;
+        if (!row) throw new Error("NOT_FOUND");
+        if (!row.is_starred) {
+          const cnt = db
+            .prepare(
+              "SELECT COUNT(*) as n FROM case_images WHERE case_id=? AND type=? AND is_starred=1",
+            )
+            .get(row.case_id, row.type) as { n: number };
+          if (cnt.n >= 4) throw new Error("STAR_LIMIT");
+        }
+      }
+      db.prepare(sql).run(...vals);
+    });
+    tx();
+  } catch (e) {
+    const msg = (e as Error).message;
+    if (msg === "STAR_LIMIT") {
+      return Response.json(
+        { error: "별표는 BEFORE/AFTER 각 4개까지 선택 가능합니다" },
+        { status: 409 },
+      );
+    }
+    if (msg === "NOT_FOUND") {
+      return Response.json({ error: "not found" }, { status: 404 });
+    }
+    throw e;
+  }
 
   invalidatePublicCache();
   return Response.json({ ok: true });

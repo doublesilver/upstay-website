@@ -1,41 +1,4 @@
-// 임시 이미지 — 실제 프로젝트 사진으로 교체 예정
-const unsplash = (id: string) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&h=900&q=80`;
-
-export const remodelingCases = [
-  {
-    id: "01",
-    before: unsplash("photo-1560448204-e02f11c3d0e2"),
-    after: unsplash("photo-1600607687939-ce8a6c25118c"),
-  },
-  {
-    id: "02",
-    before: unsplash("photo-1484101403633-562f891dc89a"),
-    after: unsplash("photo-1586023492125-27b2c045efd7"),
-  },
-  {
-    id: "03",
-    before: unsplash("photo-1502672260266-1c1ef2d93688"),
-    after: unsplash("photo-1600585154340-be6161a56a0c"),
-  },
-  {
-    id: "04",
-    before: unsplash("photo-1533779283484-8ad4940aa3a8"),
-    after: unsplash("photo-1600566753190-17f0baa2a6c3"),
-  },
-];
-
-export const remodelingServiceItems = [
-  { title: "주방", description: "싱크대·타일·후드 교체" },
-  { title: "욕실", description: "방수·타일·위생기구 교체" },
-  { title: "베란다", description: "확장·샷시·방수 공사" },
-  { title: "현관", description: "중문·신발장·타일 시공" },
-  { title: "천장", description: "몰딩·조명·텍스 교체" },
-  { title: "도배", description: "벽지·페인트·곰팡이 처리" },
-  { title: "바닥", description: "장판·마루·타일 시공" },
-  { title: "기타", description: "구멍보수·샷시·몰딩 등" },
-];
-
+// NOTE: buildingManagementItems/rentalManagementItems는 상세 페이지 폴백. 홈 ServiceSections는 DB config 우선 사용.
 export const buildingManagementItems = [
   {
     title: "설비",

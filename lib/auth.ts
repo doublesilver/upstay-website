@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
+import { randomBytes } from "crypto";
 
 function requireEnv(key: string): string {
   const val = process.env[key];
@@ -25,7 +26,8 @@ function getJwtSecret(): string {
 
 export function createToken(): string {
   return jwt.sign({ role: "admin" }, getJwtSecret(), {
-    expiresIn: "7d",
+    expiresIn: "8h",
+    jwtid: randomBytes(16).toString("hex"),
   });
 }
 

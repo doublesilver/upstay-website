@@ -1,14 +1,10 @@
 "use client";
 
-export interface TextStyle {
-  fontSize?: string;
-  fontWeight?: string;
-  bullet?: boolean;
-}
+export { parseStyle, type TextStyle } from "@/lib/text-style";
 
 interface StyleToolbarProps {
-  value: TextStyle;
-  onChange: (style: TextStyle) => void;
+  value: import("@/lib/text-style").TextStyle;
+  onChange: (style: import("@/lib/text-style").TextStyle) => void;
 }
 
 const FONT_SIZES = [
@@ -25,14 +21,6 @@ const FONT_SIZES = [
   "22px",
   "24px",
 ];
-
-export function parseStyle(json: string): TextStyle {
-  try {
-    return JSON.parse(json);
-  } catch {
-    return {};
-  }
-}
 
 export function StyleToolbar({ value, onChange }: StyleToolbarProps) {
   const isBold = value.fontWeight === "bold";

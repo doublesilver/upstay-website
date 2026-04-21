@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { type TextStyle, parseStyle, styleToCss } from "@/lib/text-style";
 
 interface SiteConfig {
   [key: string]: string;
@@ -6,28 +6,6 @@ interface SiteConfig {
 
 interface ServiceSectionsProps {
   config?: SiteConfig;
-}
-
-interface TextStyle {
-  fontSize?: string;
-  fontWeight?: string;
-  bullet?: boolean;
-}
-
-function parseStyle(json?: string): TextStyle {
-  if (!json) return {};
-  try {
-    return JSON.parse(json);
-  } catch {
-    return {};
-  }
-}
-
-function styledCss(style: TextStyle): CSSProperties {
-  const css: CSSProperties = {};
-  if (style.fontSize) css.fontSize = style.fontSize;
-  if (style.fontWeight) css.fontWeight = style.fontWeight as CSSProperties["fontWeight"];
-  return css;
 }
 
 function isVisible(value?: string) {
@@ -55,7 +33,7 @@ function ServiceSection({
       <div className="flex items-baseline justify-between mb-1.5 gap-3">
         <h2
           className="text-[14px] md:text-[17px] font-bold tracking-tight text-[#111111]"
-          style={styledCss(ts)}
+          style={styleToCss(ts)}
         >
           {ts.bullet !== false && (
             <span className="mr-1.5 text-[8px] md:text-[10px] align-middle">
@@ -73,7 +51,7 @@ function ServiceSection({
       <div className="bg-white border border-[#111111] rounded-lg px-3 py-2 md:px-4 md:py-2.5">
         <p
           className="text-[12px] md:text-[14px] font-bold text-[#111111] leading-relaxed whitespace-pre-line"
-          style={styledCss(ds)}
+          style={styleToCss(ds)}
         >
           {ds.bullet && <span className="mr-1">•</span>}
           {description}
@@ -106,7 +84,8 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
       visible: isVisible(config?.service_building_visible),
       title: config?.service_building_title ?? "건물관리",
       description: config?.service_building_desc ?? DEFAULT_BUILDING_DESC,
-      caption: config?.service_building_caption ?? "보수, 유지, 하자보수 등 모든 것",
+      caption:
+        config?.service_building_caption ?? "보수, 유지, 하자보수 등 모든 것",
       titleStyle: parseStyle(config?.service_building_title_style),
       descStyle: parseStyle(config?.service_building_desc_style),
     },
