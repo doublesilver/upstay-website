@@ -8,95 +8,15 @@ import {
   type TextStyle,
 } from "@/components/admin/style-toolbar";
 import { apiFetch, getHeaders } from "@/lib/admin-api";
+import { DEFAULT_CONFIG, type ConfigRecord } from "@/lib/config-schema";
 
-interface Config {
-  header_logo_visible: string;
-  header_logo_width: string;
-  header_logo_offset_y: string;
-  slogan_text: string;
-  slogan_text_style: string;
-  photo_guide_title: string;
-  photo_guide_caption: string;
-  photo_guide_style: string;
-  photo_guide_visible: string;
-  service_remodeling_title: string;
-  service_remodeling_desc: string;
-  service_remodeling_caption: string;
-  service_remodeling_title_style: string;
-  service_remodeling_desc_style: string;
-  service_remodeling_caption_style: string;
-  service_remodeling_visible: string;
-  service_building_title: string;
-  service_building_desc: string;
-  service_building_caption: string;
-  service_building_title_style: string;
-  service_building_desc_style: string;
-  service_building_caption_style: string;
-  service_building_visible: string;
-  service_rental_title: string;
-  service_rental_desc: string;
-  service_rental_caption: string;
-  service_rental_title_style: string;
-  service_rental_desc_style: string;
-  service_rental_caption_style: string;
-  service_rental_visible: string;
-  service_category4_title: string;
-  service_category4_desc: string;
-  service_category4_caption: string;
-  service_category4_style: string;
-  service_category4_title_style: string;
-  service_category4_desc_style: string;
-  service_category4_caption_style: string;
-  service_category4_visible: string;
-  [key: string]: string;
-}
-
-const defaultConfig: Config = {
-  header_logo_visible: "0",
-  header_logo_width: "100",
-  header_logo_offset_y: "0",
-  slogan_text: "",
-  slogan_text_style: "{}",
-  photo_guide_title: "리모델링 사례보기",
-  photo_guide_caption: "Before → After",
-  photo_guide_style: "{}",
-  photo_guide_visible: "1",
-  service_remodeling_title: "",
-  service_remodeling_desc: "",
-  service_remodeling_caption: "",
-  service_remodeling_title_style: "{}",
-  service_remodeling_desc_style: "{}",
-  service_remodeling_caption_style: "{}",
-  service_remodeling_visible: "1",
-  service_building_title: "",
-  service_building_desc: "",
-  service_building_caption: "",
-  service_building_title_style: "{}",
-  service_building_desc_style: "{}",
-  service_building_caption_style: "{}",
-  service_building_visible: "1",
-  service_rental_title: "",
-  service_rental_desc: "",
-  service_rental_caption: "",
-  service_rental_title_style: "{}",
-  service_rental_desc_style: "{}",
-  service_rental_caption_style: "{}",
-  service_rental_visible: "1",
-  service_category4_title: "",
-  service_category4_desc: "",
-  service_category4_caption: "",
-  service_category4_style: "{}",
-  service_category4_title_style: "{}",
-  service_category4_desc_style: "{}",
-  service_category4_caption_style: "{}",
-  service_category4_visible: "1",
-};
+type Config = ConfigRecord;
 
 const inputCls =
   "w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]";
 
 export default function ConfigPage() {
-  const [config, setConfig] = useState<Config>(defaultConfig);
+  const [config, setConfig] = useState<Config>({ ...DEFAULT_CONFIG });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(true);

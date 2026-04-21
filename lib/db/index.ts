@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 import { DATA_DIR } from "@/lib/paths";
+import { CONFIG_ENTRIES } from "@/lib/config-schema";
 
 const DB_PATH = path.join(DATA_DIR, "upstay.db");
 const MIGRATIONS_DIR = path.join(process.cwd(), "lib", "db", "migrations");
@@ -73,49 +74,15 @@ function insertDefaultConfig(database: Database.Database) {
     "INSERT OR IGNORE INTO site_config (key, value) VALUES (?, ?)",
   );
 
-  insert.run("slogan_text", "공간의 가치를 업스테이가 높여드립니다");
-
-  insert.run("footer_name", "업스테이");
-  insert.run("footer_english_name", "up stay");
-  insert.run("footer_ceo", "이동훈");
-  insert.run(
-    "footer_address",
-    "서울시 강남구 논현로 26길 82 (도곡동 157-26번지) 1층",
-  );
-  insert.run("footer_label_name_spacing", "0.4em");
-  insert.run("footer_label_ceo_spacing", "0em");
-  insert.run("footer_label_business_number_spacing", "0em");
-  insert.run("footer_label_phone_spacing", "0.85em");
-  insert.run("footer_label_address_spacing", "1.7em");
-  insert.run("footer_business_number", "308-25-02055");
-  insert.run("footer_phone", "010-3168-0624");
+  for (const entry of CONFIG_ENTRIES) {
+    insert.run(entry.key, entry.default);
+  }
 
   insert.run("remodeling_section_title", "리모델링 사례보기");
   insert.run("remodeling_page_title", "리모델링");
   insert.run("remodeling_page_subtitle", "Before → After");
 
-  insert.run("service_remodeling_title", "리모델링");
-  insert.run(
-    "service_remodeling_desc",
-    "주방, 욕실, 발코니, 타일, 천정, 도배, 바닥, 목공, 몰딩, 도장 등 공사의 관리 모든 것",
-  );
-  insert.run("service_remodeling_caption", "공사의 관리 모든 것");
-  insert.run("service_building_title", "건물관리");
-  insert.run(
-    "service_building_desc",
-    "설비, 전기, 수도, 주차장, 청소 및 보수, 유지, 하자보수 등 모든 것",
-  );
-  insert.run("service_building_caption", "보수, 유지, 하자보수 등 모든 것");
-  insert.run("service_rental_title", "임대관리");
-  insert.run(
-    "service_rental_desc",
-    "공실관리 및 입주자 응대와 시설물관리\n월세 관리비 공과금 정산 및 세대납부,\n민원접수 및 처리, 입주안내문 발송진행",
-  );
-  insert.run("service_rental_caption", "임대차의 모든 업무");
-
-  insert.run("footer_colon_left_offset", "0px");
-  insert.run("footer_colon_right_offset", "0px");
-  insert.run("schema_version", "3");
+  insert.run("schema_version", "4");
 }
 
 function seedRemodelingCases(database: Database.Database) {
