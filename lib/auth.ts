@@ -11,23 +11,21 @@ function requireEnv(key: string): string {
   return val;
 }
 
-const ADMIN_ID = requireEnv("ADMIN_ID");
-const ADMIN_PW = requireEnv("ADMIN_PW");
-const JWT_SECRET = requireEnv("JWT_SECRET");
-
 export function verifyCredentials(id: string, pw: string): boolean {
-  return id === ADMIN_ID && pw === ADMIN_PW;
+  return id === requireEnv("ADMIN_ID") && pw === requireEnv("ADMIN_PW");
 }
 
 export function createToken(): string {
-  return jwt.sign({ role: "admin" }, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ role: "admin" }, requireEnv("JWT_SECRET"), {
+    expiresIn: "7d",
+  });
 }
 
 export function verifyToken(req: NextRequest): boolean {
   const auth = req.headers.get("authorization");
   if (!auth?.startsWith("Bearer ")) return false;
   try {
-    jwt.verify(auth.slice(7), JWT_SECRET);
+    jwt.verify(auth.slice(7), requireEnv("JWT_SECRET"));
     return true;
   } catch {
     return false;
