@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { HeaderWrapper } from "@/components/header-wrapper";
 import { siteConfig } from "@/lib/site";
+import { getSiteConfig } from "@/lib/home-data";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -32,9 +33,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const config = getSiteConfig();
   return (
     <html lang="ko">
       <head>
@@ -50,7 +52,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-white text-[#111111]">
-        <HeaderWrapper />
+        <HeaderWrapper initialConfig={config} />
         <main>{children}</main>
         <script
           type="application/ld+json"

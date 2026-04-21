@@ -1,6 +1,9 @@
 import jwt from "jsonwebtoken";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+
+export const AUTH_COOKIE = "upstay_admin_token";
+const MAX_AGE_SECONDS = 60 * 60 * 8;
 
 function requireEnv(key: string): string {
   const val = process.env[key];
@@ -31,11 +34,38 @@ export function createToken(): string {
   });
 }
 
+export function setAuthCookie(res: NextResponse, token: string) {
+  res.cookies.set({
+    name: AUTH_COOKIE,
+    value: token,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    maxAge: MAX_AGE_SECONDS,
+  });
+}
+
+export function clearAuthCookie(res: NextResponse) {
+  res.cookies.set({
+    name: AUTH_COOKIE,
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
 export function verifyToken(req: NextRequest): boolean {
+  const cookieToken = req.cookies.get(AUTH_COOKIE)?.value;
   const auth = req.headers.get("authorization");
-  if (!auth?.startsWith("Bearer ")) return false;
+  const bearerToken = auth?.startsWith("Bearer ") ? auth.slice(7) : undefined;
+  const token = cookieToken || bearerToken;
+  if (!token) return false;
   try {
-    jwt.verify(auth.slice(7), getJwtSecret());
+    jwt.verify(token, getJwtSecret());
     return true;
   } catch {
     return false;

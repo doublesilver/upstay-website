@@ -1,6 +1,7 @@
 import { mkdtempSync } from "fs";
 import os from "os";
 import path from "path";
+import { NextRequest } from "next/server";
 
 export function setupTempDataDir(): string {
   const dir = mkdtempSync(path.join(os.tmpdir(), "upstay-test-"));
@@ -14,9 +15,14 @@ export function setupTempDataDir(): string {
 export function makeRequest(
   url: string,
   init?: RequestInit & { token?: string },
-): Request {
+): NextRequest {
   const headers = new Headers(init?.headers as HeadersInit | undefined);
   if (init?.token) headers.set("authorization", `Bearer ${init.token}`);
-  const { token: _token, ...rest } = init ?? {};
-  return new Request(url, { ...rest, headers });
+  const method = init?.method;
+  const body = init?.body;
+  return new NextRequest(url, {
+    method,
+    headers,
+    ...(body !== undefined && body !== null ? { body } : {}),
+  });
 }

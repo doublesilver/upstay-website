@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import jwt from "jsonwebtoken";
+import { NextRequest } from "next/server";
 import { setupTempDataDir } from "../api-helpers";
 
 vi.mock("@/lib/cache", () => ({ invalidatePublicCache: vi.fn() }));
@@ -32,19 +33,22 @@ describe("images POST is_starred 4-limit server guard", () => {
     const { POST } =
       await import("../../app/api/admin/remodeling/images/route");
 
-    const req = new Request("http://localhost/api/admin/remodeling/images", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${token}`,
+    const req = new NextRequest(
+      "http://localhost/api/admin/remodeling/images",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          case_id: 100,
+          type: "before",
+          is_starred: 1,
+          image_url: "http://example.com/star-5th.jpg",
+        }),
       },
-      body: JSON.stringify({
-        case_id: 100,
-        type: "before",
-        is_starred: 1,
-        image_url: "http://example.com/star-5th.jpg",
-      }),
-    });
+    );
 
     const res = await POST(req as never);
     expect(res.status).toBe(409);
@@ -70,19 +74,22 @@ describe("images POST is_starred 4-limit server guard", () => {
     const { POST } =
       await import("../../app/api/admin/remodeling/images/route");
 
-    const req = new Request("http://localhost/api/admin/remodeling/images", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${token}`,
+    const req = new NextRequest(
+      "http://localhost/api/admin/remodeling/images",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          case_id: 101,
+          type: "after",
+          is_starred: 1,
+          image_url: "http://example.com/after-4th.jpg",
+        }),
       },
-      body: JSON.stringify({
-        case_id: 101,
-        type: "after",
-        is_starred: 1,
-        image_url: "http://example.com/after-4th.jpg",
-      }),
-    });
+    );
 
     const res = await POST(req as never);
     expect(res.status).toBe(200);

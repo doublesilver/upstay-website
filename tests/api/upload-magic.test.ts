@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import jwt from "jsonwebtoken";
+import { NextRequest } from "next/server";
 import { setupTempDataDir } from "../api-helpers";
 
 let token: string;
@@ -26,7 +27,7 @@ describe("/api/admin/upload magic number validation", () => {
       "fake.png",
     );
 
-    const req = new Request("http://localhost/api/admin/upload", {
+    const req = new NextRequest("http://localhost/api/admin/upload", {
       method: "POST",
       body: form,
       headers: { authorization: `Bearer ${token}` },
@@ -53,7 +54,7 @@ describe("/api/admin/upload magic number validation", () => {
       "fake.jpg",
     );
 
-    const req = new Request("http://localhost/api/admin/upload", {
+    const req = new NextRequest("http://localhost/api/admin/upload", {
       method: "POST",
       body: form,
       headers: { authorization: `Bearer ${token}` },
@@ -76,7 +77,7 @@ describe("/api/admin/upload magic number validation", () => {
       "photo.jpg",
     );
 
-    const req = new Request("http://localhost/api/admin/upload", {
+    const req = new NextRequest("http://localhost/api/admin/upload", {
       method: "POST",
       body: form,
     });

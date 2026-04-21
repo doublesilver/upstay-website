@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import jwt from "jsonwebtoken";
+import { NextRequest } from "next/server";
 import { setupTempDataDir } from "../api-helpers";
 
 vi.mock("@/lib/cache", () => ({ invalidatePublicCache: vi.fn() }));
@@ -28,19 +29,22 @@ describe("/api/admin/remodeling/reorder transaction behavior", () => {
     const { POST } =
       await import("../../app/api/admin/remodeling/reorder/route");
 
-    const req = new Request("http://localhost/api/admin/remodeling/reorder", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${token}`,
+    const req = new NextRequest(
+      "http://localhost/api/admin/remodeling/reorder",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          items: [
+            { id: 200, sort_order: 2 },
+            { id: 201, sort_order: 1 },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        items: [
-          { id: 200, sort_order: 2 },
-          { id: 201, sort_order: 1 },
-        ],
-      }),
-    });
+    );
 
     const res = await POST(req as never);
     expect(res.status).toBe(200);
@@ -66,19 +70,22 @@ describe("/api/admin/remodeling/reorder transaction behavior", () => {
     const { POST } =
       await import("../../app/api/admin/remodeling/reorder/route");
 
-    const req = new Request("http://localhost/api/admin/remodeling/reorder", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${token}`,
+    const req = new NextRequest(
+      "http://localhost/api/admin/remodeling/reorder",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          items: [
+            { id: 210, sort_order: 99 },
+            { id: 99999, sort_order: 1 },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        items: [
-          { id: 210, sort_order: 99 },
-          { id: 99999, sort_order: 1 },
-        ],
-      }),
-    });
+    );
 
     const res = await POST(req as never);
     // SQLite UPDATE for nonexistent id silently affects 0 rows — not a DB error
@@ -94,11 +101,14 @@ describe("/api/admin/remodeling/reorder transaction behavior", () => {
     const { POST } =
       await import("../../app/api/admin/remodeling/reorder/route");
 
-    const req = new Request("http://localhost/api/admin/remodeling/reorder", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: [{ id: 1, sort_order: 1 }] }),
-    });
+    const req = new NextRequest(
+      "http://localhost/api/admin/remodeling/reorder",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: [{ id: 1, sort_order: 1 }] }),
+      },
+    );
 
     const res = await POST(req as never);
     expect(res.status).toBe(401);

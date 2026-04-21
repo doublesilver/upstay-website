@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const navItems = [
   {
@@ -75,17 +75,12 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    setToken(sessionStorage.getItem("admin_token"));
-    setMounted(true);
-  }, []);
+  const isLoginPage = pathname === "/admin";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,24 +98,23 @@ export default function AdminLayout({
         setSubmitting(false);
         return;
       }
-      sessionStorage.setItem("admin_token", data.token);
-      setToken(data.token);
       router.push("/admin/remodeling");
+      router.refresh();
     } catch {
       setError("서버에 연결할 수 없습니다");
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("admin_token");
-    setToken(null);
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth", { method: "DELETE" });
+    } catch {}
     router.push("/admin");
+    router.refresh();
   };
 
-  if (!mounted) return null;
-
-  if (!token) {
+  if (isLoginPage) {
     return (
       <div className="min-h-screen bg-[#FAFAFA] flex">
         {/* 좌측 비주얼 */}

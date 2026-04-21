@@ -1,22 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Header } from "@/components/header";
 
-export function HeaderWrapper() {
+export function HeaderWrapper({
+  initialConfig,
+}: {
+  initialConfig: Record<string, string>;
+}) {
   const pathname = usePathname();
-  const [config, setConfig] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    fetch("/api/config")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data && typeof data === "object") setConfig(data);
-      })
-      .catch(() => {});
-  }, []);
-
   if (pathname.startsWith("/admin")) return null;
-  return <Header config={config} />;
+  return <Header config={initialConfig} />;
 }
