@@ -30,27 +30,19 @@ function parseStyle(json?: string): TextStyle {
 }
 
 function renderPopupContent(text: string): React.ReactNode {
-  return text.split("\n").map((line, i) => {
-    const parts: React.ReactNode[] = [];
-    const boldRe = /\*\*(.+?)\*\*/g;
-    let lastIndex = 0;
-    let match;
-    let key = 0;
-    while ((match = boldRe.exec(line)) !== null) {
-      if (match.index > lastIndex)
-        parts.push(line.slice(lastIndex, match.index));
-      parts.push(<strong key={`b-${i}-${key++}`}>{match[1]}</strong>);
-      lastIndex = match.index + match[0].length;
-    }
-    if (lastIndex < line.length) parts.push(line.slice(lastIndex));
-    if (parts.length === 0) parts.push(line);
-    return (
-      <span key={i}>
-        {parts}
-        <br />
-      </span>
-    );
+  const lines = text.split("\n");
+  const nodes: React.ReactNode[] = [];
+  lines.forEach((line, i) => {
+    const tokens = line.split(/(\*\*.+?\*\*)/).map((token, j) => {
+      if (token.startsWith("**") && token.endsWith("**") && token.length >= 4) {
+        return <strong key={`b-${i}-${j}`}>{token.slice(2, -2)}</strong>;
+      }
+      return <span key={`t-${i}-${j}`}>{token}</span>;
+    });
+    nodes.push(<span key={`l-${i}`}>{tokens}</span>);
+    if (i < lines.length - 1) nodes.push(<br key={`br-${i}`} />);
   });
+  return nodes;
 }
 
 function styleToCss(style: TextStyle): CSSProperties {
@@ -183,12 +175,20 @@ export function HomeClient({
       </section>
 
       {showPopup && initialAnnouncements.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setShowPopup(false)}
+        >
           <div
             role="dialog"
             aria-modal="true"
+            aria-labelledby="popup-dialog-title"
+            onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-xl shadow-lg w-[90%] max-w-md mx-4 overflow-hidden"
           >
+            <h2 id="popup-dialog-title" className="sr-only">
+              공지 팝업
+            </h2>
             <div className="px-5 py-4 min-h-[240px] max-h-[60vh] overflow-y-auto space-y-3">
               {initialAnnouncements.map((announcement) => (
                 <div key={announcement.id}>

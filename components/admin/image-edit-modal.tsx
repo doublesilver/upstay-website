@@ -161,10 +161,22 @@ export function ImageEditModal({
   const logoH = logoImg && logoW ? (logoImg.height / logoImg.width) * logoW : 0;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-[1100px] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+    <div
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onCancel}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="image-edit-title"
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl w-full max-w-[1100px] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
+      >
         <div className="flex items-center justify-between px-6 py-3 border-b border-[#EBEBEB]">
-          <h3 className="text-[16px] font-bold text-[#111]">
+          <h3
+            id="image-edit-title"
+            className="text-[16px] font-bold text-[#111]"
+          >
             사진 편집
             <span className="text-[12px] font-medium text-[#999] ml-1">
               {sectionLabel}

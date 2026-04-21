@@ -112,6 +112,7 @@ export default function ConfigPage() {
   const [config, setConfig] = useState<Config>(defaultConfig);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     apiFetch("/api/admin/config", {
@@ -119,7 +120,8 @@ export default function ConfigPage() {
     })
       .then((r) => r.json())
       .then((data) => setConfig((prev) => ({ ...prev, ...data })))
-      .catch(() => setToast("불러오기에 실패했습니다"));
+      .catch(() => setToast("불러오기에 실패했습니다"))
+      .finally(() => setLoading(false));
   }, []);
 
   const set =
@@ -178,7 +180,13 @@ export default function ConfigPage() {
         </button>
       </div>
 
-      <div className="space-y-10">
+      {loading && (
+        <div className="py-20 text-center text-[#999] text-[14px]">
+          로딩 중...
+        </div>
+      )}
+
+      <div className={`space-y-10 ${loading ? "hidden" : ""}`}>
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
           <h2 className="text-[16px] font-bold text-[#111] mb-6">헤더</h2>
           <StyleToolbar

@@ -38,6 +38,7 @@ export default function AnnouncementsAdminPage() {
   const [editing, setEditing] = useState<Announcement | null>(null);
   const [toast, setToast] = useState("");
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const wrapBold = () => {
@@ -94,10 +95,22 @@ export default function AnnouncementsAdminPage() {
     apiFetch("/api/admin/announcements", { headers: getHeaders() })
       .then((r) => r.json())
       .then(setItems)
-      .catch(() => setToast("불러오기 실패"));
+      .catch(() => setToast("불러오기 실패"))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(load, [load]);
+
+  useEffect(() => {
+    if (!editing && deleting === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (deleting !== null) setDeleting(null);
+      else if (editing) setEditing(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editing, deleting]);
 
   const handleSave = async () => {
     if (!editing) return;
@@ -171,8 +184,20 @@ export default function AnnouncementsAdminPage() {
 
       {/* 편집 모달 */}
       {editing && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+          onClick={() => setEditing(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="announcement-edit-title"
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden"
+          >
+            <h2 id="announcement-edit-title" className="sr-only">
+              팝업 편집
+            </h2>
             <div className="px-6 py-5 space-y-4">
               <div>
                 <textarea
@@ -247,10 +272,22 @@ export default function AnnouncementsAdminPage() {
 
       {/* 삭제 확인 모달 */}
       {deleting !== null && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+          onClick={() => setDeleting(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="announcement-delete-title"
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+          >
             <div className="px-6 py-8 text-center">
-              <h3 className="text-[17px] font-bold text-[#111]">
+              <h3
+                id="announcement-delete-title"
+                className="text-[17px] font-bold text-[#111]"
+              >
                 삭제하시겠습니까?
               </h3>
             </div>
@@ -360,7 +397,13 @@ export default function AnnouncementsAdminPage() {
           </div>
         ))}
 
-        {items.length === 0 && (
+        {loading && items.length === 0 && (
+          <div className="py-20 text-center text-[#999] text-[14px]">
+            로딩 중...
+          </div>
+        )}
+
+        {!loading && items.length === 0 && (
           <div className="bg-white border border-[#EBEBEB] rounded-2xl py-16 text-center">
             <div className="w-16 h-16 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-4">
               <svg

@@ -597,6 +597,7 @@ export default function RemodelingAdminPage() {
   const [toast, setToast] = useState("");
   const [deleting, setDeleting] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [editorSection, setEditorSection] = useState<{
     caseId: number;
     type: "before" | "after";
@@ -619,10 +620,20 @@ export default function RemodelingAdminPage() {
     apiFetch("/api/admin/remodeling", { headers: getHeaders() })
       .then((r) => r.json())
       .then(setCases)
-      .catch((error) => flash(`불러오기에 실패했습니다: ${errMsg(error)}`));
+      .catch((error) => flash(`불러오기에 실패했습니다: ${errMsg(error)}`))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(load, [load]);
+
+  useEffect(() => {
+    if (deleting === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDeleting(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [deleting]);
 
   const saveCase = async (item: Partial<RemodelingCase> & { id: number }) => {
     await apiFetch("/api/admin/remodeling", {
@@ -789,7 +800,6 @@ export default function RemodelingAdminPage() {
       0,
     );
 
-    flash(`${files.length}장 업로드 중..`);
     setUploading(true);
 
     let success = 0;
@@ -1027,7 +1037,13 @@ export default function RemodelingAdminPage() {
         </SortableContext>
       </DndContext>
 
-      {cases.length === 0 && (
+      {loading && cases.length === 0 && (
+        <div className="py-20 text-center text-[#999] text-[14px]">
+          로딩 중...
+        </div>
+      )}
+
+      {!loading && cases.length === 0 && (
         <div className="bg-white border border-[#111] rounded-2xl py-20 text-center">
           <div className="w-16 h-16 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#CCC]">
             <ImageOff size={28} />
@@ -1042,10 +1058,22 @@ export default function RemodelingAdminPage() {
       )}
 
       {deleting !== null && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+          onClick={() => setDeleting(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remodeling-delete-title"
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+          >
             <div className="px-6 py-8 text-center">
-              <h3 className="text-[17px] font-bold text-[#111]">
+              <h3
+                id="remodeling-delete-title"
+                className="text-[17px] font-bold text-[#111]"
+              >
                 삭제하시겠습니까?
               </h3>
             </div>
