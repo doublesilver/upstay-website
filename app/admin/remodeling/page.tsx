@@ -47,6 +47,8 @@ interface RemodelingCase {
   images: CaseImage[];
 }
 
+const MAX_STARRED_PER_TYPE = 4;
+
 function getToken() {
   return sessionStorage.getItem("admin_token") || "";
 }
@@ -138,12 +140,14 @@ function ToolbarButton({
 function SortableThumb({
   image,
   checked,
+  disableStar,
   onOpenImage,
   onToggleCheck,
   onToggleStar,
 }: {
   image: CaseImage;
   checked: boolean;
+  disableStar: boolean;
   onOpenImage: () => void;
   onToggleCheck: () => void;
   onToggleStar: () => void;
@@ -230,14 +234,22 @@ function SortableThumb({
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
-          onToggleStar();
+          if (!disableStar) onToggleStar();
         }}
         className={`absolute top-1 right-1 text-[14px] z-10 transition-opacity ${
           image.is_starred
             ? "text-yellow-400 drop-shadow opacity-100"
-            : "text-white/80 opacity-0 group-hover:opacity-100 hover:text-yellow-300"
+            : disableStar
+              ? "text-white/70 opacity-30 cursor-not-allowed"
+              : "text-white/80 opacity-0 group-hover:opacity-100 hover:text-yellow-300"
         }`}
-        title={image.is_starred ? "공개 노출 끄기" : "공개 노출 켜기"}
+        title={
+          image.is_starred
+            ? "공개 노출 끄기"
+            : disableStar
+              ? "별표는 BEFORE/AFTER 각 4개까지 선택 가능합니다"
+              : "공개 노출 켜기"
+        }
       >
         ★
       </button>
@@ -377,16 +389,25 @@ function ImageSection({
               strategy={horizontalListSortingStrategy}
             >
               <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
-                {images.map((image) => (
-                  <SortableThumb
-                    key={image.id}
-                    image={image}
-                    checked={checkedIds.has(image.id)}
-                    onOpenImage={() => onOpenImage(caseId, type, image.id)}
-                    onToggleCheck={() => onToggleCheck(image.id)}
-                    onToggleStar={() => onToggleStar(caseId, image.id, type)}
-                  />
-                ))}
+                {(() => {
+                  const starredCount = images.filter(
+                    (img) => img.is_starred,
+                  ).length;
+                  return images.map((image) => (
+                    <SortableThumb
+                      key={image.id}
+                      image={image}
+                      checked={checkedIds.has(image.id)}
+                      disableStar={
+                        starredCount >= MAX_STARRED_PER_TYPE &&
+                        !image.is_starred
+                      }
+                      onOpenImage={() => onOpenImage(caseId, type, image.id)}
+                      onToggleCheck={() => onToggleCheck(image.id)}
+                      onToggleStar={() => onToggleStar(caseId, image.id, type)}
+                    />
+                  ));
+                })()}
               </div>
             </SortableContext>
           </DndContext>
