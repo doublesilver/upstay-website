@@ -189,15 +189,13 @@ export function HomeClient({
             <h2 id="popup-dialog-title" className="sr-only">
               공지 팝업
             </h2>
-            <div className="px-5 py-4 min-h-[240px] max-h-[60vh] overflow-y-auto space-y-3">
+            <div className="mx-5 my-4 border-2 border-[#111] rounded-xl bg-white px-4 py-3 min-h-[240px] max-h-[60vh] overflow-y-auto space-y-3">
               {initialAnnouncements.map((announcement) => (
                 <div key={announcement.id}>
                   {announcement.content && (
-                    <div className="border-2 border-[#111] rounded-xl px-4 py-3 bg-white">
-                      <p className="text-[13px] text-[#111] leading-[1.6]">
-                        {renderPopupContent(announcement.content)}
-                      </p>
-                    </div>
+                    <p className="text-[13px] text-[#111] leading-[1.6]">
+                      {renderPopupContent(announcement.content)}
+                    </p>
                   )}
                 </div>
               ))}

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Toast } from "@/components/admin/toast";
 import {
   StyleToolbar,
   parseStyle,
   type TextStyle,
 } from "@/components/admin/style-toolbar";
+import { styleToCss } from "@/lib/text-style";
 import { apiFetch, getHeaders } from "@/lib/admin-api";
 import { DEFAULT_CONFIG, type ConfigRecord } from "@/lib/config-schema";
 
@@ -20,6 +21,9 @@ export default function ConfigPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const sloganRef = useRef<HTMLInputElement | null>(null);
+  const photoGuideTitleRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     apiFetch("/api/admin/config", {
@@ -36,6 +40,10 @@ export default function ConfigPage() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setConfig((prev) => ({ ...prev, [key]: e.target.value }));
     };
+
+  const setText = (key: keyof Config) => (newValue: string) => {
+    setConfig((prev) => ({ ...prev, [key]: newValue }));
+  };
 
   const setStyle = (key: keyof Config) => (style: TextStyle) => {
     setConfig((prev) => ({ ...prev, [key]: JSON.stringify(style) }));
@@ -96,13 +104,17 @@ export default function ConfigPage() {
           <StyleToolbar
             value={getStyle("slogan_text_style")}
             onChange={setStyle("slogan_text_style")}
+            inputRef={sloganRef}
+            onTextChange={setText("slogan_text")}
           />
           <input
+            ref={sloganRef}
             type="text"
             value={config.slogan_text}
             onChange={set("slogan_text")}
             aria-label="헤더 문구"
             className={inputCls}
+            style={styleToCss(getStyle("slogan_text_style"))}
           />
         </section>
 
@@ -167,13 +179,17 @@ export default function ConfigPage() {
               <StyleToolbar
                 value={getStyle("photo_guide_style")}
                 onChange={setStyle("photo_guide_style")}
+                inputRef={photoGuideTitleRef}
+                onTextChange={setText("photo_guide_title")}
               />
               <input
+                ref={photoGuideTitleRef}
                 type="text"
                 value={config.photo_guide_title}
                 onChange={set("photo_guide_title")}
                 aria-label="사진안내 제목"
                 className={inputCls}
+                style={styleToCss(getStyle("photo_guide_style"))}
               />
             </div>
             <div>
@@ -202,6 +218,8 @@ export default function ConfigPage() {
           onTitleChange={set("service_remodeling_title")}
           onDescChange={set("service_remodeling_desc")}
           onCaptionChange={set("service_remodeling_caption")}
+          onTitleTextChange={setText("service_remodeling_title")}
+          onDescTextChange={setText("service_remodeling_desc")}
         />
 
         <ConfigSection
@@ -218,6 +236,8 @@ export default function ConfigPage() {
           onTitleChange={set("service_building_title")}
           onDescChange={set("service_building_desc")}
           onCaptionChange={set("service_building_caption")}
+          onTitleTextChange={setText("service_building_title")}
+          onDescTextChange={setText("service_building_desc")}
         />
 
         <ConfigSection
@@ -234,6 +254,8 @@ export default function ConfigPage() {
           onTitleChange={set("service_rental_title")}
           onDescChange={set("service_rental_desc")}
           onCaptionChange={set("service_rental_caption")}
+          onTitleTextChange={setText("service_rental_title")}
+          onDescTextChange={setText("service_rental_desc")}
         />
 
         <ConfigSection
@@ -250,6 +272,8 @@ export default function ConfigPage() {
           onTitleChange={set("service_category4_title")}
           onDescChange={set("service_category4_desc")}
           onCaptionChange={set("service_category4_caption")}
+          onTitleTextChange={setText("service_category4_title")}
+          onDescTextChange={setText("service_category4_desc")}
         />
       </div>
 
@@ -272,6 +296,8 @@ function ConfigSection({
   onTitleChange,
   onDescChange,
   onCaptionChange,
+  onTitleTextChange,
+  onDescTextChange,
 }: {
   title: string;
   visible: boolean;
@@ -286,7 +312,12 @@ function ConfigSection({
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDescChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onCaptionChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onTitleTextChange: (newValue: string) => void;
+  onDescTextChange: (newValue: string) => void;
 }) {
+  const titleRef = useRef<HTMLInputElement | null>(null);
+  const descRef = useRef<HTMLTextAreaElement | null>(null);
+
   return (
     <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
       <div className="flex items-center justify-between gap-3 mb-6">
@@ -297,21 +328,35 @@ function ConfigSection({
         className={`space-y-5 transition-opacity ${visible ? "" : "opacity-50"}`}
       >
         <div>
-          <StyleToolbar value={titleStyle} onChange={onTitleStyleChange} />
+          <StyleToolbar
+            value={titleStyle}
+            onChange={onTitleStyleChange}
+            inputRef={titleRef}
+            onTextChange={onTitleTextChange}
+          />
           <input
+            ref={titleRef}
             type="text"
             value={titleValue}
             onChange={onTitleChange}
-            className={inputCls}
+            className={`${inputCls}`}
+            style={styleToCss(titleStyle)}
           />
         </div>
         <div>
-          <StyleToolbar value={descStyle} onChange={onDescStyleChange} />
+          <StyleToolbar
+            value={descStyle}
+            onChange={onDescStyleChange}
+            inputRef={descRef}
+            onTextChange={onDescTextChange}
+          />
           <textarea
+            ref={descRef}
             value={descValue}
             onChange={onDescChange}
             rows={3}
-            className={inputCls}
+            className={`${inputCls}`}
+            style={styleToCss(descStyle)}
           />
         </div>
         <div>

@@ -35,6 +35,7 @@ interface CaseImage {
   type: "before" | "after";
   match_order: number;
   is_starred: number;
+  slot_position: number;
   image_url: string;
   image_url_wm: string;
 }
@@ -48,12 +49,17 @@ interface RemodelingCase {
   images: CaseImage[];
 }
 
-const MAX_STARRED_PER_TYPE = 4;
-
 function getImagesByType(images: CaseImage[], type: "before" | "after") {
   return images
     .filter((img) => img.type === type)
-    .sort((a, b) => a.match_order - b.match_order || a.id - b.id);
+    .sort((a, b) => {
+      const aSlot = a.slot_position ?? 0;
+      const bSlot = b.slot_position ?? 0;
+      if (aSlot > 0 && bSlot > 0) return aSlot - bSlot;
+      if (aSlot > 0) return -1;
+      if (bSlot > 0) return 1;
+      return a.match_order - b.match_order || a.id - b.id;
+    });
 }
 
 async function uploadFiles(files: File[]) {
@@ -105,20 +111,72 @@ function ToolbarButton({
   );
 }
 
+function SlotStars({
+  image,
+  onAssignSlot,
+}: {
+  image: CaseImage;
+  onAssignSlot: (slot: number) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const currentSlot = image.slot_position ?? 0;
+
+  const corners = [
+    { slot: 1, posClass: "top-1 left-1" },
+    { slot: 2, posClass: "top-1 right-1" },
+    { slot: 3, posClass: "bottom-1 left-1" },
+    { slot: 4, posClass: "bottom-1 right-1" },
+  ] as const;
+
+  return (
+    <div
+      className="absolute inset-0 z-10"
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+    >
+      {corners.map(({ slot, posClass }) => {
+        const isActive = currentSlot === slot;
+        const show = isActive || hovered;
+        return (
+          <button
+            key={slot}
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAssignSlot(isActive ? 0 : slot);
+            }}
+            className={`absolute ${posClass} text-[11px] leading-none transition-opacity ${
+              isActive
+                ? "text-yellow-400 drop-shadow opacity-100"
+                : show
+                  ? "text-white/80 opacity-60 hover:text-yellow-300 hover:opacity-100"
+                  : "opacity-0"
+            }`}
+            title={isActive ? `슬롯 ${slot} 해제` : `슬롯 ${slot}에 배정`}
+          >
+            ★
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function SortableThumb({
   image,
   checked,
-  disableStar,
+  selectionMode,
   onOpenImage,
   onToggleCheck,
-  onToggleStar,
+  onAssignSlot,
 }: {
   image: CaseImage;
   checked: boolean;
-  disableStar: boolean;
+  selectionMode: boolean;
   onOpenImage: () => void;
   onToggleCheck: () => void;
-  onToggleStar: () => void;
+  onAssignSlot: (slot: number) => void;
 }) {
   const {
     attributes,
@@ -139,12 +197,12 @@ function SortableThumb({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      onClick={onOpenImage}
-      className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all cursor-grab active:cursor-grabbing touch-none ${
-        checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#111]"
-      }`}
+      {...(selectionMode ? {} : attributes)}
+      {...(selectionMode ? {} : listeners)}
+      onClick={selectionMode ? onToggleCheck : onOpenImage}
+      className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all touch-none ${
+        selectionMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+      } ${checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#111]"}`}
     >
       {image.image_url ? (
         <>
@@ -169,58 +227,39 @@ function SortableThumb({
         </div>
       )}
 
-      <span
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleCheck();
-        }}
-        className={`absolute top-1 left-1 w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer z-10 transition-opacity ${
-          checked
-            ? "bg-[#111] border-[#111] text-white opacity-100"
-            : "bg-white/90 border-[#111] opacity-0 group-hover:opacity-100"
-        }`}
-      >
-        {checked && (
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        )}
-      </span>
+      {selectionMode && (
+        <span
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleCheck();
+          }}
+          className={`absolute top-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer z-10 ${
+            checked
+              ? "bg-[#111] border-[#111] text-white"
+              : "bg-white/90 border-[#111]"
+          }`}
+        >
+          {checked && (
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          )}
+        </span>
+      )}
 
-      <button
-        type="button"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (!disableStar) onToggleStar();
-        }}
-        className={`absolute top-1 right-1 text-[14px] z-10 transition-opacity ${
-          image.is_starred
-            ? "text-yellow-400 drop-shadow opacity-100"
-            : disableStar
-              ? "text-white/70 opacity-30 cursor-not-allowed"
-              : "text-white/80 opacity-0 group-hover:opacity-100 hover:text-yellow-300"
-        }`}
-        title={
-          image.is_starred
-            ? "공개 노출 끄기"
-            : disableStar
-              ? "별표는 BEFORE/AFTER 각 4개까지 선택 가능합니다"
-              : "공개 노출 켜기"
-        }
-      >
-        ★
-      </button>
+      {!selectionMode && (
+        <SlotStars image={image} onAssignSlot={onAssignSlot} />
+      )}
     </div>
   );
 }
@@ -231,13 +270,16 @@ function ImageSection({
   images,
   uploading,
   checkedIds,
+  selectionMode,
   onOpenEdit,
   onOpenImage,
   onToggleCheck,
   onBulkUpload,
   onBulkDeleteAll,
   onDeleteSelected,
-  onToggleStar,
+  onToggleSelectionMode,
+  onCancelSelectionMode,
+  onAssignSlot,
   onReorder,
 }: {
   caseId: number;
@@ -245,6 +287,7 @@ function ImageSection({
   images: CaseImage[];
   uploading?: boolean;
   checkedIds: Set<number>;
+  selectionMode: boolean;
   onOpenEdit: (caseId: number, type: "before" | "after") => void;
   onOpenImage: (
     caseId: number,
@@ -259,10 +302,13 @@ function ImageSection({
   ) => void;
   onBulkDeleteAll: (caseId: number, type: "before" | "after") => void;
   onDeleteSelected: (caseId: number, type: "before" | "after") => void;
-  onToggleStar: (
+  onToggleSelectionMode: () => void;
+  onCancelSelectionMode: () => void;
+  onAssignSlot: (
     caseId: number,
     imageId: number,
     type: "before" | "after",
+    slot: number,
   ) => void;
   onReorder: (
     caseId: number,
@@ -293,34 +339,72 @@ function ImageSection({
   return (
     <div>
       <div className="flex items-center gap-2 mb-2 flex-wrap">
-        <ToolbarButton
-          onClick={() => fileRef.current?.click()}
-          icon={<Upload size={14} />}
-          label={uploading ? "업로드 중.." : "업로드"}
-          disabled={uploading}
-        />
-        <ToolbarButton
-          onClick={() => onOpenEdit(caseId, type)}
-          icon={<SquarePen size={14} />}
-          label="편집"
-          disabled={images.length === 0}
-        />
-        <ToolbarButton
-          onClick={() => onDeleteSelected(caseId, type)}
-          icon={<CheckSquare size={14} />}
-          label={`선택 삭제${checkedIds.size > 0 ? ` (${checkedIds.size})` : ""}`}
-          disabled={checkedIds.size === 0}
-          tone="danger"
-        />
-        <ToolbarButton
-          onClick={() => onBulkDeleteAll(caseId, type)}
-          icon={<Trash size={14} />}
-          label="전체 삭제"
-          disabled={images.length === 0}
-          tone="danger"
-        />
+        {selectionMode ? (
+          <>
+            <ToolbarButton
+              onClick={() => fileRef.current?.click()}
+              icon={<Upload size={14} />}
+              label={uploading ? "업로드 중.." : "업로드"}
+              disabled={true}
+            />
+            <ToolbarButton
+              onClick={() => onOpenEdit(caseId, type)}
+              icon={<SquarePen size={14} />}
+              label="편집"
+              disabled={true}
+            />
+            <ToolbarButton
+              onClick={() => onDeleteSelected(caseId, type)}
+              icon={<Trash size={14} />}
+              label={`삭제${checkedIds.size > 0 ? ` (${checkedIds.size})` : ""}`}
+              disabled={checkedIds.size === 0}
+              tone="danger"
+            />
+            <ToolbarButton
+              onClick={onCancelSelectionMode}
+              icon={<CheckSquare size={14} />}
+              label="취소"
+            />
+            <ToolbarButton
+              onClick={() => onBulkDeleteAll(caseId, type)}
+              icon={<Trash size={14} />}
+              label="전체 삭제"
+              disabled={true}
+              tone="danger"
+            />
+          </>
+        ) : (
+          <>
+            <ToolbarButton
+              onClick={() => fileRef.current?.click()}
+              icon={<Upload size={14} />}
+              label={uploading ? "업로드 중.." : "업로드"}
+              disabled={uploading}
+            />
+            <ToolbarButton
+              onClick={() => onOpenEdit(caseId, type)}
+              icon={<SquarePen size={14} />}
+              label="편집"
+              disabled={images.length === 0}
+            />
+            <ToolbarButton
+              onClick={onToggleSelectionMode}
+              icon={<CheckSquare size={14} />}
+              label="선택 삭제"
+              disabled={images.length === 0}
+              tone="danger"
+            />
+            <ToolbarButton
+              onClick={() => onBulkDeleteAll(caseId, type)}
+              icon={<Trash size={14} />}
+              label="전체 삭제"
+              disabled={images.length === 0}
+              tone="danger"
+            />
+          </>
+        )}
         <span className="ml-auto text-[12px] text-[#666] font-medium">
-          {label} <span className="text-[#111]">({images.length}장)</span>
+          {label} <span className="text-[#111]">( {images.length}장 )</span>
         </span>
         <input
           ref={fileRef}
@@ -357,25 +441,19 @@ function ImageSection({
               strategy={horizontalListSortingStrategy}
             >
               <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
-                {(() => {
-                  const starredCount = images.filter(
-                    (img) => img.is_starred,
-                  ).length;
-                  return images.map((image) => (
-                    <SortableThumb
-                      key={image.id}
-                      image={image}
-                      checked={checkedIds.has(image.id)}
-                      disableStar={
-                        starredCount >= MAX_STARRED_PER_TYPE &&
-                        !image.is_starred
-                      }
-                      onOpenImage={() => onOpenImage(caseId, type, image.id)}
-                      onToggleCheck={() => onToggleCheck(image.id)}
-                      onToggleStar={() => onToggleStar(caseId, image.id, type)}
-                    />
-                  ));
-                })()}
+                {images.map((image) => (
+                  <SortableThumb
+                    key={image.id}
+                    image={image}
+                    checked={checkedIds.has(image.id)}
+                    selectionMode={selectionMode}
+                    onOpenImage={() => onOpenImage(caseId, type, image.id)}
+                    onToggleCheck={() => onToggleCheck(image.id)}
+                    onAssignSlot={(slot) =>
+                      onAssignSlot(caseId, image.id, type, slot)
+                    }
+                  />
+                ))}
               </div>
             </SortableContext>
           </DndContext>
@@ -389,6 +467,7 @@ function SortableCase({
   item,
   uploading,
   getChecked,
+  isSelectionMode,
   onOpenEdit,
   onOpenImage,
   onToggleCheck,
@@ -399,12 +478,15 @@ function SortableCase({
   onBulkUpload,
   onBulkDeleteAll,
   onDeleteSelected,
-  onToggleStar,
+  onToggleSelectionMode,
+  onCancelSelectionMode,
+  onAssignSlot,
   onReorderImages,
 }: {
   item: RemodelingCase;
   uploading?: boolean;
   getChecked: (type: "before" | "after") => Set<number>;
+  isSelectionMode: (type: "before" | "after") => boolean;
   onOpenEdit: (caseId: number, type: "before" | "after") => void;
   onOpenImage: (
     caseId: number,
@@ -427,10 +509,13 @@ function SortableCase({
   ) => void;
   onBulkDeleteAll: (caseId: number, type: "before" | "after") => void;
   onDeleteSelected: (caseId: number, type: "before" | "after") => void;
-  onToggleStar: (
+  onToggleSelectionMode: (caseId: number, type: "before" | "after") => void;
+  onCancelSelectionMode: (caseId: number, type: "before" | "after") => void;
+  onAssignSlot: (
     caseId: number,
     imageId: number,
     type: "before" | "after",
+    slot: number,
   ) => void;
   onReorderImages: (
     caseId: number,
@@ -470,13 +555,16 @@ function SortableCase({
           images={beforeImages}
           uploading={uploading}
           checkedIds={getChecked("before")}
+          selectionMode={isSelectionMode("before")}
           onOpenEdit={onOpenEdit}
           onOpenImage={onOpenImage}
           onToggleCheck={(imageId) => onToggleCheck(item.id, "before", imageId)}
           onBulkUpload={onBulkUpload}
           onBulkDeleteAll={onBulkDeleteAll}
           onDeleteSelected={onDeleteSelected}
-          onToggleStar={onToggleStar}
+          onToggleSelectionMode={() => onToggleSelectionMode(item.id, "before")}
+          onCancelSelectionMode={() => onCancelSelectionMode(item.id, "before")}
+          onAssignSlot={onAssignSlot}
           onReorder={onReorderImages}
         />
         <div className="border-t border-[#111]" />
@@ -486,13 +574,16 @@ function SortableCase({
           images={afterImages}
           uploading={uploading}
           checkedIds={getChecked("after")}
+          selectionMode={isSelectionMode("after")}
           onOpenEdit={onOpenEdit}
           onOpenImage={onOpenImage}
           onToggleCheck={(imageId) => onToggleCheck(item.id, "after", imageId)}
           onBulkUpload={onBulkUpload}
           onBulkDeleteAll={onBulkDeleteAll}
           onDeleteSelected={onDeleteSelected}
-          onToggleStar={onToggleStar}
+          onToggleSelectionMode={() => onToggleSelectionMode(item.id, "after")}
+          onCancelSelectionMode={() => onCancelSelectionMode(item.id, "after")}
+          onAssignSlot={onAssignSlot}
           onReorder={onReorderImages}
         />
         <div className="border-t border-[#111]" />
@@ -574,9 +665,35 @@ export default function RemodelingAdminPage() {
   const [checkedMap, setCheckedMap] = useState<Map<string, Set<number>>>(
     new Map(),
   );
+  const [selectionSections, setSelectionSections] = useState<Set<string>>(
+    new Set(),
+  );
 
   const sectionKey = (caseId: number, type: "before" | "after") =>
     `${type}-${caseId}`;
+
+  const toggleSelectionMode = (caseId: number, type: "before" | "after") => {
+    const key = `${caseId}:${type}`;
+    setSelectionSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const cancelSelectionMode = (caseId: number, type: "before" | "after") => {
+    const key = `${caseId}:${type}`;
+    clearSectionChecks(caseId, type);
+    setSelectionSections((prev) => {
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  };
+
+  const isSelectionMode = (caseId: number, type: "before" | "after") =>
+    selectionSections.has(`${caseId}:${type}`);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -869,6 +986,7 @@ export default function RemodelingAdminPage() {
         ),
       );
       clearSectionChecks(caseId, type);
+      cancelSelectionMode(caseId, type);
       load();
       flash(`${ids.length}장이 삭제되었습니다`);
     } catch (error) {
@@ -876,26 +994,42 @@ export default function RemodelingAdminPage() {
     }
   };
 
-  const handleToggleStar = async (
+  const handleAssignSlot = async (
     caseId: number,
     imageId: number,
     type: "before" | "after",
+    slot: number,
   ) => {
-    const caseData = cases.find((item) => item.id === caseId);
-    if (!caseData) return;
-
-    const images = getImagesByType(caseData.images, type);
-    const target = images.find((image) => image.id === imageId);
-    if (!target) return;
-
-    const nextValue = target.is_starred ? 0 : 1;
+    setCases((prev) =>
+      prev.map((c) => {
+        if (c.id !== caseId) return c;
+        return {
+          ...c,
+          images: c.images.map((img) => {
+            if (img.type !== type) return img;
+            if (img.slot_position === slot && img.id !== imageId) {
+              return { ...img, slot_position: 0, is_starred: 0 };
+            }
+            if (img.id === imageId) {
+              const newSlot = img.slot_position === slot ? 0 : slot;
+              return {
+                ...img,
+                slot_position: newSlot,
+                is_starred: newSlot > 0 ? 1 : 0,
+              };
+            }
+            return img;
+          }),
+        };
+      }),
+    );
 
     try {
-      await saveImage({ id: imageId, is_starred: nextValue });
+      await saveImage({ id: imageId, slot_position: slot });
       load();
-      flash(nextValue ? "별표가 설정되었습니다" : "별표가 해제되었습니다");
     } catch (error) {
-      flash(`별표 변경에 실패했습니다: ${errMsg(error)}`);
+      flash(`슬롯 변경에 실패했습니다: ${errMsg(error)}`);
+      load();
     }
   };
 
@@ -985,6 +1119,7 @@ export default function RemodelingAdminPage() {
                 getChecked={(type) =>
                   checkedMap.get(sectionKey(item.id, type)) ?? new Set()
                 }
+                isSelectionMode={(type) => isSelectionMode(item.id, type)}
                 onOpenEdit={(caseId, type) =>
                   setEditorSection({ caseId, type })
                 }
@@ -999,7 +1134,9 @@ export default function RemodelingAdminPage() {
                 onBulkUpload={handleBulkUpload}
                 onBulkDeleteAll={handleBulkDeleteAll}
                 onDeleteSelected={handleDeleteSelected}
-                onToggleStar={handleToggleStar}
+                onToggleSelectionMode={toggleSelectionMode}
+                onCancelSelectionMode={cancelSelectionMode}
+                onAssignSlot={handleAssignSlot}
                 onReorderImages={handleReorderImages}
               />
             ))}

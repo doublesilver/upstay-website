@@ -55,6 +55,47 @@ export async function PUT(req: NextRequest) {
   const { id, ...fields } = body;
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
 
+  const db = getDb();
+
+  if ("slot_position" in fields) {
+    const slotPos = Number(fields.slot_position);
+    if (!Number.isInteger(slotPos) || slotPos < 0 || slotPos > 4) {
+      return Response.json(
+        { error: "slot_position must be 0-4" },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const tx = db.transaction(() => {
+        const row = db
+          .prepare("SELECT case_id, type FROM case_images WHERE id=?")
+          .get(id) as { case_id: number; type: string } | undefined;
+        if (!row) throw new Error("NOT_FOUND");
+
+        if (slotPos > 0) {
+          db.prepare(
+            "UPDATE case_images SET slot_position=0, is_starred=0 WHERE case_id=? AND type=? AND slot_position=? AND id<>?",
+          ).run(row.case_id, row.type, slotPos, id);
+        }
+
+        const newIsStarred = slotPos > 0 ? 1 : 0;
+        db.prepare(
+          "UPDATE case_images SET slot_position=?, is_starred=? WHERE id=?",
+        ).run(slotPos, newIsStarred, id);
+      });
+      tx();
+    } catch (e) {
+      if ((e as Error).message === "NOT_FOUND") {
+        return Response.json({ error: "not found" }, { status: 404 });
+      }
+      throw e;
+    }
+
+    invalidatePublicCache();
+    return Response.json({ ok: true });
+  }
+
   const allowed = ["image_url", "image_url_wm", "match_order", "is_starred"];
   const sets: string[] = [];
   const vals: unknown[] = [];
@@ -68,7 +109,6 @@ export async function PUT(req: NextRequest) {
 
   if (sets.length === 0) return Response.json({ ok: true });
 
-  const db = getDb();
   vals.push(id);
   const sql = `UPDATE case_images SET ${sets.join(", ")} WHERE id=?`;
 
