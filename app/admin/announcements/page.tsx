@@ -176,7 +176,16 @@ export default function AnnouncementsAdminPage() {
               팝업 편집
             </h2>
             <div className="px-6 py-5 space-y-4">
-              <div>
+              <div className="flex flex-col gap-3">
+                <input
+                  type="text"
+                  value={editing.title}
+                  onChange={(e) =>
+                    setEditing({ ...editing, title: e.target.value })
+                  }
+                  placeholder="제목"
+                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                />
                 <textarea
                   ref={contentRef}
                   value={editing.content}
@@ -303,6 +312,9 @@ export default function AnnouncementsAdminPage() {
                   }`}
                 >
                   {item.is_visible ? "공개" : "비공개"}
+                </span>
+                <span className="font-semibold text-[15px] text-[#111] truncate">
+                  {item.title || "(제목 없음)"}
                 </span>
               </div>
               {item.content ? (

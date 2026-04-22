@@ -184,23 +184,30 @@ export function HomeClient({
             aria-modal="true"
             aria-labelledby="popup-dialog-title"
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md mx-4 overflow-hidden"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-[320px] mx-4 p-5"
           >
             <h2 id="popup-dialog-title" className="sr-only">
               공지 팝업
             </h2>
-            <div className="mx-5 my-4 border-2 border-[#111] rounded-xl bg-white px-4 py-3 min-h-[240px] max-h-[60vh] overflow-y-auto space-y-3">
-              {initialAnnouncements.map((announcement) => (
-                <div key={announcement.id}>
-                  {announcement.content && (
-                    <p className="text-[13px] text-[#111] leading-[1.6]">
-                      {renderPopupContent(announcement.content)}
-                    </p>
-                  )}
+            {initialAnnouncements.map((a) => (
+              <div
+                key={a.id}
+                className="border border-[#D9D9D9] rounded-xl overflow-hidden mb-4"
+              >
+                {a.title && (
+                  <>
+                    <div className="px-4 pt-3.5 pb-3 text-[14px] font-medium text-[#111]">
+                      {a.title}
+                    </div>
+                    <div className="h-px bg-[#E5E5E5]" />
+                  </>
+                )}
+                <div className="px-4 pt-3.5 pb-4 text-[13px] text-[#333] leading-[1.7] min-h-[100px]">
+                  {renderPopupContent(a.content)}
                 </div>
-              ))}
-            </div>
-            <div className="px-5 py-3 border-t border-[#E5E7EB]">
+              </div>
+            ))}
+            <div className="flex justify-center">
               <button
                 ref={closeBtnRef}
                 onClick={() => {
@@ -228,7 +235,7 @@ export function HomeClient({
 
                   setShowPopup(false);
                 }}
-                className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-[#333] transition-colors"
+                className="px-7 py-1.5 bg-[#111] text-white rounded-md text-[12px] font-medium"
               >
                 닫기
               </button>
