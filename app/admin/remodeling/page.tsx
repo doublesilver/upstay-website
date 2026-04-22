@@ -52,14 +52,7 @@ interface RemodelingCase {
 function getImagesByType(images: CaseImage[], type: "before" | "after") {
   return images
     .filter((img) => img.type === type)
-    .sort((a, b) => {
-      const aSlot = a.slot_position ?? 0;
-      const bSlot = b.slot_position ?? 0;
-      if (aSlot > 0 && bSlot > 0) return aSlot - bSlot;
-      if (aSlot > 0) return -1;
-      if (bSlot > 0) return 1;
-      return a.match_order - b.match_order || a.id - b.id;
-    });
+    .sort((a, b) => a.match_order - b.match_order || a.id - b.id);
 }
 
 async function uploadFiles(files: File[]) {
@@ -118,25 +111,19 @@ function SlotStars({
   image: CaseImage;
   onAssignSlot: (slot: number) => void;
 }) {
-  const [hovered, setHovered] = useState(false);
   const currentSlot = image.slot_position ?? 0;
 
-  const corners = [
-    { slot: 1, posClass: "top-1 left-1" },
-    { slot: 2, posClass: "top-1 right-1" },
-    { slot: 3, posClass: "bottom-1 left-1" },
-    { slot: 4, posClass: "bottom-1 right-1" },
+  const quadrants = [
+    { slot: 1, posClass: "top-0 left-0" },
+    { slot: 2, posClass: "top-0 right-0" },
+    { slot: 3, posClass: "bottom-0 left-0" },
+    { slot: 4, posClass: "bottom-0 right-0" },
   ] as const;
 
   return (
-    <div
-      className="absolute inset-0 z-10"
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-    >
-      {corners.map(({ slot, posClass }) => {
+    <div className="absolute inset-0 z-10 pointer-events-none">
+      {quadrants.map(({ slot, posClass }) => {
         const isActive = currentSlot === slot;
-        const show = isActive || hovered;
         return (
           <button
             key={slot}
@@ -146,16 +133,16 @@ function SlotStars({
               e.stopPropagation();
               onAssignSlot(isActive ? 0 : slot);
             }}
-            className={`absolute ${posClass} text-[11px] leading-none transition-opacity ${
-              isActive
-                ? "text-yellow-400 drop-shadow opacity-100"
-                : show
-                  ? "text-white/80 opacity-60 hover:text-yellow-300 hover:opacity-100"
-                  : "opacity-0"
+            className={`absolute ${posClass} w-1/2 h-1/2 pointer-events-auto transition-colors ${
+              isActive ? "bg-yellow-400/40" : "hover:bg-black/15"
             }`}
             title={isActive ? `슬롯 ${slot} 해제` : `슬롯 ${slot}에 배정`}
           >
-            ★
+            {isActive && (
+              <span className="absolute inset-0 flex items-center justify-center text-[22px] font-black text-yellow-400 drop-shadow">
+                ★
+              </span>
+            )}
           </button>
         );
       })}
@@ -618,7 +605,7 @@ function SortableCase({
           onClick={() => onDelete(item.id)}
           className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
         >
-          케이스 삭제
+          박스 삭제
         </button>
 
         {([1, 2, 3] as const).map((value) => {
@@ -800,7 +787,7 @@ export default function RemodelingAdminPage() {
         }),
       });
       load();
-      flash("새 케이스가 추가되었습니다");
+      flash("새 박스가 추가되었습니다");
     } catch (error) {
       flash(`추가에 실패했습니다: ${errMsg(error)}`);
     }
@@ -1097,7 +1084,7 @@ export default function RemodelingAdminPage() {
           className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all inline-flex items-center gap-1.5"
         >
           <Plus size={16} />
-          케이스 추가
+          박스 추가
         </button>
       </div>
 
@@ -1156,10 +1143,10 @@ export default function RemodelingAdminPage() {
             <ImageOff size={28} />
           </div>
           <p className="text-[15px] font-medium text-[#999]">
-            등록된 케이스가 없습니다
+            등록된 박스가 없습니다
           </p>
           <p className="mt-1 text-[13px] text-[#CCC]">
-            새 케이스를 추가하고 Before/After 사진을 업로드해 주세요
+            새 박스를 추가하고 Before/After 사진을 업로드해 주세요
           </p>
         </div>
       )}
