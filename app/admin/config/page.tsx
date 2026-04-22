@@ -120,62 +120,6 @@ export default function ConfigPage() {
 
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
           <div className="flex items-center justify-between gap-3 mb-6">
-            <h2 className="text-[16px] font-bold text-[#111]">헤더 로고</h2>
-            <VisibilityToggle
-              visible={config.header_logo_visible === "1"}
-              onToggle={() => toggleVisible("header_logo_visible")}
-            />
-          </div>
-          <div
-            className={`space-y-4 transition-opacity ${config.header_logo_visible !== "1" ? "opacity-50" : ""}`}
-          >
-            <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                가로 크기 (px)
-              </label>
-              <input
-                type="number"
-                min={40}
-                max={400}
-                value={config.header_logo_width}
-                onChange={set("header_logo_width")}
-                className={inputCls}
-                aria-label="헤더 로고 가로 크기"
-              />
-            </div>
-            <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                세로 오프셋 (px, 양수=아래로)
-              </label>
-              <input
-                type="number"
-                min={-30}
-                max={30}
-                value={config.header_logo_offset_y}
-                onChange={set("header_logo_offset_y")}
-                className={inputCls}
-                aria-label="헤더 로고 세로 오프셋"
-              />
-            </div>
-            <div>
-              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
-                가로 오프셋 (px, 양수=오른쪽, 음수=왼쪽)
-              </label>
-              <input
-                type="number"
-                min={-100}
-                max={100}
-                value={config.header_logo_offset_x}
-                onChange={set("header_logo_offset_x")}
-                className={inputCls}
-                aria-label="헤더 로고 가로 오프셋"
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <div className="flex items-center justify-between gap-3 mb-6">
             <h2 className="text-[16px] font-bold text-[#111]">
               사진안내 카테고리
             </h2>
