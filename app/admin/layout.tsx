@@ -128,7 +128,7 @@ export default function AdminLayout({
 
   if (isLoginPage) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex">
+      <div className="min-h-screen bg-[#F1F8E9] flex">
         {/* 좌측 비주얼 */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#111] items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[#111] via-[#222] to-[#111]" />
@@ -138,7 +138,7 @@ export default function AdminLayout({
               alt="UPSTAY"
               width={240}
               height={96}
-              className="mx-auto h-20 w-auto brightness-0 invert"
+              className="mx-auto h-20 w-auto"
               priority
             />
             <p className="mt-6 text-[16px] text-[#666] leading-relaxed">
