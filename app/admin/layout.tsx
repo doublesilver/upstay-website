@@ -131,16 +131,22 @@ export default function AdminLayout({
       <div className="min-h-screen bg-white flex">
         {/* 좌측 비주얼 */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#F1F8E9] items-center justify-center relative overflow-hidden">
-          <div className="relative z-10 w-fit">
-            <Image
-              src="/logo.png"
-              alt="UPSTAY"
-              width={320}
-              height={160}
-              className="w-full h-auto"
-              priority
+          <div className="relative z-10 flex flex-col items-center">
+            <div style={{ width: "240px" }}>
+              <Image
+                src="/logo.png"
+                alt="UPSTAY"
+                width={320}
+                height={160}
+                className="w-full h-auto"
+                priority
+              />
+            </div>
+            <div
+              className="h-px bg-[#D1D5DB] my-2"
+              style={{ width: "219.68px" }}
             />
-            <p className="mt-4 text-[14px] text-[#666] whitespace-nowrap">
+            <p className="text-[14px] text-[#666] whitespace-nowrap">
               공간의 가치를 업스테이가 높여드립니다.
             </p>
           </div>
