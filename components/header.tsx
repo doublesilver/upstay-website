@@ -6,17 +6,20 @@ import { navItems, KAKAO_URL, PHONE_URL, SLOGAN } from "@/lib/site";
 export function Header({ config }: { config?: Record<string, string> }) {
   return (
     <header className="sticky top-0 z-40 bg-[#F1F8E9] border-b border-[#E5E7EB]">
-      <Container className="h-16 md:h-24 flex items-center justify-between gap-3 md:gap-4">
+      <Container className="h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4">
         {config?.header_logo_visible === "1" ? (
-          <Link href="/" className="shrink-0 block -ml-3 md:-ml-6">
+          <Link href="/" className="shrink-0 block">
             <Image
               src="/logo.svg"
               alt="UPSTAY"
-              width={200}
-              height={100}
-              className="h-12 md:h-20 w-auto"
+              width={Number(config.header_logo_width) || 100}
+              height={Math.round(
+                (Number(config.header_logo_width) || 100) * 0.5,
+              )}
               style={{
-                transform: `translateY(${Number(config.header_logo_offset_y) || 0}px)`,
+                width: `${Number(config.header_logo_width) || 100}px`,
+                height: "auto",
+                transform: `translate(${Number(config.header_logo_offset_x) || 0}px, ${Number(config.header_logo_offset_y) || 0}px)`,
               }}
               priority
             />
@@ -42,12 +45,9 @@ export function Header({ config }: { config?: Record<string, string> }) {
                 className="flex items-center gap-0.5 md:gap-2.5"
               >
                 {i > 0 && <span className="text-[#E5E7EB]">|</span>}
-                <Link
-                  href={item.href}
-                  className="text-[15px] md:text-[18px] font-bold text-[#111111] hover:text-[#6B7280] transition-colors whitespace-nowrap"
-                >
+                <span className="text-[15px] md:text-[18px] font-bold text-[#111111] whitespace-nowrap">
                   {item.label}
-                </Link>
+                </span>
               </span>
             ))}
           </nav>

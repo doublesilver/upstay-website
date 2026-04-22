@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const navItems = [
@@ -74,7 +74,6 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -86,32 +85,45 @@ export default function AdminLayout({
     e.preventDefault();
     setError("");
     setSubmitting(true);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
     try {
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, password }),
+        signal: controller.signal,
       });
+      clearTimeout(timer);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "아이디 또는 비밀번호를 다시 확인해주세요");
         setSubmitting(false);
         return;
       }
-      router.push("/admin/remodeling");
-      router.refresh();
-    } catch {
-      setError("서버에 연결할 수 없습니다");
+      window.location.href = "/admin/remodeling";
+    } catch (err) {
+      clearTimeout(timer);
+      if ((err as Error).name === "AbortError") {
+        setError("서버 응답이 늦습니다. 잠시 후 다시 시도해주세요");
+      } else {
+        setError("서버에 연결할 수 없습니다");
+      }
       setSubmitting(false);
     }
   };
 
   const handleLogout = async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
     try {
-      await fetch("/api/auth", { method: "DELETE" });
+      await fetch("/api/auth", {
+        method: "DELETE",
+        signal: controller.signal,
+      });
     } catch {}
-    router.push("/admin");
-    router.refresh();
+    clearTimeout(timer);
+    window.location.href = "/admin";
   };
 
   if (isLoginPage) {
