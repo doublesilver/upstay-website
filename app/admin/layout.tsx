@@ -225,14 +225,15 @@ export default function AdminLayout({
     <div className="min-h-screen bg-[#F7F7F7] flex">
       {/* 사이드바 */}
       <aside className="w-[240px] bg-white border-r border-[#EBEBEB] flex flex-col shrink-0 sticky top-0 h-screen">
-        <div className="px-6 h-16 flex items-center border-b border-[#EBEBEB]">
-          <Link href="/admin">
+        <div className="px-2 py-3 border-b border-[#EBEBEB]">
+          <Link href="/admin" className="block">
             <Image
-              src="/logo.png"
+              src="/logo.svg"
               alt="UPSTAY"
-              width={120}
-              height={48}
-              className="h-8 w-auto"
+              width={200}
+              height={100}
+              className="w-full h-auto"
+              priority
             />
           </Link>
         </div>

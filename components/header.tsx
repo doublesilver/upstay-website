@@ -6,19 +6,16 @@ import { navItems, KAKAO_URL, PHONE_URL, SLOGAN } from "@/lib/site";
 export function Header({ config }: { config?: Record<string, string> }) {
   return (
     <header className="sticky top-0 z-40 bg-[#F1F8E9] border-b border-[#E5E7EB]">
-      <Container className="h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4">
+      <Container className="h-16 md:h-24 flex items-center justify-between gap-3 md:gap-4">
         {config?.header_logo_visible === "1" ? (
-          <Link href="/" className="shrink-0 block">
+          <Link href="/" className="shrink-0 block -ml-3 md:-ml-6">
             <Image
               src="/logo.svg"
               alt="UPSTAY"
-              width={Number(config.header_logo_width) || 100}
-              height={Math.round(
-                (Number(config.header_logo_width) || 100) * 0.3,
-              )}
+              width={200}
+              height={100}
+              className="h-12 md:h-20 w-auto"
               style={{
-                width: `${Number(config.header_logo_width) || 100}px`,
-                height: "auto",
                 transform: `translateY(${Number(config.header_logo_offset_y) || 0}px)`,
               }}
               priority
