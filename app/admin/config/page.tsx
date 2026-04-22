@@ -100,25 +100,6 @@ export default function ConfigPage() {
 
       <div className={`space-y-10 ${loading ? "hidden" : ""}`}>
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <h2 className="text-[16px] font-bold text-[#111] mb-6">헤더</h2>
-          <StyleToolbar
-            value={getStyle("slogan_text_style")}
-            onChange={setStyle("slogan_text_style")}
-            inputRef={sloganRef}
-            onTextChange={setText("slogan_text")}
-          />
-          <input
-            ref={sloganRef}
-            type="text"
-            value={config.slogan_text}
-            onChange={set("slogan_text")}
-            aria-label="헤더 문구"
-            className={inputCls}
-            style={styleToCss(getStyle("slogan_text_style"))}
-          />
-        </section>
-
-        <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
           <div className="flex items-center justify-between gap-3 mb-6">
             <h2 className="text-[16px] font-bold text-[#111]">
               사진안내 카테고리
