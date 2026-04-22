@@ -136,7 +136,7 @@ function SlotStars({
             className={`absolute ${posClass} w-1/2 h-1/2 pointer-events-auto transition-colors ${
               isActive ? "bg-yellow-400/40" : "hover:bg-black/15"
             }`}
-            title={isActive ? `슬롯 ${slot} 해제` : `슬롯 ${slot}에 배정`}
+            title={isActive ? `${slot}번 해제` : `${slot}번 배정`}
           >
             {isActive && (
               <span className="absolute inset-0 flex items-center justify-center text-[22px] font-black text-yellow-400 drop-shadow">
@@ -959,13 +959,18 @@ export default function RemodelingAdminPage() {
     }
 
     setUploading(false);
-    load();
 
     if (success === files.length) {
-      flash(`${success}장 업로드가 완료되었습니다`);
+      flash(`${success}장 업로드되었습니다`);
+    } else if (success > 0) {
+      flash(
+        `${success}/${files.length}장 업로드됨 (일부 실패: ${failedReason})`,
+      );
     } else {
-      flash(`${success}/${files.length}장 업로드 완료 (실패: ${failedReason})`);
+      flash(`업로드 실패: ${failedReason}`);
     }
+
+    load();
   };
 
   const handleBulkDeleteAll = async (
@@ -1252,23 +1257,38 @@ export default function RemodelingAdminPage() {
           initialImageId={editorSection.initialImageId ?? editorImages[0].id}
           sectionLabel={`${editorSection.type === "before" ? "BEFORE" : "AFTER"} 총 ${editorImages.length}장`}
           onApplyOne={async (id, blob) => {
-            const url = await uploadFile(blob);
-            await saveImage({ id, image_url: url });
-            load();
-            flash("변경사항이 적용되었습니다");
+            try {
+              const url = await uploadFile(blob);
+              await saveImage({ id, image_url: url });
+              load();
+              flash("변경사항이 적용되었습니다");
+            } catch (error) {
+              flash(`적용 실패: ${errMsg(error)}`);
+            }
           }}
           onApplyAll={async (ids, getBlob) => {
             flash(`${ids.length}장 처리 중..`);
             let success = 0;
+            let failMsg = "";
             for (const id of ids) {
-              const blob = await getBlob(id);
-              if (!blob) continue;
-              const url = await uploadFile(blob);
-              await saveImage({ id, image_url: url });
-              success += 1;
+              try {
+                const blob = await getBlob(id);
+                if (!blob) continue;
+                const url = await uploadFile(blob);
+                await saveImage({ id, image_url: url });
+                success += 1;
+              } catch (error) {
+                if (!failMsg) failMsg = errMsg(error);
+              }
             }
             load();
-            flash(`${success}/${ids.length}장 전체 적용이 완료되었습니다`);
+            if (success === ids.length) {
+              flash(`${success}장 전체 적용이 완료되었습니다`);
+            } else {
+              flash(
+                `${success}/${ids.length}장 적용됨${failMsg ? ` (실패: ${failMsg})` : ""}`,
+              );
+            }
             setEditorSection(null);
           }}
           onCancel={() => setEditorSection(null)}

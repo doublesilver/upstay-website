@@ -44,7 +44,11 @@ export async function POST(req: NextRequest) {
     )
     .run(case_id, type, nextOrder, image_url || "", is_starred ? 1 : 0);
 
-  invalidatePublicCache();
+  try {
+    invalidatePublicCache();
+  } catch {
+    // 캐시 무효화 실패는 INSERT 성공에 영향 없음
+  }
   return Response.json({ id: result.lastInsertRowid, match_order: nextOrder });
 }
 

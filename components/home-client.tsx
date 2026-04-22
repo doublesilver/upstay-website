@@ -142,7 +142,7 @@ export function HomeClient({
                   >
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <GalleryGrid
-                        label="BEFORE"
+                        label="Before"
                         images={befores}
                         title={c.title}
                         caseIndex={caseIndex}
@@ -151,7 +151,7 @@ export function HomeClient({
                         →
                       </span>
                       <GalleryGrid
-                        label="AFTER"
+                        label="After"
                         images={afters}
                         title={c.title}
                         caseIndex={caseIndex}
@@ -184,7 +184,7 @@ export function HomeClient({
             aria-modal="true"
             aria-labelledby="popup-dialog-title"
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-[320px] mx-4 p-5"
+            className="bg-[#F1F8E9] rounded-xl shadow-lg w-[90%] max-w-[320px] mx-4 p-5"
           >
             <h2 id="popup-dialog-title" className="sr-only">
               공지 팝업
@@ -199,7 +199,7 @@ export function HomeClient({
                     <div className="px-4 pt-3.5 pb-3 text-[14px] font-medium text-[#111]">
                       {a.title}
                     </div>
-                    <div className="h-px bg-[#E5E5E5]" />
+                    <div className="mx-4 h-px bg-[#E5E5E5]" />
                   </>
                 )}
                 <div className="px-4 pt-3.5 pb-4 text-[13px] text-[#333] leading-[1.7] min-h-[100px]">
@@ -207,7 +207,8 @@ export function HomeClient({
                 </div>
               </div>
             ))}
-            <div className="flex justify-center">
+            <div className="h-px bg-[#E5E5E5] my-3" />
+            <div>
               <button
                 ref={closeBtnRef}
                 onClick={() => {
@@ -235,7 +236,7 @@ export function HomeClient({
 
                   setShowPopup(false);
                 }}
-                className="px-7 py-1.5 bg-[#111] text-white rounded-md text-[12px] font-medium"
+                className="w-full py-3 bg-[#111] text-white rounded-lg text-[14px] font-medium"
               >
                 닫기
               </button>
@@ -253,14 +254,14 @@ function GalleryGrid({
   title,
   caseIndex,
 }: {
-  label: "BEFORE" | "AFTER";
+  label: "Before" | "After";
   images: string[];
   title: string;
   caseIndex: number;
 }) {
   return (
     <div>
-      <p className="text-[11px] md:text-[11px] uppercase tracking-wider text-[#666] mb-1 font-medium">
+      <p className="text-[9px] md:text-[12px] text-[#888] font-medium mb-0.5">
         {label}
       </p>
       <div className="grid grid-cols-2 gap-1">
@@ -278,7 +279,7 @@ function GalleryGrid({
               quality={70}
               placeholder="blur"
               blurDataURL={blurDataURL()}
-              {...(caseIndex === 0 && index === 0 && label === "BEFORE"
+              {...(caseIndex === 0 && index === 0 && label === "Before"
                 ? { priority: true, fetchPriority: "high" }
                 : {})}
             />
