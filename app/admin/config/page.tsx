@@ -157,6 +157,20 @@ export default function ConfigPage() {
                 aria-label="헤더 로고 세로 오프셋"
               />
             </div>
+            <div>
+              <label className="block text-[13px] font-medium text-[#333] mb-1.5">
+                가로 오프셋 (px, 양수=오른쪽, 음수=왼쪽)
+              </label>
+              <input
+                type="number"
+                min={-100}
+                max={100}
+                value={config.header_logo_offset_x}
+                onChange={set("header_logo_offset_x")}
+                className={inputCls}
+                aria-label="헤더 로고 가로 오프셋"
+              />
+            </div>
           </div>
         </section>
 

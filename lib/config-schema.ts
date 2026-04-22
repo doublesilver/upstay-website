@@ -7,8 +7,9 @@ export interface ConfigEntry {
 
 export const CONFIG_ENTRIES: ConfigEntry[] = [
   { key: "header_logo_visible", default: "1", public: true, editable: true },
-  { key: "header_logo_width", default: "200", public: true, editable: true },
+  { key: "header_logo_width", default: "100", public: true, editable: true },
   { key: "header_logo_offset_y", default: "0", public: true, editable: true },
+  { key: "header_logo_offset_x", default: "0", public: true, editable: true },
 
   {
     key: "slogan_text",
