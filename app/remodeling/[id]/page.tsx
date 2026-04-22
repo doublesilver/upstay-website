@@ -61,7 +61,7 @@ export default async function RemodelingDetailPage({
       <div className="mb-3 shrink-0">
         <Link
           href="/remodeling"
-          className="text-[13px] text-[#666] hover:text-[#111] transition-colors"
+          className="inline-block bg-[#F3F4F6] text-[#333] px-4 py-2 rounded-lg text-[13px] hover:bg-[#E5E7EB] transition-colors"
         >
           ← 목록으로
         </Link>
