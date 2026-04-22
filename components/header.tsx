@@ -12,13 +12,10 @@ export function Header({ config }: { config?: Record<string, string> }) {
             <Image
               src="/logo.svg"
               alt="UPSTAY"
-              width={Number(config.header_logo_width) || 100}
-              height={Math.round(
-                (Number(config.header_logo_width) || 100) * 0.5,
-              )}
+              width={200}
+              height={100}
+              className="w-[86px] md:w-[98px] h-auto"
               style={{
-                width: `${Number(config.header_logo_width) || 100}px`,
-                height: "auto",
                 transform: `translate(${Number(config.header_logo_offset_x) || 0}px, ${Number(config.header_logo_offset_y) || 0}px)`,
               }}
               priority
