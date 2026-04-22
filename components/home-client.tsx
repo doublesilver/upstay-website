@@ -192,7 +192,7 @@ export function HomeClient({
             {initialAnnouncements.map((a) => (
               <div
                 key={a.id}
-                className="border border-[#111] rounded-xl overflow-hidden mb-4"
+                className="bg-white border border-[#111] rounded-xl overflow-hidden mb-4"
               >
                 {a.title && (
                   <>
