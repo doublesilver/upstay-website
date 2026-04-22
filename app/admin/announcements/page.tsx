@@ -44,14 +44,28 @@ export default function AnnouncementsAdminPage() {
     el.setSelectionRange(newStart, newEnd);
   };
 
-  const insertMiddleDot = () => {
+  const insertBullet = () => {
     const el = contentRef.current;
     if (!el || !editing) return;
     const { selectionStart: s, selectionEnd: e, value } = el;
-    const newValue = value.slice(0, s) + "·" + value.slice(e);
+    const lines = value.split("\n");
+    let charCount = 0;
+    let startLine = 0;
+    let endLine = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const lineEnd = charCount + lines[i].length;
+      if (charCount <= s && s <= lineEnd + 1) startLine = i;
+      if (charCount <= e && e <= lineEnd + 1) endLine = i;
+      charCount += lines[i].length + 1;
+    }
+    const newLines = lines.map((line, i) =>
+      i >= startLine && i <= endLine ? "• " + line : line,
+    );
+    const newValue = newLines.join("\n");
+    const added = (endLine - startLine + 1) * 2;
     flushSync(() => setEditing({ ...editing, content: newValue }));
     el.focus();
-    el.setSelectionRange(s + 1, s + 1);
+    el.setSelectionRange(s + 2, e + added);
   };
 
   const load = useCallback(() => {
@@ -205,12 +219,12 @@ export default function AnnouncementsAdminPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={insertMiddleDot}
+                  onClick={insertBullet}
                   className="w-9 h-9 border border-[#DDD] rounded-lg hover:bg-[#F7F7F7] text-[14px]"
-                  title="가운데점"
-                  aria-label="가운데점"
+                  title="글머리기호"
+                  aria-label="글머리기호"
                 >
-                  ·
+                  •
                 </button>
               </div>
               <div className="flex gap-3">
