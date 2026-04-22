@@ -452,6 +452,7 @@ function ImageSection({
 
 function SortableCase({
   item,
+  collapsed,
   uploading,
   getChecked,
   isSelectionMode,
@@ -469,8 +470,10 @@ function SortableCase({
   onCancelSelectionMode,
   onAssignSlot,
   onReorderImages,
+  onToggleCollapse,
 }: {
   item: RemodelingCase;
+  collapsed: boolean;
   uploading?: boolean;
   getChecked: (type: "before" | "after") => Set<number>;
   isSelectionMode: (type: "before" | "after") => boolean;
@@ -510,6 +513,7 @@ function SortableCase({
     oldIndex: number,
     newIndex: number,
   ) => void;
+  onToggleCollapse: () => void;
 }) {
   const {
     attributes,
@@ -535,59 +539,73 @@ function SortableCase({
       style={style}
       className="bg-white border border-[#111] rounded-2xl overflow-hidden hover:shadow-sm transition-all"
     >
-      <div className="px-5 pt-5 pb-5 space-y-4">
-        <ImageSection
-          caseId={item.id}
-          type="before"
-          images={beforeImages}
-          uploading={uploading}
-          checkedIds={getChecked("before")}
-          selectionMode={isSelectionMode("before")}
-          onOpenEdit={onOpenEdit}
-          onOpenImage={onOpenImage}
-          onToggleCheck={(imageId) => onToggleCheck(item.id, "before", imageId)}
-          onBulkUpload={onBulkUpload}
-          onBulkDeleteAll={onBulkDeleteAll}
-          onDeleteSelected={onDeleteSelected}
-          onToggleSelectionMode={() => onToggleSelectionMode(item.id, "before")}
-          onCancelSelectionMode={() => onCancelSelectionMode(item.id, "before")}
-          onAssignSlot={onAssignSlot}
-          onReorder={onReorderImages}
-        />
-        <div className="border-t border-[#111]" />
-        <ImageSection
-          caseId={item.id}
-          type="after"
-          images={afterImages}
-          uploading={uploading}
-          checkedIds={getChecked("after")}
-          selectionMode={isSelectionMode("after")}
-          onOpenEdit={onOpenEdit}
-          onOpenImage={onOpenImage}
-          onToggleCheck={(imageId) => onToggleCheck(item.id, "after", imageId)}
-          onBulkUpload={onBulkUpload}
-          onBulkDeleteAll={onBulkDeleteAll}
-          onDeleteSelected={onDeleteSelected}
-          onToggleSelectionMode={() => onToggleSelectionMode(item.id, "after")}
-          onCancelSelectionMode={() => onCancelSelectionMode(item.id, "after")}
-          onAssignSlot={onAssignSlot}
-          onReorder={onReorderImages}
-        />
-        <div className="border-t border-[#111]" />
-
-        <div className="flex items-center gap-3">
-          <label className="text-[13px] font-medium text-[#333] shrink-0">
-            내용
-          </label>
-          <input
-            type="text"
-            value={item.title}
-            onChange={(e) => onTitleChange(item.id, e.target.value)}
-            placeholder="설명을 입력해 주세요"
-            className="flex-1 text-[14px] text-[#111] outline-none border border-[#111] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#111]/70"
+      {!collapsed && (
+        <div className="px-5 pt-5 pb-5 space-y-4">
+          <ImageSection
+            caseId={item.id}
+            type="before"
+            images={beforeImages}
+            uploading={uploading}
+            checkedIds={getChecked("before")}
+            selectionMode={isSelectionMode("before")}
+            onOpenEdit={onOpenEdit}
+            onOpenImage={onOpenImage}
+            onToggleCheck={(imageId) =>
+              onToggleCheck(item.id, "before", imageId)
+            }
+            onBulkUpload={onBulkUpload}
+            onBulkDeleteAll={onBulkDeleteAll}
+            onDeleteSelected={onDeleteSelected}
+            onToggleSelectionMode={() =>
+              onToggleSelectionMode(item.id, "before")
+            }
+            onCancelSelectionMode={() =>
+              onCancelSelectionMode(item.id, "before")
+            }
+            onAssignSlot={onAssignSlot}
+            onReorder={onReorderImages}
           />
+          <div className="border-t border-[#111]" />
+          <ImageSection
+            caseId={item.id}
+            type="after"
+            images={afterImages}
+            uploading={uploading}
+            checkedIds={getChecked("after")}
+            selectionMode={isSelectionMode("after")}
+            onOpenEdit={onOpenEdit}
+            onOpenImage={onOpenImage}
+            onToggleCheck={(imageId) =>
+              onToggleCheck(item.id, "after", imageId)
+            }
+            onBulkUpload={onBulkUpload}
+            onBulkDeleteAll={onBulkDeleteAll}
+            onDeleteSelected={onDeleteSelected}
+            onToggleSelectionMode={() =>
+              onToggleSelectionMode(item.id, "after")
+            }
+            onCancelSelectionMode={() =>
+              onCancelSelectionMode(item.id, "after")
+            }
+            onAssignSlot={onAssignSlot}
+            onReorder={onReorderImages}
+          />
+          <div className="border-t border-[#111]" />
+
+          <div className="flex items-center gap-3">
+            <label className="text-[13px] font-medium text-[#333] shrink-0">
+              내용
+            </label>
+            <input
+              type="text"
+              value={item.title}
+              onChange={(e) => onTitleChange(item.id, e.target.value)}
+              placeholder="설명을 입력해 주세요"
+              className="flex-1 text-[14px] text-[#111] outline-none border border-[#111] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#111]/70"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="px-5 py-3 border-t border-[#111] bg-[#FAFAFA] flex items-center gap-2">
         <button
@@ -600,39 +618,64 @@ function SortableCase({
           <GripVertical size={18} />
         </button>
 
-        <button
-          type="button"
-          onClick={() => onDelete(item.id)}
-          className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
-        >
-          박스 삭제
-        </button>
-
-        {([1, 2, 3] as const).map((value) => {
-          const active = item.show_on_main === value;
-          return (
+        {collapsed ? (
+          <>
+            <span className="text-[13px] text-[#555] truncate flex-1 px-1">
+              {item.title || "제목 없음"}
+            </span>
             <button
-              key={value}
               type="button"
-              onClick={() => onToggleMain(item.id, active ? 0 : value)}
-              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
-                active
-                  ? "bg-[#111] text-white border border-[#111]"
-                  : "bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111]"
-              }`}
+              onClick={onToggleCollapse}
+              className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
             >
-              메인{value}
+              보기
             </button>
-          );
-        })}
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => onDelete(item.id)}
+              className="px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
+            >
+              박스 삭제
+            </button>
 
-        <button
-          type="button"
-          onClick={() => onRegister(item.id)}
-          className="bg-[#111] text-white rounded-lg px-4 py-1.5 text-[12px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
-        >
-          저장
-        </button>
+            {([1, 2, 3] as const).map((value) => {
+              const active = item.show_on_main === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onToggleMain(item.id, active ? 0 : value)}
+                  className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
+                    active
+                      ? "bg-[#111] text-white border border-[#111]"
+                      : "bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111]"
+                  }`}
+                >
+                  메인{value}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
+            >
+              접기
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onRegister(item.id)}
+              className="ml-auto bg-[#111] text-white rounded-lg px-4 py-1.5 text-[12px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
+            >
+              저장
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -655,6 +698,16 @@ export default function RemodelingAdminPage() {
   const [selectionSections, setSelectionSections] = useState<Set<string>>(
     new Set(),
   );
+  const [collapsedCases, setCollapsedCases] = useState<Set<number>>(new Set());
+
+  const toggleCollapse = (id: number) => {
+    setCollapsedCases((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const sectionKey = (caseId: number, type: "before" | "after") =>
     `${type}-${caseId}`;
@@ -1125,6 +1178,8 @@ export default function RemodelingAdminPage() {
                 onCancelSelectionMode={cancelSelectionMode}
                 onAssignSlot={handleAssignSlot}
                 onReorderImages={handleReorderImages}
+                collapsed={collapsedCases.has(item.id)}
+                onToggleCollapse={() => toggleCollapse(item.id)}
               />
             ))}
           </div>

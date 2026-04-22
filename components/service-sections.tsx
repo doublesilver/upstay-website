@@ -101,6 +101,15 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
       titleStyle: parseStyle(config?.service_category4_style),
       descStyle: parseStyle(config?.service_category4_style),
     },
+    {
+      key: "service_category5",
+      visible: isVisible(config?.service_category5_visible),
+      title: config?.service_category5_title ?? "",
+      description: config?.service_category5_desc ?? "",
+      caption: config?.service_category5_caption ?? "",
+      titleStyle: parseStyle(config?.service_category5_style),
+      descStyle: parseStyle(config?.service_category5_style),
+    },
   ].filter(
     (section) =>
       section.visible && (section.title.trim() || section.description.trim()),

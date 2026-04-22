@@ -215,6 +215,55 @@ export const CONFIG_ENTRIES: ConfigEntry[] = [
     editable: true,
   },
 
+  {
+    key: "service_category5_title",
+    default: "",
+    public: true,
+    editable: true,
+  },
+  {
+    key: "service_category5_title_style",
+    default: "{}",
+    public: true,
+    editable: true,
+  },
+  {
+    key: "service_category5_desc",
+    default: "",
+    public: true,
+    editable: true,
+  },
+  {
+    key: "service_category5_desc_style",
+    default: "{}",
+    public: true,
+    editable: true,
+  },
+  {
+    key: "service_category5_caption",
+    default: "",
+    public: true,
+    editable: true,
+  },
+  {
+    key: "service_category5_caption_style",
+    default: "{}",
+    public: true,
+    editable: true,
+  },
+  {
+    key: "service_category5_style",
+    default: "{}",
+    public: true,
+    editable: true,
+  },
+  {
+    key: "service_category5_visible",
+    default: "0",
+    public: true,
+    editable: true,
+  },
+
   { key: "footer_name", default: "업스테이", public: true, editable: true },
   {
     key: "footer_english_name",
