@@ -241,7 +241,7 @@ export default function AdminLayout({
       {/* 사이드바 */}
       <aside className="w-[240px] bg-white border-r border-[#EBEBEB] flex flex-col shrink-0 sticky top-0 h-screen">
         <div className="px-2 py-3 border-b border-[#EBEBEB]">
-          <Link href="/admin" className="block">
+          <Link href="/admin" className="block mx-auto w-[70%]">
             <Image
               src="/logo.svg"
               alt="UPSTAY"
