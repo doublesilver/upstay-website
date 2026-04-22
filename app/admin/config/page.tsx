@@ -214,6 +214,24 @@ export default function ConfigPage() {
           onTitleTextChange={setText("service_category4_title")}
           onDescTextChange={setText("service_category4_desc")}
         />
+
+        <ConfigSection
+          title="안내 카테고리 ( 5 )"
+          visible={config.service_category5_visible !== "0"}
+          onToggle={() => toggleVisible("service_category5_visible")}
+          titleValue={config.service_category5_title}
+          descValue={config.service_category5_desc}
+          captionValue={config.service_category5_caption}
+          titleStyle={getStyle("service_category5_title_style")}
+          descStyle={getStyle("service_category5_desc_style")}
+          onTitleStyleChange={setStyle("service_category5_title_style")}
+          onDescStyleChange={setStyle("service_category5_desc_style")}
+          onTitleChange={set("service_category5_title")}
+          onDescChange={set("service_category5_desc")}
+          onCaptionChange={set("service_category5_caption")}
+          onTitleTextChange={setText("service_category5_title")}
+          onDescTextChange={setText("service_category5_desc")}
+        />
       </div>
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}

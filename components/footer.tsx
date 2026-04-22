@@ -33,7 +33,7 @@ export function Footer({ config = {} }: { config?: Record<string, string> }) {
   const colonRight = config?.footer_colon_right_offset || "0px";
 
   return (
-    <footer className="bg-[#F1F8E9] border-t border-[#E5E7EB]">
+    <footer className="bg-[#F1F8E9] border-t border-[#111]">
       <Container className="py-6 md:py-8 text-[11px] md:text-[12px] text-[#4B5563] leading-7">
         <table className="border-collapse">
           <tbody>
