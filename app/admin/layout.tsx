@@ -128,10 +128,9 @@ export default function AdminLayout({
 
   if (isLoginPage) {
     return (
-      <div className="min-h-screen bg-[#F1F8E9] flex">
+      <div className="min-h-screen bg-white flex">
         {/* 좌측 비주얼 */}
-        <div className="hidden lg:flex lg:w-1/2 bg-[#111] items-center justify-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#111] via-[#222] to-[#111]" />
+        <div className="hidden lg:flex lg:w-1/2 bg-[#F1F8E9] items-center justify-center relative overflow-hidden">
           <div className="relative z-10 text-center px-16">
             <Image
               src="/logo.png"
