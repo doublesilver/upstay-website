@@ -59,6 +59,19 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+function clampWmPos(
+  pos: { x: number; y: number },
+  wmScale: number,
+  logoAspect: number,
+): { x: number; y: number } {
+  const halfW = wmScale / 200;
+  const halfH = (wmScale / 200) * logoAspect;
+  return {
+    x: Math.max(halfW, Math.min(1 - halfW, pos.x)),
+    y: Math.max(halfH, Math.min(1 - halfH, pos.y)),
+  };
+}
+
 async function renderToBlob(
   imageSrc: string,
   logoImg: HTMLImageElement | null,
@@ -76,10 +89,19 @@ async function renderToBlob(
   ctx.filter = "none";
 
   if (logoImg && settings.wmOpacity > 0) {
-    const logoW = base.width * (settings.wmScale / 100);
-    const logoH = (logoImg.height / logoImg.width) * logoW;
-    const x = settings.wmPos.x * base.width - logoW / 2;
-    const y = settings.wmPos.y * base.height - logoH / 2;
+    const logoW = Math.min(base.width * (settings.wmScale / 100), base.width);
+    const logoH = Math.min(
+      (logoImg.height / logoImg.width) * logoW,
+      base.height,
+    );
+    const x = Math.max(
+      0,
+      Math.min(base.width - logoW, settings.wmPos.x * base.width - logoW / 2),
+    );
+    const y = Math.max(
+      0,
+      Math.min(base.height - logoH, settings.wmPos.y * base.height - logoH / 2),
+    );
 
     ctx.save();
     ctx.globalAlpha = settings.wmOpacity / 100;
@@ -299,7 +321,16 @@ export function ImageEditModal({
                   min={5}
                   max={80}
                   onChange={(value) =>
-                    setSettings((prev) => ({ ...prev, wmScale: value }))
+                    setSettings((prev) => {
+                      const aspect = logoImg
+                        ? logoImg.height / logoImg.width
+                        : 1;
+                      return {
+                        ...prev,
+                        wmScale: value,
+                        wmPos: clampWmPos(prev.wmPos, value, aspect),
+                      };
+                    })
                   }
                   unit="%"
                 />
@@ -318,10 +349,19 @@ export function ImageEditModal({
                           key={item.label}
                           type="button"
                           onClick={() =>
-                            setSettings((prev) => ({
-                              ...prev,
-                              wmPos: { x: item.x, y: item.y },
-                            }))
+                            setSettings((prev) => {
+                              const aspect = logoImg
+                                ? logoImg.height / logoImg.width
+                                : 1;
+                              return {
+                                ...prev,
+                                wmPos: clampWmPos(
+                                  { x: item.x, y: item.y },
+                                  prev.wmScale,
+                                  aspect,
+                                ),
+                              };
+                            })
                           }
                           className={`aspect-square rounded-lg text-[16px] transition-all ${
                             active

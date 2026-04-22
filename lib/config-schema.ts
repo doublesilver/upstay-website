@@ -264,6 +264,14 @@ export const CONFIG_ENTRIES: ConfigEntry[] = [
     editable: true,
   },
 
+  {
+    key: "service_categories_order",
+    default:
+      '["service_remodeling","service_building","service_rental","service_category4","service_category5"]',
+    public: true,
+    editable: true,
+  },
+
   { key: "footer_name", default: "업스테이", public: true, editable: true },
   {
     key: "footer_english_name",

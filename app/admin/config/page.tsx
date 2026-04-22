@@ -1,6 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
 import { Toast } from "@/components/admin/toast";
 import {
   StyleToolbar,
@@ -16,6 +32,22 @@ type Config = ConfigRecord;
 const inputCls =
   "w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]";
 
+const DEFAULT_CATEGORY_ORDER = [
+  "service_remodeling",
+  "service_building",
+  "service_rental",
+  "service_category4",
+  "service_category5",
+];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  service_remodeling: "안내 카테고리 ( 1 )",
+  service_building: "안내 카테고리 ( 2 )",
+  service_rental: "안내 카테고리 ( 3 )",
+  service_category4: "안내 카테고리 ( 4 )",
+  service_category5: "안내 카테고리 ( 5 )",
+};
+
 export default function ConfigPage() {
   const [config, setConfig] = useState<Config>({ ...DEFAULT_CONFIG });
   const [saving, setSaving] = useState(false);
@@ -24,6 +56,10 @@ export default function ConfigPage() {
 
   const sloganRef = useRef<HTMLInputElement | null>(null);
   const photoGuideTitleRef = useRef<HTMLInputElement | null>(null);
+
+  const categorySensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   useEffect(() => {
     apiFetch("/api/admin/config", {
@@ -73,6 +109,31 @@ export default function ConfigPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const categoryOrder = (() => {
+    try {
+      const parsed = JSON.parse(config.service_categories_order || "[]");
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[];
+    } catch {}
+    return DEFAULT_CATEGORY_ORDER;
+  })();
+
+  const categoryItems = categoryOrder.filter((k) =>
+    DEFAULT_CATEGORY_ORDER.includes(k),
+  );
+
+  const handleCategoryDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = categoryItems.indexOf(active.id as string);
+    const newIndex = categoryItems.indexOf(over.id as string);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(categoryItems, oldIndex, newIndex);
+    setConfig((prev) => ({
+      ...prev,
+      service_categories_order: JSON.stringify(reordered),
+    }));
   };
 
   return (
@@ -143,98 +204,100 @@ export default function ConfigPage() {
           </div>
         </section>
 
-        <ConfigSection
-          title="안내 카테고리 ( 1 )"
-          visible={config.service_remodeling_visible !== "0"}
-          onToggle={() => toggleVisible("service_remodeling_visible")}
-          titleValue={config.service_remodeling_title}
-          descValue={config.service_remodeling_desc}
-          captionValue={config.service_remodeling_caption}
-          titleStyle={getStyle("service_remodeling_title_style")}
-          descStyle={getStyle("service_remodeling_desc_style")}
-          onTitleStyleChange={setStyle("service_remodeling_title_style")}
-          onDescStyleChange={setStyle("service_remodeling_desc_style")}
-          onTitleChange={set("service_remodeling_title")}
-          onDescChange={set("service_remodeling_desc")}
-          onCaptionChange={set("service_remodeling_caption")}
-          onTitleTextChange={setText("service_remodeling_title")}
-          onDescTextChange={setText("service_remodeling_desc")}
-        />
-
-        <ConfigSection
-          title="안내 카테고리 ( 2 )"
-          visible={config.service_building_visible !== "0"}
-          onToggle={() => toggleVisible("service_building_visible")}
-          titleValue={config.service_building_title}
-          descValue={config.service_building_desc}
-          captionValue={config.service_building_caption}
-          titleStyle={getStyle("service_building_title_style")}
-          descStyle={getStyle("service_building_desc_style")}
-          onTitleStyleChange={setStyle("service_building_title_style")}
-          onDescStyleChange={setStyle("service_building_desc_style")}
-          onTitleChange={set("service_building_title")}
-          onDescChange={set("service_building_desc")}
-          onCaptionChange={set("service_building_caption")}
-          onTitleTextChange={setText("service_building_title")}
-          onDescTextChange={setText("service_building_desc")}
-        />
-
-        <ConfigSection
-          title="안내 카테고리 ( 3 )"
-          visible={config.service_rental_visible !== "0"}
-          onToggle={() => toggleVisible("service_rental_visible")}
-          titleValue={config.service_rental_title}
-          descValue={config.service_rental_desc}
-          captionValue={config.service_rental_caption}
-          titleStyle={getStyle("service_rental_title_style")}
-          descStyle={getStyle("service_rental_desc_style")}
-          onTitleStyleChange={setStyle("service_rental_title_style")}
-          onDescStyleChange={setStyle("service_rental_desc_style")}
-          onTitleChange={set("service_rental_title")}
-          onDescChange={set("service_rental_desc")}
-          onCaptionChange={set("service_rental_caption")}
-          onTitleTextChange={setText("service_rental_title")}
-          onDescTextChange={setText("service_rental_desc")}
-        />
-
-        <ConfigSection
-          title="안내 카테고리 ( 4 )"
-          visible={config.service_category4_visible !== "0"}
-          onToggle={() => toggleVisible("service_category4_visible")}
-          titleValue={config.service_category4_title}
-          descValue={config.service_category4_desc}
-          captionValue={config.service_category4_caption}
-          titleStyle={getStyle("service_category4_title_style")}
-          descStyle={getStyle("service_category4_desc_style")}
-          onTitleStyleChange={setStyle("service_category4_title_style")}
-          onDescStyleChange={setStyle("service_category4_desc_style")}
-          onTitleChange={set("service_category4_title")}
-          onDescChange={set("service_category4_desc")}
-          onCaptionChange={set("service_category4_caption")}
-          onTitleTextChange={setText("service_category4_title")}
-          onDescTextChange={setText("service_category4_desc")}
-        />
-
-        <ConfigSection
-          title="안내 카테고리 ( 5 )"
-          visible={config.service_category5_visible !== "0"}
-          onToggle={() => toggleVisible("service_category5_visible")}
-          titleValue={config.service_category5_title}
-          descValue={config.service_category5_desc}
-          captionValue={config.service_category5_caption}
-          titleStyle={getStyle("service_category5_title_style")}
-          descStyle={getStyle("service_category5_desc_style")}
-          onTitleStyleChange={setStyle("service_category5_title_style")}
-          onDescStyleChange={setStyle("service_category5_desc_style")}
-          onTitleChange={set("service_category5_title")}
-          onDescChange={set("service_category5_desc")}
-          onCaptionChange={set("service_category5_caption")}
-          onTitleTextChange={setText("service_category5_title")}
-          onDescTextChange={setText("service_category5_desc")}
-        />
+        <DndContext
+          sensors={categorySensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleCategoryDragEnd}
+        >
+          <SortableContext
+            items={categoryItems}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-10">
+              {categoryItems.map((key) => (
+                <SortableConfigSection
+                  key={key}
+                  categoryKey={key}
+                  title={CATEGORY_LABELS[key] ?? key}
+                  visible={config[`${key}_visible`] !== "0"}
+                  onToggle={() => toggleVisible(`${key}_visible`)}
+                  titleValue={config[`${key}_title`] ?? ""}
+                  descValue={config[`${key}_desc`] ?? ""}
+                  captionValue={config[`${key}_caption`] ?? ""}
+                  titleStyle={getStyle(`${key}_title_style`)}
+                  descStyle={getStyle(`${key}_desc_style`)}
+                  onTitleStyleChange={setStyle(`${key}_title_style`)}
+                  onDescStyleChange={setStyle(`${key}_desc_style`)}
+                  onTitleChange={set(`${key}_title`)}
+                  onDescChange={set(`${key}_desc`)}
+                  onCaptionChange={set(`${key}_caption`)}
+                  onTitleTextChange={setText(`${key}_title`)}
+                  onDescTextChange={setText(`${key}_desc`)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
+    </div>
+  );
+}
+
+type ConfigSectionProps = {
+  title: string;
+  visible: boolean;
+  onToggle: () => void;
+  titleValue: string;
+  descValue: string;
+  captionValue: string;
+  titleStyle: TextStyle;
+  descStyle: TextStyle;
+  onTitleStyleChange: (style: TextStyle) => void;
+  onDescStyleChange: (style: TextStyle) => void;
+  onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDescChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onCaptionChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onTitleTextChange: (newValue: string) => void;
+  onDescTextChange: (newValue: string) => void;
+  dragHandle?: React.ReactNode;
+};
+
+function SortableConfigSection({
+  categoryKey,
+  ...sectionProps
+}: { categoryKey: string } & ConfigSectionProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: categoryKey });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const handle = (
+    <button
+      type="button"
+      {...attributes}
+      {...listeners}
+      className="cursor-grab active:cursor-grabbing text-[#999] hover:text-[#111] transition-colors shrink-0 p-1 -ml-1"
+      title="드래그하여 순서를 변경합니다"
+    >
+      <GripVertical size={18} />
+    </button>
+  );
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <ConfigSection dragHandle={handle} {...sectionProps} />
     </div>
   );
 }
@@ -255,30 +318,16 @@ function ConfigSection({
   onCaptionChange,
   onTitleTextChange,
   onDescTextChange,
-}: {
-  title: string;
-  visible: boolean;
-  onToggle: () => void;
-  titleValue: string;
-  descValue: string;
-  captionValue: string;
-  titleStyle: TextStyle;
-  descStyle: TextStyle;
-  onTitleStyleChange: (style: TextStyle) => void;
-  onDescStyleChange: (style: TextStyle) => void;
-  onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onDescChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onCaptionChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onTitleTextChange: (newValue: string) => void;
-  onDescTextChange: (newValue: string) => void;
-}) {
+  dragHandle,
+}: ConfigSectionProps) {
   const titleRef = useRef<HTMLInputElement | null>(null);
   const descRef = useRef<HTMLTextAreaElement | null>(null);
 
   return (
     <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-      <div className="flex items-center justify-between gap-3 mb-6">
-        <h2 className="text-[16px] font-bold text-[#111]">{title}</h2>
+      <div className="flex items-center gap-3 mb-6">
+        {dragHandle}
+        <h2 className="text-[16px] font-bold text-[#111] flex-1">{title}</h2>
         <VisibilityToggle visible={visible} onToggle={onToggle} />
       </div>
       <div
