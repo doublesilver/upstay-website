@@ -131,7 +131,7 @@ export default function AdminLayout({
       <div className="min-h-screen bg-white flex">
         {/* 좌측 비주얼 */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#F1F8E9] items-center justify-center relative overflow-hidden">
-          <div className="relative z-10" style={{ width: "320px" }}>
+          <div className="relative z-10 w-fit">
             <Image
               src="/logo.png"
               alt="UPSTAY"
@@ -140,13 +140,7 @@ export default function AdminLayout({
               className="w-full h-auto"
               priority
             />
-            <p
-              className="mt-4 text-[14px] text-[#666] whitespace-nowrap"
-              style={{
-                textAlign: "justify",
-                textAlignLast: "justify",
-              }}
-            >
+            <p className="mt-4 text-[14px] text-[#666] whitespace-nowrap">
               공간의 가치를 업스테이가 높여드립니다.
             </p>
           </div>
