@@ -6,6 +6,18 @@ import { notFound } from "next/navigation";
 
 export const revalidate = 60;
 
+export async function generateStaticParams() {
+  try {
+    const db = getDb();
+    const cases = db.prepare("SELECT id FROM remodeling_cases").all() as {
+      id: number;
+    }[];
+    return cases.map((c) => ({ id: String(c.id) }));
+  } catch {
+    return [];
+  }
+}
+
 export default async function RemodelingDetailPage({
   params,
 }: {

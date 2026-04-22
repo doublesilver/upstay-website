@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getDb } from "@/lib/db";
 
+export const revalidate = 60;
+
 export async function generateMetadata({
   params,
 }: {

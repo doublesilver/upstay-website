@@ -3,7 +3,7 @@ import { jwtVerify } from "jose";
 
 const AUTH_COOKIE = "upstay_admin_token";
 const attempts = new Map<string, { count: number; resetAt: number }>();
-const MAX = 10;
+const MAX = 11;
 const WINDOW = 15 * 60 * 1000;
 
 async function verifyJwtEdge(token: string): Promise<boolean> {
