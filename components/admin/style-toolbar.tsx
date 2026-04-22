@@ -5,6 +5,8 @@ export { parseStyle, type TextStyle } from "@/lib/text-style";
 interface StyleToolbarProps {
   value: import("@/lib/text-style").TextStyle;
   onChange: (style: import("@/lib/text-style").TextStyle) => void;
+  inputRef?: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
+  onTextChange?: (newValue: string) => void;
 }
 
 const FONT_SIZES = [
@@ -22,9 +24,27 @@ const FONT_SIZES = [
   "24px",
 ];
 
-export function StyleToolbar({ value, onChange }: StyleToolbarProps) {
+export function StyleToolbar({
+  value,
+  onChange,
+  inputRef,
+  onTextChange,
+}: StyleToolbarProps) {
   const isBold = value.fontWeight === "bold";
-  const hasBullet = value.bullet === true;
+
+  const insertMiddleDot = () => {
+    const el = inputRef?.current;
+    if (!el || !onTextChange) return;
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const newValue = el.value.slice(0, start) + "·" + el.value.slice(end);
+    const newPos = start + 1;
+    onTextChange(newValue);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(newPos, newPos);
+    });
+  };
 
   return (
     <div className="flex items-center gap-2 mb-1.5">
@@ -57,16 +77,11 @@ export function StyleToolbar({ value, onChange }: StyleToolbarProps) {
       </button>
       <button
         type="button"
-        onClick={() =>
-          onChange({ ...value, bullet: hasBullet ? undefined : true })
-        }
-        className={`px-2 py-1 rounded-lg text-[12px] border transition-colors ${
-          hasBullet
-            ? "bg-[#111] text-white border-[#111]"
-            : "bg-white text-[#999] border-[#DDD] hover:border-[#111]"
-        }`}
+        title="가운데점"
+        onClick={insertMiddleDot}
+        className="px-2 py-1 rounded-lg text-[12px] border border-[#DDD] bg-white text-[#999] hover:border-[#111] transition-colors"
       >
-        • 불렛
+        ·
       </button>
     </div>
   );

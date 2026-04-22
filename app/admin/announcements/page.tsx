@@ -44,28 +44,14 @@ export default function AnnouncementsAdminPage() {
     el.setSelectionRange(newStart, newEnd);
   };
 
-  const insertBullet = () => {
+  const insertMiddleDot = () => {
     const el = contentRef.current;
     if (!el || !editing) return;
     const { selectionStart: s, selectionEnd: e, value } = el;
-    const lines = value.split("\n");
-    let charCount = 0;
-    let startLine = 0;
-    let endLine = 0;
-    for (let i = 0; i < lines.length; i++) {
-      const lineEnd = charCount + lines[i].length;
-      if (charCount <= s && s <= lineEnd + 1) startLine = i;
-      if (charCount <= e && e <= lineEnd + 1) endLine = i;
-      charCount += lines[i].length + 1;
-    }
-    const newLines = lines.map((line, i) =>
-      i >= startLine && i <= endLine ? "• " + line : line,
-    );
-    const newValue = newLines.join("\n");
-    const added = (endLine - startLine + 1) * 2;
+    const newValue = value.slice(0, s) + "·" + value.slice(e);
     flushSync(() => setEditing({ ...editing, content: newValue }));
     el.focus();
-    el.setSelectionRange(s + 2, e + added);
+    el.setSelectionRange(s + 1, s + 1);
   };
 
   const load = useCallback(() => {
@@ -219,12 +205,12 @@ export default function AnnouncementsAdminPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={insertBullet}
+                  onClick={insertMiddleDot}
                   className="w-9 h-9 border border-[#DDD] rounded-lg hover:bg-[#F7F7F7] text-[14px]"
-                  title="글머리기호"
-                  aria-label="글머리기호"
+                  title="가운데점"
+                  aria-label="가운데점"
                 >
-                  •
+                  ·
                 </button>
               </div>
               <div className="flex gap-3">
@@ -295,9 +281,6 @@ export default function AnnouncementsAdminPage() {
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2.5">
-                <h3 className="text-[15px] font-semibold text-[#111] truncate">
-                  {item.title || item.content?.slice(0, 30) || "(빈 팝업)"}
-                </h3>
                 <span
                   className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${
                     item.is_visible
@@ -308,9 +291,13 @@ export default function AnnouncementsAdminPage() {
                   {item.is_visible ? "공개" : "비공개"}
                 </span>
               </div>
-              {item.content && (
-                <p className="mt-1.5 text-[13px] text-[#888] line-clamp-2">
+              {item.content ? (
+                <p className="mt-1.5 text-[14px] text-[#333] line-clamp-3 whitespace-pre-wrap">
                   {item.content}
+                </p>
+              ) : (
+                <p className="mt-1.5 text-[13px] text-[#BBB] italic">
+                  (빈 팝업)
                 </p>
               )}
               <p className="mt-2 text-[12px] text-[#CCC]">

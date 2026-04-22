@@ -29,18 +29,17 @@ function buildCases(
 
   const allImages = db
     .prepare(
-      `SELECT case_id, type, match_order, image_url, image_url_wm, is_starred
+      `SELECT case_id, type, slot_position, image_url, image_url_wm
        FROM case_images
-       WHERE case_id IN (${placeholders}) AND image_url <> '' AND is_starred = 1
-       ORDER BY match_order ASC, id ASC`,
+       WHERE case_id IN (${placeholders}) AND image_url <> '' AND slot_position > 0
+       ORDER BY slot_position ASC, id ASC`,
     )
     .all(...caseIds) as {
     case_id: number;
     type: "before" | "after";
-    match_order: number;
+    slot_position: number;
     image_url: string;
     image_url_wm: string;
-    is_starred: number;
   }[];
 
   const imageMap = new Map<number, typeof allImages>();

@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 export interface TextStyle {
   fontSize?: string;
   fontWeight?: string;
-  bullet?: boolean;
 }
 
 export function parseStyle(json?: string): TextStyle {

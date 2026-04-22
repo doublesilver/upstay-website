@@ -35,11 +35,6 @@ function ServiceSection({
           className="text-[14px] md:text-[17px] font-bold tracking-tight text-[#111111]"
           style={styleToCss(ts)}
         >
-          {ts.bullet !== false && (
-            <span className="mr-1.5 text-[8px] md:text-[10px] align-middle">
-              •
-            </span>
-          )}
           {title}
         </h2>
         {caption && (
@@ -53,7 +48,6 @@ function ServiceSection({
           className="text-[12px] md:text-[14px] font-bold text-[#111111] leading-relaxed whitespace-pre-line"
           style={styleToCss(ds)}
         >
-          {ds.bullet && <span className="mr-1">•</span>}
           {description}
         </p>
       </div>
