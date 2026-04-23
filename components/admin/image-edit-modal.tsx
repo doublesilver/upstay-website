@@ -63,13 +63,29 @@ function clampWmPos(
   pos: { x: number; y: number },
   wmScale: number,
   logoAspect: number,
+  imageAspect = 1,
 ): { x: number; y: number } {
   const wmW = wmScale / 100;
-  const wmH = (wmScale / 100) * logoAspect;
+  const wmH = (wmScale / 100) * logoAspect * imageAspect;
   return {
     x: Math.max(0, Math.min(1 - wmW, pos.x)),
-    y: Math.max(0, Math.min(1 - wmH, pos.y)),
+    y: Math.max(0, Math.min(Math.max(0, 1 - wmH), pos.y)),
   };
+}
+
+function maxAllowedScale(logoAspect: number, imageAspect: number): number {
+  if (logoAspect <= 0 || imageAspect <= 0) return 100;
+  return Math.max(
+    10,
+    Math.min(100, Math.floor(100 / (logoAspect * imageAspect))),
+  );
+}
+
+function getImageAspect(el: HTMLElement | null): number {
+  if (!el) return 1;
+  const w = el.clientWidth;
+  const h = el.clientHeight;
+  return h > 0 ? w / h : 1;
 }
 
 async function renderToBlob(
@@ -166,6 +182,7 @@ export function ImageEditModal({
     const previewW = previewEl.clientWidth;
     const previewH = previewEl.clientHeight;
     const aspect = logoImg ? logoImg.height / logoImg.width : 1;
+    const imageAspect = previewH > 0 ? previewW / previewH : 1;
 
     setIsDragging(true);
 
@@ -178,6 +195,7 @@ export function ImageEditModal({
           { x: startWmX + dx / previewW, y: startWmY + dy / previewH },
           prev.wmScale,
           aspect,
+          imageAspect,
         ),
       }));
     };
@@ -365,10 +383,18 @@ export function ImageEditModal({
                       const aspect = logoImg
                         ? logoImg.height / logoImg.width
                         : 1;
+                      const imageAspect = getImageAspect(previewRef.current);
+                      const maxScale = maxAllowedScale(aspect, imageAspect);
+                      const clampedScale = Math.min(value, maxScale);
                       return {
                         ...prev,
-                        wmScale: value,
-                        wmPos: clampWmPos(prev.wmPos, value, aspect),
+                        wmScale: clampedScale,
+                        wmPos: clampWmPos(
+                          prev.wmPos,
+                          clampedScale,
+                          aspect,
+                          imageAspect,
+                        ),
                       };
                     })
                   }
@@ -399,15 +425,21 @@ export function ImageEditModal({
                               const aspect = logoImg
                                 ? logoImg.height / logoImg.width
                                 : 1;
+                              const imageAspect = getImageAspect(
+                                previewRef.current,
+                              );
+                              const wmHHalf =
+                                (prev.wmScale / 200) * aspect * imageAspect;
                               return {
                                 ...prev,
                                 wmPos: clampWmPos(
                                   {
                                     x: item.x - prev.wmScale / 200,
-                                    y: item.y - (prev.wmScale / 200) * aspect,
+                                    y: item.y - wmHHalf,
                                   },
                                   prev.wmScale,
                                   aspect,
+                                  imageAspect,
                                 ),
                               };
                             })

@@ -33,14 +33,14 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               process.env.NODE_ENV === "production"
-                ? "script-src 'self' 'unsafe-inline'"
-                : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+                ? "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com"
+                : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
               "font-src 'self' https://cdn.jsdelivr.net",
               "img-src 'self' data: https://images.unsplash.com blob:",
               process.env.NODE_ENV === "production"
-                ? "connect-src 'self'"
-                : "connect-src 'self' ws: wss:",
+                ? "connect-src 'self' https://cdn.jsdelivr.net"
+                : "connect-src 'self' ws: wss: https://cdn.jsdelivr.net",
               "frame-ancestors 'none'",
             ].join("; "),
           },

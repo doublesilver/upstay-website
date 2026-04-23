@@ -913,6 +913,9 @@ export default function RemodelingAdminPage() {
     type: "before" | "after",
     files: FileList,
   ) => {
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
+
     const caseData = cases.find((item) => item.id === caseId);
     const existing = caseData ? getImagesByType(caseData.images, type) : [];
     const maxOrder = existing.reduce(
@@ -926,7 +929,6 @@ export default function RemodelingAdminPage() {
     let failedReason = "";
 
     try {
-      const fileArray = Array.from(files);
       const urls = await uploadFiles(fileArray);
 
       const results = await Promise.allSettled(
@@ -955,8 +957,8 @@ export default function RemodelingAdminPage() {
 
     setUploading(false);
 
-    const failed = files.length - success;
-    if (success === files.length) {
+    const failed = fileArray.length - success;
+    if (success === fileArray.length) {
       flash(`${success}장 업로드되었습니다`);
     } else if (success > 0) {
       flash(
