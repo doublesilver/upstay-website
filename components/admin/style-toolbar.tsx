@@ -34,17 +34,31 @@ export function StyleToolbar({
 }: StyleToolbarProps) {
   const isBold = value.fontWeight === "bold";
 
-  const insertMiddleDot = () => {
+  const insertBullet = () => {
     const el = inputRef?.current;
     if (!el || !onTextChange) return;
-    const start = el.selectionStart ?? el.value.length;
-    const end = el.selectionEnd ?? el.value.length;
-    const newValue = el.value.slice(0, start) + "·" + el.value.slice(end);
-    const newPos = start + 1;
+    const s = el.selectionStart ?? el.value.length;
+    const e = el.selectionEnd ?? el.value.length;
+    const value = el.value;
+    const lines = value.split("\n");
+    let charCount = 0;
+    let startLine = 0;
+    let endLine = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const lineEnd = charCount + lines[i].length;
+      if (charCount <= s && s <= lineEnd + 1) startLine = i;
+      if (charCount <= e && e <= lineEnd + 1) endLine = i;
+      charCount += lines[i].length + 1;
+    }
+    const newLines = lines.map((line, i) =>
+      i >= startLine && i <= endLine ? "• " + line : line,
+    );
+    const newValue = newLines.join("\n");
+    const added = (endLine - startLine + 1) * 2;
     onTextChange(newValue);
     requestAnimationFrame(() => {
       el.focus();
-      el.setSelectionRange(newPos, newPos);
+      el.setSelectionRange(s + 2, e + added);
     });
   };
 
@@ -81,11 +95,11 @@ export function StyleToolbar({
       </button>
       <button
         type="button"
-        title="가운데점"
-        onClick={insertMiddleDot}
+        title="글머리기호"
+        onClick={insertBullet}
         className="px-2 py-1 rounded-lg text-[12px] border border-[#DDD] bg-white text-[#999] hover:border-[#111] transition-colors"
       >
-        ·
+        •
       </button>
     </div>
   );
