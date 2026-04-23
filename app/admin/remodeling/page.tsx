@@ -136,7 +136,7 @@ function SlotStars({
             className={`absolute ${posClass} w-1/2 h-1/2 pointer-events-auto transition-colors ${
               isActive ? "bg-yellow-400/40" : "hover:bg-black/15"
             }`}
-            title={isActive ? `${slot}번 해제` : `${slot}번 배정`}
+            title={`${slot}번`}
           >
             {isActive && (
               <span className="absolute inset-0 flex items-center justify-center text-[22px] font-black text-yellow-400 drop-shadow">
@@ -619,18 +619,13 @@ function SortableCase({
         </button>
 
         {collapsed ? (
-          <>
-            <span className="text-[13px] text-[#555] truncate flex-1 px-1">
-              {item.title || "제목 없음"}
-            </span>
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
-            >
-              보기
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
+          >
+            보기
+          </button>
         ) : (
           <>
             <button
@@ -960,14 +955,15 @@ export default function RemodelingAdminPage() {
 
     setUploading(false);
 
+    const failed = files.length - success;
     if (success === files.length) {
       flash(`${success}장 업로드되었습니다`);
     } else if (success > 0) {
       flash(
-        `${success}/${files.length}장 업로드됨 (일부 실패: ${failedReason})`,
+        `${success}장 업로드됨, ${failed}장 실패${failedReason ? ` (${failedReason})` : ""}`,
       );
     } else {
-      flash(`업로드 실패: ${failedReason}`);
+      flash(`업로드 실패${failedReason ? `: ${failedReason}` : ""}`);
     }
 
     load();
