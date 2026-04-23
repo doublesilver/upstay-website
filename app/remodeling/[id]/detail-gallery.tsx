@@ -15,7 +15,6 @@ export function DetailGallery({
 }) {
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const beforeRef = useRef<HTMLDivElement>(null);
   const afterRef = useRef<HTMLDivElement>(null);
 
@@ -75,50 +74,43 @@ export function DetailGallery({
     };
   }, [moveBefore, moveAfter]);
 
-  useEffect(() => {
-    if (!lightboxUrl) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightboxUrl(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [lightboxUrl]);
-
   return (
     <div className="flex-1 min-h-0 flex flex-col gap-3 md:gap-4">
-      {beforeImages.length > 0 && (
-        <div className="border border-[#111] rounded-xl p-3 md:p-4 flex-1 min-h-0 flex flex-col">
-          <GallerySection
-            title="Before (전)"
-            images={beforeImages}
-            activeIndex={beforeIndex}
-            onChange={setBeforeIndex}
-            onPrev={() => moveBefore(-1)}
-            onNext={() => moveBefore(1)}
-            containerRef={beforeRef}
-            altPrefix={`${title || "리모델링"} Before`}
-            onImageClick={setLightboxUrl}
-          />
-        </div>
-      )}
+      {(beforeImages.length > 0 || afterImages.length > 0) && (
+        <div className="border border-[#111] rounded-xl p-3 md:p-4 flex-1 min-h-0 flex flex-col gap-3 md:gap-4">
+          {beforeImages.length > 0 && (
+            <div className="flex-1 min-h-0 flex flex-col">
+              <GallerySection
+                title="Before (전)"
+                images={beforeImages}
+                activeIndex={beforeIndex}
+                onChange={setBeforeIndex}
+                onPrev={() => moveBefore(-1)}
+                onNext={() => moveBefore(1)}
+                containerRef={beforeRef}
+                altPrefix={`${title || "리모델링"} Before`}
+              />
+            </div>
+          )}
 
-      {beforeImages.length > 0 && afterImages.length > 0 && (
-        <div className="h-px bg-[#111] shrink-0" />
-      )}
+          {beforeImages.length > 0 && afterImages.length > 0 && (
+            <div className="h-px bg-[#E5E7EB] shrink-0" />
+          )}
 
-      {afterImages.length > 0 && (
-        <div className="border border-[#111] rounded-xl p-3 md:p-4 flex-1 min-h-0 flex flex-col">
-          <GallerySection
-            title="After (후)"
-            images={afterImages}
-            activeIndex={afterIndex}
-            onChange={setAfterIndex}
-            onPrev={() => moveAfter(-1)}
-            onNext={() => moveAfter(1)}
-            containerRef={afterRef}
-            altPrefix={`${title || "리모델링"} After`}
-            onImageClick={setLightboxUrl}
-          />
+          {afterImages.length > 0 && (
+            <div className="flex-1 min-h-0 flex flex-col">
+              <GallerySection
+                title="After (후)"
+                images={afterImages}
+                activeIndex={afterIndex}
+                onChange={setAfterIndex}
+                onPrev={() => moveAfter(-1)}
+                onNext={() => moveAfter(1)}
+                containerRef={afterRef}
+                altPrefix={`${title || "리모델링"} After`}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -130,26 +122,6 @@ export function DetailGallery({
           </p>
         </div>
       </div>
-
-      {lightboxUrl && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
-          onClick={() => setLightboxUrl(null)}
-        >
-          <div
-            className="relative w-[90vw] h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ProtectedImage
-              src={lightboxUrl}
-              alt="확대 이미지"
-              fill
-              className="object-contain"
-              quality={90}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -163,7 +135,6 @@ function GallerySection({
   onNext,
   containerRef,
   altPrefix,
-  onImageClick,
 }: {
   title: string;
   images: string[];
@@ -173,7 +144,6 @@ function GallerySection({
   onNext: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   altPrefix: string;
-  onImageClick: (url: string) => void;
 }) {
   return (
     <section className="flex-1 min-h-0 flex flex-col gap-2">
@@ -182,15 +152,15 @@ function GallerySection({
       </p>
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 relative border border-[#ccc] rounded-xl overflow-hidden bg-[#F1F8E9] cursor-pointer"
-        onClick={() => onImageClick(images[activeIndex])}
+        className="flex-1 min-h-0 relative flex items-center justify-center"
       >
         <ProtectedImage
           src={images[activeIndex]}
           alt={`${altPrefix} ${activeIndex + 1}`}
-          fill
+          width={2000}
+          height={1500}
           sizes="(max-width: 768px) 100vw, 80vw"
-          className="object-contain"
+          className="max-w-full max-h-full w-auto h-auto object-contain border border-[#111] rounded-xl"
           quality={70}
           priority={title === "Before (전)"}
           placeholder="blur"
