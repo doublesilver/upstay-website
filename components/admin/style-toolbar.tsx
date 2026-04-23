@@ -7,6 +7,7 @@ interface StyleToolbarProps {
   onChange: (style: import("@/lib/text-style").TextStyle) => void;
   inputRef?: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
   onTextChange?: (newValue: string) => void;
+  hideSize?: boolean;
 }
 
 const FONT_SIZES = [
@@ -29,6 +30,7 @@ export function StyleToolbar({
   onChange,
   inputRef,
   onTextChange,
+  hideSize,
 }: StyleToolbarProps) {
   const isBold = value.fontWeight === "bold";
 
@@ -48,20 +50,22 @@ export function StyleToolbar({
 
   return (
     <div className="flex items-center gap-2 mb-1.5">
-      <select
-        value={value.fontSize || ""}
-        onChange={(e) =>
-          onChange({ ...value, fontSize: e.target.value || undefined })
-        }
-        className="border border-[#DDD] rounded-lg px-2 py-1 text-[12px] outline-none focus:border-[#111] bg-white"
-      >
-        <option value="">크기 기본</option>
-        {FONT_SIZES.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
+      {!hideSize && (
+        <select
+          value={value.fontSize || ""}
+          onChange={(e) =>
+            onChange({ ...value, fontSize: e.target.value || undefined })
+          }
+          className="border border-[#DDD] rounded-lg px-2 py-1 text-[12px] outline-none focus:border-[#111] bg-white"
+        >
+          <option value="">크기 기본</option>
+          {FONT_SIZES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      )}
       <button
         type="button"
         onClick={() =>
