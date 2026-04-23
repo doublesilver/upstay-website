@@ -122,11 +122,13 @@ export function DetailGallery({
         </div>
       )}
 
-      <div className="shrink-0 border border-[#E5E7EB] rounded-lg p-3">
+      <div className="shrink-0">
         <p className="mb-1 text-[11px] text-[#999]">설명</p>
-        <p className="text-[13px] md:text-[14px] text-[#333] leading-[1.6]">
-          {title || "-"}
-        </p>
+        <div className="border border-[#E5E7EB] rounded-lg p-3">
+          <p className="text-[13px] md:text-[14px] text-[#333] leading-[1.6]">
+            {title || "-"}
+          </p>
+        </div>
       </div>
 
       {lightboxUrl && (
@@ -175,7 +177,7 @@ function GallerySection({
 }) {
   return (
     <section className="flex-1 min-h-0 flex flex-col gap-2">
-      <p className="shrink-0 text-[11px] uppercase tracking-wider text-[#111] font-medium">
+      <p className="shrink-0 text-[11px] tracking-wider text-[#111] font-medium">
         {title}
       </p>
       <div
