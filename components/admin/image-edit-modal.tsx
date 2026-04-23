@@ -34,7 +34,7 @@ const DEFAULT_SETTINGS: EditSettings = {
   brightness: 100,
   wmOpacity: 50,
   wmScale: 20,
-  wmPos: { x: 0.5, y: 0.5 },
+  wmPos: { x: 0.4, y: 0.4 },
 };
 
 const POS_GRID = [
@@ -64,11 +64,11 @@ function clampWmPos(
   wmScale: number,
   logoAspect: number,
 ): { x: number; y: number } {
-  const halfW = wmScale / 200;
-  const halfH = (wmScale / 200) * logoAspect;
+  const wmW = wmScale / 100;
+  const wmH = (wmScale / 100) * logoAspect;
   return {
-    x: Math.max(halfW, Math.min(1 - halfW, pos.x)),
-    y: Math.max(halfH, Math.min(1 - halfH, pos.y)),
+    x: Math.max(0, Math.min(1 - wmW, pos.x)),
+    y: Math.max(0, Math.min(1 - wmH, pos.y)),
   };
 }
 
@@ -96,11 +96,11 @@ async function renderToBlob(
     );
     const x = Math.max(
       0,
-      Math.min(base.width - logoW, settings.wmPos.x * base.width - logoW / 2),
+      Math.min(base.width - logoW, settings.wmPos.x * base.width),
     );
     const y = Math.max(
       0,
-      Math.min(base.height - logoH, settings.wmPos.y * base.height - logoH / 2),
+      Math.min(base.height - logoH, settings.wmPos.y * base.height),
     );
 
     ctx.save();
@@ -127,6 +127,7 @@ export function ImageEditModal({
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const current = useMemo(
     () => images.find((image) => image.id === currentId) ?? images[0],
@@ -153,6 +154,43 @@ export function ImageEditModal({
   }, [onCancel]);
 
   const reset = () => setSettings(DEFAULT_SETTINGS);
+
+  const onWmPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    const previewEl = previewRef.current;
+    if (!previewEl) return;
+    const startClientX = e.clientX;
+    const startClientY = e.clientY;
+    const startWmX = settings.wmPos.x;
+    const startWmY = settings.wmPos.y;
+    const previewW = previewEl.clientWidth;
+    const previewH = previewEl.clientHeight;
+    const aspect = logoImg ? logoImg.height / logoImg.width : 1;
+
+    setIsDragging(true);
+
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - startClientX;
+      const dy = ev.clientY - startClientY;
+      setSettings((prev) => ({
+        ...prev,
+        wmPos: clampWmPos(
+          { x: startWmX + dx / previewW, y: startWmY + dy / previewH },
+          prev.wmScale,
+          aspect,
+        ),
+      }));
+    };
+
+    const up = () => {
+      setIsDragging(false);
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+    };
+
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  };
 
   const applyOne = async () => {
     if (!current) return;
@@ -231,13 +269,15 @@ export function ImageEditModal({
                       <img
                         src="/watermark.png"
                         alt=""
-                        className="absolute pointer-events-none"
+                        className="absolute select-none"
+                        onPointerDown={onWmPointerDown}
                         style={{
                           width: `${logoW}px`,
                           height: `${logoH}px`,
-                          left: `calc(${settings.wmPos.x * 100}% - ${logoW / 2}px)`,
-                          top: `calc(${settings.wmPos.y * 100}% - ${logoH / 2}px)`,
+                          left: `${settings.wmPos.x * 100}%`,
+                          top: `${settings.wmPos.y * 100}%`,
                           opacity: settings.wmOpacity / 100,
+                          cursor: isDragging ? "grabbing" : "grab",
                         }}
                       />
                     )}
@@ -340,9 +380,15 @@ export function ImageEditModal({
                   </label>
                   <div className="grid grid-cols-3 gap-1.5">
                     {POS_GRID.map((item) => {
+                      const wmAspect = logoImg
+                        ? logoImg.height / logoImg.width
+                        : 1;
+                      const centerX = settings.wmPos.x + settings.wmScale / 200;
+                      const centerY =
+                        settings.wmPos.y + (settings.wmScale / 200) * wmAspect;
                       const active =
-                        Math.abs(settings.wmPos.x - item.x) < 0.02 &&
-                        Math.abs(settings.wmPos.y - item.y) < 0.02;
+                        Math.abs(centerX - item.x) < 0.02 &&
+                        Math.abs(centerY - item.y) < 0.02;
 
                       return (
                         <button
@@ -356,7 +402,10 @@ export function ImageEditModal({
                               return {
                                 ...prev,
                                 wmPos: clampWmPos(
-                                  { x: item.x, y: item.y },
+                                  {
+                                    x: item.x - prev.wmScale / 200,
+                                    y: item.y - (prev.wmScale / 200) * aspect,
+                                  },
                                   prev.wmScale,
                                   aspect,
                                 ),

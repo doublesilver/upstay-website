@@ -38,11 +38,26 @@ export async function POST(req: NextRequest) {
       .get(case_id, type) as { n: number }
   ).n;
 
-  const result = db
-    .prepare(
-      "INSERT INTO case_images (case_id, type, match_order, image_url, is_starred) VALUES (?, ?, ?, ?, ?)",
-    )
-    .run(case_id, type, nextOrder, image_url || "", is_starred ? 1 : 0);
+  let result;
+  try {
+    result = db
+      .prepare(
+        "INSERT INTO case_images (case_id, type, match_order, image_url, is_starred) VALUES (?, ?, ?, ?, ?)",
+      )
+      .run(case_id, type, nextOrder, image_url || "", is_starred ? 1 : 0);
+  } catch (e) {
+    return Response.json(
+      { error: `이미지 저장 실패: ${(e as Error).message}` },
+      { status: 500 },
+    );
+  }
+
+  if (!result.changes) {
+    return Response.json(
+      { error: "이미지 저장에 실패했습니다" },
+      { status: 500 },
+    );
+  }
 
   try {
     invalidatePublicCache();
