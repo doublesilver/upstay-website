@@ -26,6 +26,7 @@ import {
   Trash,
   Upload,
 } from "lucide-react";
+import Image from "next/image";
 import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
 import { apiFetch, errMsg, getHeaders, getToken } from "@/lib/admin-api";
@@ -154,6 +155,7 @@ function SortableThumb({
   image,
   checked,
   selectionMode,
+  eager,
   onOpenImage,
   onToggleCheck,
   onAssignSlot,
@@ -161,6 +163,7 @@ function SortableThumb({
   image: CaseImage;
   checked: boolean;
   selectionMode: boolean;
+  eager?: boolean;
   onOpenImage: () => void;
   onToggleCheck: () => void;
   onAssignSlot: (slot: number) => void;
@@ -193,13 +196,15 @@ function SortableThumb({
     >
       {image.image_url ? (
         <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={image.image_url_wm || image.image_url}
             alt=""
+            width={120}
+            height={90}
+            sizes="120px"
+            quality={70}
             draggable={false}
-            loading="lazy"
-            decoding="async"
+            loading={eager ? "eager" : "lazy"}
             className="w-full h-full object-cover pointer-events-none select-none"
           />
           {image.image_url_wm && (
@@ -428,12 +433,13 @@ function ImageSection({
               strategy={horizontalListSortingStrategy}
             >
               <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
-                {images.map((image) => (
+                {images.map((image, i) => (
                   <SortableThumb
                     key={image.id}
                     image={image}
                     checked={checkedIds.has(image.id)}
                     selectionMode={selectionMode}
+                    eager={i < 8}
                     onOpenImage={() => onOpenImage(caseId, type, image.id)}
                     onToggleCheck={() => onToggleCheck(image.id)}
                     onAssignSlot={(slot) =>
