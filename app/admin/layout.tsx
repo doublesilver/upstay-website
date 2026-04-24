@@ -84,6 +84,10 @@ export default function AdminLayout({
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!id.trim() || !password) {
+      setError("아이디와 비밀번호를 입력해주세요");
+      return;
+    }
     setSubmitting(true);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
@@ -210,8 +214,8 @@ export default function AdminLayout({
 
               <button
                 type="submit"
-                disabled={submitting || !id || !password}
-                className="mt-8 w-full bg-[#111] text-white rounded-xl py-3.5 text-[15px] font-semibold hover:bg-[#333] active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                disabled={submitting}
+                className="mt-8 w-full bg-[#111] text-white rounded-xl py-3.5 text-[15px] font-semibold hover:bg-[#333] active:scale-[0.98] disabled:opacity-60 transition-all"
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">
