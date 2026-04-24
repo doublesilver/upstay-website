@@ -184,7 +184,7 @@ export default function AnnouncementsAdminPage() {
                     setEditing({ ...editing, title: e.target.value })
                   }
                   placeholder="제목"
-                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                  className="w-full border border-[#111] rounded-xl px-4 py-3 text-[14px] outline-none focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
                 />
                 <textarea
                   ref={contentRef}
@@ -194,7 +194,7 @@ export default function AnnouncementsAdminPage() {
                   }
                   rows={5}
                   aria-label="팝업 내용"
-                  className="w-full border-2 border-[#111] bg-[#FAFAFA] rounded-xl px-4 py-3 text-[14px] outline-none transition-all resize-none"
+                  className="w-full border border-[#111] bg-white rounded-xl px-4 py-3 text-[14px] outline-none transition-all resize-none"
                   placeholder="팝업 내용"
                 />
               </div>
@@ -304,15 +304,6 @@ export default function AnnouncementsAdminPage() {
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2.5">
-                <span
-                  className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${
-                    item.is_visible
-                      ? "bg-green-50 text-green-600"
-                      : "bg-[#F7F7F7] text-[#999]"
-                  }`}
-                >
-                  {item.is_visible ? "공개" : "비공개"}
-                </span>
                 <span className="font-semibold text-[15px] text-[#111] truncate">
                   {item.title || "(제목 없음)"}
                 </span>
@@ -326,12 +317,18 @@ export default function AnnouncementsAdminPage() {
                   (빈 팝업)
                 </p>
               )}
-              <p className="mt-2 text-[12px] text-[#CCC]">
-                {item.created_at?.slice(0, 10)}
-              </p>
             </div>
 
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
+              <span
+                className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${
+                  item.is_visible
+                    ? "bg-green-50 text-green-600"
+                    : "bg-[#F7F7F7] text-[#999]"
+                }`}
+              >
+                {item.is_visible ? "공개" : "비공개"}
+              </span>
               <button
                 onClick={() => handleToggleVisible(item)}
                 className={`relative w-10 h-5.5 rounded-full transition-colors ${
@@ -347,41 +344,15 @@ export default function AnnouncementsAdminPage() {
               </button>
               <button
                 onClick={() => setEditing(item)}
-                className="p-2 rounded-lg text-[#999] hover:text-[#111] hover:bg-[#F7F7F7] transition-all"
-                title="수정"
+                className="px-3 py-1.5 rounded-lg text-[12px] border border-[#DDD] text-[#333] hover:bg-[#F7F7F7]"
               >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                </svg>
+                수정
               </button>
               <button
                 onClick={() => setDeleting(item.id)}
-                className="p-2 rounded-lg text-[#999] hover:text-red-500 hover:bg-red-50 transition-all"
-                title="삭제"
+                className="px-3 py-1.5 rounded-lg text-[12px] border border-red-200 text-red-500 hover:bg-red-50"
               >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="3,6 5,6 21,6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
+                삭제
               </button>
             </div>
           </div>

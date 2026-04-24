@@ -161,7 +161,7 @@ export default function ConfigPage() {
 
       <div className={`space-y-10 ${loading ? "hidden" : ""}`}>
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <h2 className="text-[16px] font-bold text-[#111] mb-4">헤더</h2>
+          <h2 className="text-[16px] font-bold text-[#111] mb-4">• 헤더</h2>
           <StyleToolbar
             value={getStyle("slogan_text_style")}
             onChange={setStyle("slogan_text_style")}
@@ -184,7 +184,7 @@ export default function ConfigPage() {
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
           <div className="flex items-center justify-between gap-3 mb-6">
             <h2 className="text-[16px] font-bold text-[#111]">
-              사진안내 카테고리
+              • 사진안내 카테고리
             </h2>
             <VisibilityToggle
               visible={config.photo_guide_visible !== "0"}
@@ -348,7 +348,7 @@ function ConfigSection({
     <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
       <div className="flex items-center gap-3 mb-6">
         {dragHandle}
-        <h2 className="text-[16px] font-bold text-[#111] flex-1">{title}</h2>
+        <h2 className="text-[16px] font-bold text-[#111] flex-1">• {title}</h2>
         <VisibilityToggle visible={visible} onToggle={onToggle} />
       </div>
       <div
