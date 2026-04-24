@@ -187,7 +187,7 @@ export default function AdminLayout({
                     autoComplete="off"
                     autoCapitalize="off"
                     spellCheck={false}
-                    className="w-full border border-[#DDD] rounded-xl px-4 py-3.5 text-[15px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                    className="w-full border border-[#111] rounded-xl px-4 py-3.5 text-[15px] outline-none transition-all focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
                     placeholder="아이디를 입력하세요"
                   />
                 </div>
@@ -200,7 +200,7 @@ export default function AdminLayout({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
-                    className="w-full border border-[#DDD] rounded-xl px-4 py-3.5 text-[15px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                    className="w-full border border-[#111] rounded-xl px-4 py-3.5 text-[15px] outline-none transition-all focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
                     placeholder="비밀번호를 입력하세요"
                   />
                 </div>
@@ -212,10 +212,12 @@ export default function AdminLayout({
                 </div>
               )}
 
+              <div className="h-px bg-[#E5E7EB] my-6" />
+
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-8 w-full bg-[#111] text-white rounded-xl py-3.5 text-[15px] font-semibold hover:bg-[#333] active:scale-[0.98] disabled:opacity-60 transition-all"
+                className="w-full bg-[#111] text-white rounded-xl py-3.5 text-[15px] font-semibold hover:bg-[#333] active:scale-[0.98] disabled:opacity-60 transition-all"
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -227,10 +229,6 @@ export default function AdminLayout({
                 )}
               </button>
             </form>
-
-            <p className="mt-10 text-center text-[12px] text-[#BBB]">
-              업스테이 관리자 전용 시스템
-            </p>
           </div>
         </div>
       </div>
