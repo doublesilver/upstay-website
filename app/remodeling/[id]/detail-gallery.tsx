@@ -280,9 +280,7 @@ function GallerySection({
               sizes="(max-width: 768px) 70vw, 70vw"
               className="object-contain"
               quality={70}
-              priority={title === "Before (전)"}
-              placeholder="blur"
-              blurDataURL={blurDataURL()}
+              priority
             />
           </div>
           {images.length > 1 && (
@@ -316,7 +314,7 @@ function GallerySection({
         {images.length > 1 && (
           <>
             <div className="w-px bg-[#E5E7EB] shrink-0 self-stretch" />
-            <div className="shrink-0 flex flex-col gap-1.5 w-[56px] md:w-[68px] max-h-[70vh] overflow-y-auto">
+            <div className="shrink-0 flex flex-col gap-1.5 w-[56px] md:w-[68px]">
               {images.map((url, index) => (
                 <button
                   key={`${url}-${index}`}
