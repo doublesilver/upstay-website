@@ -336,8 +336,8 @@ export function ImageEditModal({
           </div>
 
           <div className="w-[280px] shrink-0 border-l border-[#EBEBEB] flex flex-col">
-            <div className="flex-1 overflow-y-auto p-5 space-y-5">
-              <div>
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div className="border border-[#111] rounded-xl p-4">
                 <p className="text-[11px] font-bold tracking-wider text-[#777] mb-3">
                   사진 보정
                 </p>
@@ -363,9 +363,7 @@ export function ImageEditModal({
                 />
               </div>
 
-              <div className="border-t border-[#EEE]" />
-
-              <div>
+              <div className="border border-[#111] rounded-xl p-4">
                 <p className="text-[11px] font-bold tracking-wider text-[#777] mb-3">
                   워터마크 설정
                 </p>
