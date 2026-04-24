@@ -57,7 +57,7 @@ export default async function RemodelingDetailPage({
     .filter(Boolean);
 
   return (
-    <Container className="pt-4 pb-4 md:pt-6 md:pb-6 h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] flex flex-col overflow-hidden">
+    <Container className="pt-4 pb-4 md:pt-6 md:pb-6">
       <div className="mb-3 shrink-0">
         <Link
           href="/remodeling"

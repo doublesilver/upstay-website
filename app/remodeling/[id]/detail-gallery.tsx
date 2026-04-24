@@ -94,23 +94,21 @@ export function DetailGallery({
   const lightboxMove = lightbox === "before" ? moveBefore : moveAfter;
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col gap-3 md:gap-4">
+    <div className="flex flex-col gap-3 md:gap-4">
       {(beforeImages.length > 0 || afterImages.length > 0) && (
-        <div className="border border-[#111] rounded-xl p-3 bg-[#F1F8E9] flex-1 min-h-0 flex flex-col gap-3">
+        <div className="border border-[#111] rounded-xl p-3 bg-[#F1F8E9] flex flex-col gap-3">
           {beforeImages.length > 0 && (
-            <div className="flex-1 min-h-0 flex flex-col">
-              <GallerySection
-                title="Before (전)"
-                images={beforeImages}
-                activeIndex={beforeIndex}
-                onChange={setBeforeIndex}
-                onPrev={() => moveBefore(-1)}
-                onNext={() => moveBefore(1)}
-                containerRef={beforeRef}
-                altPrefix={`${title || "리모델링"} Before`}
-                onOpenLightbox={() => setLightbox("before")}
-              />
-            </div>
+            <GallerySection
+              title="Before (전)"
+              images={beforeImages}
+              activeIndex={beforeIndex}
+              onChange={setBeforeIndex}
+              onPrev={() => moveBefore(-1)}
+              onNext={() => moveBefore(1)}
+              containerRef={beforeRef}
+              altPrefix={`${title || "리모델링"} Before`}
+              onOpenLightbox={() => setLightbox("before")}
+            />
           )}
 
           {beforeImages.length > 0 && afterImages.length > 0 && (
@@ -118,19 +116,17 @@ export function DetailGallery({
           )}
 
           {afterImages.length > 0 && (
-            <div className="flex-1 min-h-0 flex flex-col">
-              <GallerySection
-                title="After (후)"
-                images={afterImages}
-                activeIndex={afterIndex}
-                onChange={setAfterIndex}
-                onPrev={() => moveAfter(-1)}
-                onNext={() => moveAfter(1)}
-                containerRef={afterRef}
-                altPrefix={`${title || "리모델링"} After`}
-                onOpenLightbox={() => setLightbox("after")}
-              />
-            </div>
+            <GallerySection
+              title="After (후)"
+              images={afterImages}
+              activeIndex={afterIndex}
+              onChange={setAfterIndex}
+              onPrev={() => moveAfter(-1)}
+              onNext={() => moveAfter(1)}
+              containerRef={afterRef}
+              altPrefix={`${title || "리모델링"} After`}
+              onOpenLightbox={() => setLightbox("after")}
+            />
           )}
         </div>
       )}
@@ -153,39 +149,40 @@ export function DetailGallery({
           onClick={() => setLightbox(null)}
         >
           <div
-            className="flex items-center gap-4"
+            className="flex flex-col items-center gap-3"
             onClick={(e) => e.stopPropagation()}
           >
-            {lightboxImages.length > 1 && (
-              <button
-                type="button"
-                onClick={() => lightboxMove(-1)}
-                aria-label="이전 사진"
-                className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-white"
-              >
-                &#9664;
-              </button>
-            )}
             <ProtectedImage
               src={lightboxImages[lightboxIndex]}
               alt={`라이트박스 ${lightboxIndex + 1}`}
               width={2000}
               height={1500}
               sizes="85vw"
-              className="max-w-[85vw] max-h-[85vh] w-auto h-auto object-contain"
+              className="max-w-[85vw] max-h-[80vh] w-auto h-auto object-contain"
               quality={85}
               placeholder="blur"
               blurDataURL={blurDataURL()}
             />
             {lightboxImages.length > 1 && (
-              <button
-                type="button"
-                onClick={() => lightboxMove(1)}
-                aria-label="다음 사진"
-                className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-white"
-              >
-                &#9654;
-              </button>
+              <div className="flex items-center">
+                <button
+                  type="button"
+                  onClick={() => lightboxMove(-1)}
+                  aria-label="이전 사진"
+                  className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-white"
+                >
+                  &#9664;
+                </button>
+                <div className="w-px h-5 bg-[#E5E7EB]" />
+                <button
+                  type="button"
+                  onClick={() => lightboxMove(1)}
+                  aria-label="다음 사진"
+                  className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-white"
+                >
+                  &#9654;
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -216,37 +213,23 @@ function GallerySection({
   onOpenLightbox: () => void;
 }) {
   return (
-    <section className="flex-1 min-h-0 flex flex-col gap-2">
+    <section className="flex flex-col gap-2">
       <p className="shrink-0 text-[11px] tracking-wider text-[#111] font-medium">
         {title}
       </p>
-      <div className="flex-1 min-h-0 flex gap-3 bg-white rounded-xl p-3 border border-[#111]">
-        <div className="flex-1 min-w-0 min-h-0 flex items-center gap-2">
-          {images.length > 1 && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onPrev();
-              }}
-              aria-label="이전 사진"
-              className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow-sm transition-colors hover:bg-white"
-            >
-              &#9664;
-            </button>
-          )}
+      <div className="flex gap-3 bg-white rounded-xl p-3 border border-[#111]">
+        <div className="flex-1 min-w-0 flex flex-col gap-2">
           <div
             ref={containerRef}
             onClick={onOpenLightbox}
-            className="flex-1 min-w-0 min-h-0 relative flex items-center justify-center cursor-pointer"
+            className="relative w-full aspect-[4/3] cursor-pointer"
           >
             <ProtectedImage
               src={images[activeIndex]}
               alt={`${altPrefix} ${activeIndex + 1}`}
-              width={2000}
-              height={1500}
+              fill
               sizes="(max-width: 768px) 70vw, 70vw"
-              className="max-w-full max-h-full w-auto h-auto object-contain"
+              className="object-contain"
               quality={70}
               priority={title === "Before (전)"}
               placeholder="blur"
@@ -254,29 +237,43 @@ function GallerySection({
             />
           </div>
           {images.length > 1 && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onNext();
-              }}
-              aria-label="다음 사진"
-              className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow-sm transition-colors hover:bg-white"
-            >
-              &#9654;
-            </button>
+            <div className="flex justify-center items-center">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPrev();
+                }}
+                aria-label="이전 사진"
+                className="w-7 h-7 rounded flex items-center justify-center text-[#111] hover:bg-[#F1F8E9] transition-colors"
+              >
+                &#9664;
+              </button>
+              <div className="w-px h-5 bg-[#E5E7EB]" />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNext();
+                }}
+                aria-label="다음 사진"
+                className="w-7 h-7 rounded flex items-center justify-center text-[#111] hover:bg-[#F1F8E9] transition-colors"
+              >
+                &#9654;
+              </button>
+            </div>
           )}
         </div>
         {images.length > 1 && (
           <>
             <div className="w-px bg-[#E5E7EB] shrink-0" />
-            <div className="shrink-0 flex flex-col gap-1.5 w-[56px] md:w-[68px] min-h-0">
+            <div className="shrink-0 flex flex-col gap-1.5 w-[56px] md:w-[68px] max-h-[420px] overflow-y-auto">
               {images.map((url, index) => (
                 <button
                   key={`${url}-${index}`}
                   type="button"
                   onClick={() => onChange(index)}
-                  className={`relative w-full flex-1 min-h-0 border rounded-lg overflow-hidden bg-[#F1F8E9] ${
+                  className={`relative w-full h-[48px] shrink-0 border rounded-lg overflow-hidden bg-[#F1F8E9] ${
                     index === activeIndex
                       ? "border-2 border-[#111]"
                       : "border border-[#ccc]"

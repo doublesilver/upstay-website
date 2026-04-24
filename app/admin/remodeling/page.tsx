@@ -1259,7 +1259,7 @@ export default function RemodelingAdminPage() {
         <ImageEditModal
           images={editorImages}
           initialImageId={editorSection.initialImageId ?? editorImages[0].id}
-          sectionLabel={`${editorSection.type === "before" ? "BEFORE" : "AFTER"} 총 ${editorImages.length}장`}
+          sectionLabel={`${editorSection.type === "before" ? "BEFORE" : "AFTER"} ( ${editorImages.length}장 )`}
           onApplyOne={async (id, blob) => {
             try {
               const url = await uploadFile(blob);

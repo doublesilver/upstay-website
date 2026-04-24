@@ -386,11 +386,23 @@ export function ImageEditModal({
                       const imageAspect = getImageAspect(previewRef.current);
                       const maxScale = maxAllowedScale(aspect, imageAspect);
                       const clampedScale = Math.min(value, maxScale);
+                      const oldWmW = prev.wmScale / 100;
+                      const oldWmH =
+                        (prev.wmScale / 100) * aspect * imageAspect;
+                      const newWmW = clampedScale / 100;
+                      const newWmH =
+                        (clampedScale / 100) * aspect * imageAspect;
+                      const centerX = prev.wmPos.x + oldWmW / 2;
+                      const centerY = prev.wmPos.y + oldWmH / 2;
+                      const anchoredX =
+                        centerX > 0.5 ? 1 - newWmW : centerX - newWmW / 2;
+                      const anchoredY =
+                        centerY > 0.5 ? 1 - newWmH : centerY - newWmH / 2;
                       return {
                         ...prev,
                         wmScale: clampedScale,
                         wmPos: clampWmPos(
-                          prev.wmPos,
+                          { x: anchoredX, y: anchoredY },
                           clampedScale,
                           aspect,
                           imageAspect,
@@ -400,7 +412,7 @@ export function ImageEditModal({
                   }
                   unit="%"
                 />
-                <div className="mt-4">
+                <div className="mt-4 border border-[#111] rounded-xl p-4">
                   <label className="block text-[12px] text-[#333] mb-2">
                     위치
                   </label>
@@ -409,9 +421,11 @@ export function ImageEditModal({
                       const wmAspect = logoImg
                         ? logoImg.height / logoImg.width
                         : 1;
+                      const imageAspect = getImageAspect(previewRef.current);
                       const centerX = settings.wmPos.x + settings.wmScale / 200;
                       const centerY =
-                        settings.wmPos.y + (settings.wmScale / 200) * wmAspect;
+                        settings.wmPos.y +
+                        (settings.wmScale / 200) * wmAspect * imageAspect;
                       const active =
                         Math.abs(centerX - item.x) < 0.02 &&
                         Math.abs(centerY - item.y) < 0.02;

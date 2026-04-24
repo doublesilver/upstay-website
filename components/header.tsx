@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/container";
-import { navItems, KAKAO_URL, PHONE_URL, SLOGAN } from "@/lib/site";
+import { KakaoButton } from "@/components/kakao-button";
+import { navItems, PHONE_URL, SLOGAN } from "@/lib/site";
 
 export function Header({ config }: { config?: Record<string, string> }) {
   return (
@@ -55,21 +56,7 @@ export function Header({ config }: { config?: Record<string, string> }) {
 
         {/* 전화 + 카카오 아이콘 — 모바일: 네모, 데스크탑: 원형 */}
         <div className="flex items-center gap-1.5 md:gap-2.5 shrink-0">
-          <a
-            href={KAKAO_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="카카오톡 문의"
-            className="block h-10 w-10 md:h-11 md:w-11 rounded-xl overflow-hidden hover:opacity-90 transition"
-          >
-            <Image
-              src="/icon-kakao.png"
-              alt="카카오톡 문의"
-              width={44}
-              height={44}
-              className="w-full h-full object-cover"
-            />
-          </a>
+          <KakaoButton />
           <a
             href={PHONE_URL}
             aria-label="전화 문의"
