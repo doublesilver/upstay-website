@@ -226,8 +226,7 @@ export function DetailGallery({
                       sizes="48px"
                       className="object-cover"
                       quality={50}
-                      placeholder="blur"
-                      blurDataURL={blurDataURL()}
+                      loading="eager"
                     />
                   </button>
                 ))}
@@ -333,8 +332,7 @@ function GallerySection({
                     sizes="(max-width: 768px) 56px, 68px"
                     className="object-cover"
                     quality={70}
-                    placeholder="blur"
-                    blurDataURL={blurDataURL()}
+                    loading="eager"
                   />
                 </button>
               ))}
