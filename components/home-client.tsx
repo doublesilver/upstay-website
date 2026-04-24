@@ -262,7 +262,7 @@ function GalleryGrid({
   return (
     <div>
       <p className="text-[9px] md:text-[12px] text-[#888] font-medium mb-0.5">
-        {label}
+        {label === "Before" ? "Before (전)" : "After (후)"}
       </p>
       <div className="grid grid-cols-2 gap-1">
         {images.slice(0, 4).map((url, index) => (

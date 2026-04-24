@@ -15,6 +15,7 @@ export function DetailGallery({
 }) {
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
+  const [lightbox, setLightbox] = useState<"before" | "after" | null>(null);
   const beforeRef = useRef<HTMLDivElement>(null);
   const afterRef = useRef<HTMLDivElement>(null);
 
@@ -74,6 +75,24 @@ export function DetailGallery({
     };
   }, [moveBefore, moveAfter]);
 
+  useEffect(() => {
+    if (lightbox === null) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [lightbox]);
+
+  const lightboxImages = lightbox === "before" ? beforeImages : afterImages;
+  const lightboxIndex = lightbox === "before" ? beforeIndex : afterIndex;
+  const lightboxMove = lightbox === "before" ? moveBefore : moveAfter;
+
   return (
     <div className="flex-1 min-h-0 flex flex-col gap-3 md:gap-4">
       {(beforeImages.length > 0 || afterImages.length > 0) && (
@@ -89,6 +108,7 @@ export function DetailGallery({
                 onNext={() => moveBefore(1)}
                 containerRef={beforeRef}
                 altPrefix={`${title || "리모델링"} Before`}
+                onOpenLightbox={() => setLightbox("before")}
               />
             </div>
           )}
@@ -108,6 +128,7 @@ export function DetailGallery({
                 onNext={() => moveAfter(1)}
                 containerRef={afterRef}
                 altPrefix={`${title || "리모델링"} After`}
+                onOpenLightbox={() => setLightbox("after")}
               />
             </div>
           )}
@@ -122,6 +143,53 @@ export function DetailGallery({
           </p>
         </div>
       </div>
+
+      {lightbox !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="사진 크게 보기"
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setLightbox(null)}
+        >
+          <div
+            className="flex items-center gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {lightboxImages.length > 1 && (
+              <button
+                type="button"
+                onClick={() => lightboxMove(-1)}
+                aria-label="이전 사진"
+                className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-white"
+              >
+                &#9664;
+              </button>
+            )}
+            <ProtectedImage
+              src={lightboxImages[lightboxIndex]}
+              alt={`라이트박스 ${lightboxIndex + 1}`}
+              width={2000}
+              height={1500}
+              sizes="85vw"
+              className="max-w-[85vw] max-h-[85vh] w-auto h-auto object-contain"
+              quality={85}
+              placeholder="blur"
+              blurDataURL={blurDataURL()}
+            />
+            {lightboxImages.length > 1 && (
+              <button
+                type="button"
+                onClick={() => lightboxMove(1)}
+                aria-label="다음 사진"
+                className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-white"
+              >
+                &#9654;
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -135,6 +203,7 @@ function GallerySection({
   onNext,
   containerRef,
   altPrefix,
+  onOpenLightbox,
 }: {
   title: string;
   images: string[];
@@ -144,6 +213,7 @@ function GallerySection({
   onNext: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   altPrefix: string;
+  onOpenLightbox: () => void;
 }) {
   return (
     <section className="flex-1 min-h-0 flex flex-col gap-2">
@@ -151,47 +221,50 @@ function GallerySection({
         {title}
       </p>
       <div className="flex-1 min-h-0 flex gap-3 bg-white rounded-xl p-3 border border-[#111]">
-        <div
-          ref={containerRef}
-          className="flex-1 min-w-0 min-h-0 relative flex items-center justify-center"
-        >
-          <ProtectedImage
-            src={images[activeIndex]}
-            alt={`${altPrefix} ${activeIndex + 1}`}
-            width={2000}
-            height={1500}
-            sizes="(max-width: 768px) 70vw, 70vw"
-            className="max-w-full max-h-full w-auto h-auto object-contain"
-            quality={70}
-            priority={title === "Before (전)"}
-            placeholder="blur"
-            blurDataURL={blurDataURL()}
-          />
+        <div className="flex-1 min-w-0 min-h-0 flex items-center gap-2">
           {images.length > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPrev();
-                }}
-                aria-label="이전 사진"
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 hover:bg-white flex items-center justify-center text-[#111] shadow transition-colors"
-              >
-                &#9664;
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNext();
-                }}
-                aria-label="다음 사진"
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 hover:bg-white flex items-center justify-center text-[#111] shadow transition-colors"
-              >
-                &#9654;
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrev();
+              }}
+              aria-label="이전 사진"
+              className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow-sm transition-colors hover:bg-white"
+            >
+              &#9664;
+            </button>
+          )}
+          <div
+            ref={containerRef}
+            onClick={onOpenLightbox}
+            className="flex-1 min-w-0 min-h-0 relative flex items-center justify-center cursor-pointer"
+          >
+            <ProtectedImage
+              src={images[activeIndex]}
+              alt={`${altPrefix} ${activeIndex + 1}`}
+              width={2000}
+              height={1500}
+              sizes="(max-width: 768px) 70vw, 70vw"
+              className="max-w-full max-h-full w-auto h-auto object-contain"
+              quality={70}
+              priority={title === "Before (전)"}
+              placeholder="blur"
+              blurDataURL={blurDataURL()}
+            />
+          </div>
+          {images.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              aria-label="다음 사진"
+              className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow-sm transition-colors hover:bg-white"
+            >
+              &#9654;
+            </button>
           )}
         </div>
         {images.length > 1 && (
