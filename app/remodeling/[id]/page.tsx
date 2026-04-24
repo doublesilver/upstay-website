@@ -35,14 +35,19 @@ export default async function RemodelingDetailPage({
 
   const images = db
     .prepare(
-      `SELECT type, slot_position, image_url, image_url_wm
+      `SELECT type, slot_position, match_order, image_url, image_url_wm
        FROM case_images
-       WHERE case_id = ? AND slot_position > 0 AND image_url <> ''
-       ORDER BY type ASC, slot_position ASC, id ASC`,
+       WHERE case_id = ? AND image_url <> ''
+       ORDER BY type ASC,
+         CASE WHEN slot_position > 0 THEN 0 ELSE 1 END ASC,
+         slot_position ASC,
+         match_order ASC,
+         id ASC`,
     )
     .all(caseRow.id) as {
     type: "before" | "after";
     slot_position: number;
+    match_order: number;
     image_url: string;
     image_url_wm: string;
   }[];
