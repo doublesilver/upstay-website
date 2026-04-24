@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Container } from "@/components/container";
 import { DetailGallery } from "./detail-gallery";
 import { getDb } from "@/lib/db";
@@ -63,14 +62,6 @@ export default async function RemodelingDetailPage({
 
   return (
     <Container className="pt-4 pb-4 md:pt-6 md:pb-6">
-      <div className="mb-3 shrink-0">
-        <Link
-          href="/remodeling"
-          className="inline-block bg-white border border-[#ccc] rounded px-3 py-1 text-[13px] text-[#111] hover:border-[#999] transition-colors"
-        >
-          ← 목록으로
-        </Link>
-      </div>
       <DetailGallery
         title={caseRow.title}
         beforeImages={beforeImages}

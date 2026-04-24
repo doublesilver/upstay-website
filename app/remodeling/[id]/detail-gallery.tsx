@@ -265,81 +265,145 @@ function GallerySection({
       <p className="shrink-0 text-[11px] tracking-wider text-[#111] font-medium">
         {title}
       </p>
-      <div className="flex gap-3 items-start bg-white rounded-xl p-3 border border-[#111]">
-        <div className="flex-1 min-w-0 flex flex-col gap-2">
-          <div
-            ref={containerRef}
-            onClick={onOpenLightbox}
-            className="relative w-full aspect-[4/3] cursor-pointer"
-          >
-            <ProtectedImage
-              src={images[activeIndex]}
-              alt={`${altPrefix} ${activeIndex + 1}`}
-              fill
-              sizes="(max-width: 768px) 70vw, 70vw"
-              className="object-contain"
-              quality={70}
-              priority
-            />
-          </div>
-          {images.length > 1 && (
-            <div className="flex justify-center items-center">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPrev();
-                }}
-                aria-label="이전 사진"
-                className="w-7 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
-              >
-                &#9664;
-              </button>
-              <div className="w-px h-5 bg-[#E5E7EB]" />
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNext();
-                }}
-                aria-label="다음 사진"
-                className="w-7 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
-              >
-                &#9654;
-              </button>
-            </div>
-          )}
+      <div className="flex flex-col gap-2 bg-white rounded-xl p-3 border border-[#111]">
+        <div
+          ref={containerRef}
+          onClick={onOpenLightbox}
+          className="relative w-full aspect-[4/3] cursor-pointer"
+        >
+          <ProtectedImage
+            src={images[activeIndex]}
+            alt={`${altPrefix} ${activeIndex + 1}`}
+            fill
+            sizes="(max-width: 768px) 90vw, 800px"
+            className="object-contain"
+            quality={70}
+            priority
+          />
         </div>
         {images.length > 1 && (
-          <>
-            <div className="w-px bg-[#E5E7EB] shrink-0 self-stretch" />
-            <div className="shrink-0 grid grid-rows-4 grid-flow-col gap-1.5 auto-cols-[56px] md:auto-cols-[68px]">
-              {images.map((url, index) => (
-                <button
-                  key={`${url}-${index}`}
-                  type="button"
-                  onClick={() => onChange(index)}
-                  className={`relative h-[48px] border rounded-lg overflow-hidden bg-[#F1F8E9] ${
-                    index === activeIndex
-                      ? "border-2 border-[#111]"
-                      : "border border-[#ccc]"
-                  }`}
-                >
-                  <ProtectedImage
-                    src={url}
-                    alt={`${altPrefix} ${index + 1}`}
-                    fill
-                    sizes="(max-width: 768px) 56px, 68px"
-                    className="object-cover"
-                    quality={70}
-                    loading="eager"
-                  />
-                </button>
-              ))}
-            </div>
-          </>
+          <div className="flex justify-center items-center">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrev();
+              }}
+              aria-label="이전 사진"
+              className="w-7 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+            >
+              &#9664;
+            </button>
+            <div className="w-px h-5 bg-[#E5E7EB]" />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              aria-label="다음 사진"
+              className="w-7 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+            >
+              &#9654;
+            </button>
+          </div>
+        )}
+        {images.length > 1 && (
+          <ThumbnailStrip
+            images={images}
+            activeIndex={activeIndex}
+            onChange={onChange}
+            altPrefix={altPrefix}
+          />
         )}
       </div>
     </section>
+  );
+}
+
+function ThumbnailStrip({
+  images,
+  activeIndex,
+  onChange,
+  altPrefix,
+}: {
+  images: string[];
+  activeIndex: number;
+  onChange: (index: number) => void;
+  altPrefix: string;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(false);
+
+  const updateFades = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const hasOverflow = el.scrollWidth > el.clientWidth + 1;
+    setShowLeftFade(hasOverflow && el.scrollLeft > 4);
+    setShowRightFade(
+      hasOverflow && el.scrollLeft < el.scrollWidth - el.clientWidth - 4,
+    );
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateFades();
+    el.addEventListener("scroll", updateFades, { passive: true });
+    const ro = new ResizeObserver(updateFades);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateFades);
+      ro.disconnect();
+    };
+  }, [updateFades, images.length, activeIndex]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const active = el.children[activeIndex] as HTMLElement | undefined;
+    if (!active) return;
+    const target =
+      active.offsetLeft - (el.clientWidth - active.clientWidth) / 2;
+    el.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
+  }, [activeIndex]);
+
+  return (
+    <div className="relative">
+      <div
+        ref={scrollRef}
+        className="flex gap-1.5 overflow-x-auto scrollbar-hide"
+      >
+        {images.map((url, index) => (
+          <button
+            key={`${url}-${index}`}
+            type="button"
+            onClick={() => onChange(index)}
+            className={`relative w-[68px] h-[52px] shrink-0 border rounded-lg overflow-hidden bg-[#F1F8E9] ${
+              index === activeIndex
+                ? "border-2 border-[#111]"
+                : "border border-[#ccc]"
+            }`}
+          >
+            <ProtectedImage
+              src={url}
+              alt={`${altPrefix} ${index + 1}`}
+              fill
+              sizes="68px"
+              className="object-cover"
+              quality={70}
+              loading="eager"
+            />
+          </button>
+        ))}
+      </div>
+      {showLeftFade && (
+        <div className="pointer-events-none absolute top-0 left-0 h-full w-10 bg-gradient-to-r from-white to-transparent" />
+      )}
+      {showRightFade && (
+        <div className="pointer-events-none absolute top-0 right-0 h-full w-10 bg-gradient-to-l from-white to-transparent" />
+      )}
+    </div>
   );
 }
