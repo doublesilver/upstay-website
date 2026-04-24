@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+// TODO: DndContext, SortableContext 등 dnd-kit을 next/dynamic으로 지연 로드하면
+//       관리자 초기 번들 크기를 줄일 수 있음. 현재는 직접 import 유지.
 import {
   DndContext,
   closestCenter,

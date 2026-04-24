@@ -41,7 +41,7 @@ export default function RemodelingPage() {
                           alt={`${c.title || "리모델링 사례"} 시공 전 ${j + 1}번째 사진`}
                           fill
                           className="object-cover"
-                          sizes="20vw"
+                          sizes="(max-width: 768px) 45vw, 20vw"
                           quality={70}
                           placeholder="blur"
                           blurDataURL={blurDataURL()}
@@ -68,7 +68,7 @@ export default function RemodelingPage() {
                           alt={`${c.title || "리모델링 사례"} 시공 후 ${j + 1}번째 사진`}
                           fill
                           className="object-cover"
-                          sizes="20vw"
+                          sizes="(max-width: 768px) 45vw, 20vw"
                           quality={70}
                           placeholder="blur"
                           blurDataURL={blurDataURL()}

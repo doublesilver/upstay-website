@@ -42,14 +42,18 @@ export function Header({ config }: { config?: Record<string, string> }) {
                 key={item.href}
                 className="flex items-center gap-0.5 md:gap-2.5"
               >
-                {i > 0 && <span className="text-[#E5E7EB]">|</span>}
+                {i > 0 && (
+                  <span aria-hidden="true" className="text-[#E5E7EB]">
+                    |
+                  </span>
+                )}
                 <span className="text-[15px] md:text-[18px] font-bold text-[#111111] whitespace-nowrap">
                   {item.label}
                 </span>
               </span>
             ))}
           </nav>
-          <p className="mt-0 text-[11.5px] md:text-[13px] text-[#9CA3AF] tracking-tight truncate">
+          <p className="mt-0 text-[11.5px] md:text-[13px] text-[#9CA3AF] tracking-tight [@media(max-width:380px)]:hidden">
             {config?.slogan_text || SLOGAN}
           </p>
         </div>

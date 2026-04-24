@@ -1,6 +1,5 @@
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
-import { randomBytes } from "crypto";
 
 export const AUTH_COOKIE = "upstay_admin_token";
 const MAX_AGE_SECONDS = 60 * 60 * 8;
@@ -19,19 +18,20 @@ export function verifyCredentials(id: string, pw: string): boolean {
   return id === requireEnv("ADMIN_ID") && pw === requireEnv("ADMIN_PW");
 }
 
-function getJwtSecret(): string {
+function getSecret(): Uint8Array {
   const secret = requireEnv("JWT_SECRET");
   if (secret.length < 32) {
     throw new Error("JWT_SECRET은 최소 32자 이상이어야 합니다");
   }
-  return secret;
+  return new TextEncoder().encode(secret);
 }
 
-export function createToken(): string {
-  return jwt.sign({ role: "admin" }, getJwtSecret(), {
-    expiresIn: "8h",
-    jwtid: randomBytes(16).toString("hex"),
-  });
+export async function createToken(): Promise<string> {
+  return await new SignJWT({ role: "admin" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("8h")
+    .setJti(crypto.randomUUID())
+    .sign(getSecret());
 }
 
 export function setAuthCookie(res: NextResponse, token: string) {
@@ -58,14 +58,14 @@ export function clearAuthCookie(res: NextResponse) {
   });
 }
 
-export function verifyToken(req: NextRequest): boolean {
+export async function verifyToken(req: NextRequest): Promise<boolean> {
   const cookieToken = req.cookies.get(AUTH_COOKIE)?.value;
   const auth = req.headers.get("authorization");
   const bearerToken = auth?.startsWith("Bearer ") ? auth.slice(7) : undefined;
   const token = cookieToken || bearerToken;
   if (!token) return false;
   try {
-    jwt.verify(token, getJwtSecret());
+    await jwtVerify(token, getSecret());
     return true;
   } catch {
     return false;

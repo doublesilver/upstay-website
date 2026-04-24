@@ -5,14 +5,20 @@ import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
 import { invalidatePublicCache } from "@/lib/cache";
 import { UPLOAD_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
+import { imagePostSchema, imageSlotSchema } from "@/lib/admin-schemas";
 
 export async function POST(req: NextRequest) {
-  if (!verifyToken(req)) return unauthorized();
+  if (!(await verifyToken(req))) return unauthorized();
 
-  const { case_id, type, image_url, is_starred } = await req.json();
-  if (!case_id || !type) {
-    return Response.json({ error: "case_id, type required" }, { status: 400 });
+  const body = await req.json();
+  const parsed = imagePostSchema.safeParse(body);
+  if (!parsed.success) {
+    return Response.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 },
+    );
   }
+  const { case_id, type, image_url, is_starred } = body;
 
   const db = getDb();
 
@@ -46,10 +52,21 @@ export async function POST(req: NextRequest) {
       )
       .run(case_id, type, nextOrder, image_url || "", is_starred ? 1 : 0);
   } catch (e) {
-    return Response.json(
-      { error: `이미지 저장 실패: ${(e as Error).message}` },
-      { status: 500 },
-    );
+    const msg = (e as Error).message || "";
+    if (
+      msg.includes("UNIQUE constraint failed") &&
+      msg.includes("slot_position")
+    ) {
+      return Response.json(
+        {
+          error:
+            "해당 슬롯은 이미 다른 사진이 차지하고 있습니다. 새로고침 후 다시 시도해주세요.",
+        },
+        { status: 409 },
+      );
+    }
+    console.error("images error:", e);
+    return Response.json({ error: "서버 오류" }, { status: 500 });
   }
 
   if (!result.changes) {
@@ -68,9 +85,16 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!verifyToken(req)) return unauthorized();
+  if (!(await verifyToken(req))) return unauthorized();
 
   const body = await req.json();
+  const parsedPut = imageSlotSchema.safeParse(body);
+  if (!parsedPut.success) {
+    return Response.json(
+      { error: parsedPut.error.issues[0].message },
+      { status: 400 },
+    );
+  }
   const { id, ...fields } = body;
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
 
@@ -105,10 +129,24 @@ export async function PUT(req: NextRequest) {
       });
       tx();
     } catch (e) {
-      if ((e as Error).message === "NOT_FOUND") {
+      const msg = (e as Error).message || "";
+      if (msg === "NOT_FOUND") {
         return Response.json({ error: "not found" }, { status: 404 });
       }
-      throw e;
+      if (
+        msg.includes("UNIQUE constraint failed") &&
+        msg.includes("slot_position")
+      ) {
+        return Response.json(
+          {
+            error:
+              "해당 슬롯은 이미 다른 사진이 차지하고 있습니다. 새로고침 후 다시 시도해주세요.",
+          },
+          { status: 409 },
+        );
+      }
+      console.error("images error:", e);
+      return Response.json({ error: "서버 오류" }, { status: 500 });
     }
 
     invalidatePublicCache();
@@ -155,7 +193,7 @@ export async function PUT(req: NextRequest) {
     });
     tx();
   } catch (e) {
-    const msg = (e as Error).message;
+    const msg = (e as Error).message || "";
     if (msg === "STAR_LIMIT") {
       return Response.json(
         { error: "별표는 BEFORE/AFTER 각 4개까지 선택 가능합니다" },
@@ -165,7 +203,20 @@ export async function PUT(req: NextRequest) {
     if (msg === "NOT_FOUND") {
       return Response.json({ error: "not found" }, { status: 404 });
     }
-    throw e;
+    if (
+      msg.includes("UNIQUE constraint failed") &&
+      msg.includes("slot_position")
+    ) {
+      return Response.json(
+        {
+          error:
+            "해당 슬롯은 이미 다른 사진이 차지하고 있습니다. 새로고침 후 다시 시도해주세요.",
+        },
+        { status: 409 },
+      );
+    }
+    console.error("images error:", e);
+    return Response.json({ error: "서버 오류" }, { status: 500 });
   }
 
   invalidatePublicCache();
@@ -173,7 +224,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!verifyToken(req)) return unauthorized();
+  if (!(await verifyToken(req))) return unauthorized();
 
   const { id, case_id } = await req.json();
   if (!id || !case_id) {
