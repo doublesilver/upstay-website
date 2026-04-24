@@ -275,7 +275,7 @@ function GalleryGrid({
               alt={`${title || "리모델링 사례"} ${label} ${index + 1}번 사진`}
               fill
               className="object-cover"
-              sizes="20vw"
+              sizes="(max-width: 768px) 45vw, 20vw"
               quality={70}
               placeholder="blur"
               blurDataURL={blurDataURL()}

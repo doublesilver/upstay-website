@@ -143,6 +143,7 @@ export function ImageEditModal({
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const current = useMemo(
@@ -158,6 +159,10 @@ export function ImageEditModal({
     loadImage("/watermark.png")
       .then(setLogoImg)
       .catch(() => setLogoImg(null));
+  }, []);
+
+  useEffect(() => {
+    closeBtnRef.current?.focus();
   }, []);
 
   useEffect(() => {
@@ -261,6 +266,7 @@ export function ImageEditModal({
             </span>
           </h3>
           <button
+            ref={closeBtnRef}
             type="button"
             onClick={onCancel}
             className="w-8 h-8 rounded-full hover:bg-[#F7F7F7] flex items-center justify-center text-[#999] hover:text-[#111] transition-all"
@@ -332,7 +338,7 @@ export function ImageEditModal({
           <div className="w-[280px] shrink-0 border-l border-[#EBEBEB] flex flex-col">
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
               <div>
-                <p className="text-[11px] font-bold tracking-wider text-[#999] mb-3">
+                <p className="text-[11px] font-bold tracking-wider text-[#777] mb-3">
                   사진 보정
                 </p>
                 <Slider
@@ -360,7 +366,7 @@ export function ImageEditModal({
               <div className="border-t border-[#EEE]" />
 
               <div>
-                <p className="text-[11px] font-bold tracking-wider text-[#999] mb-3">
+                <p className="text-[11px] font-bold tracking-wider text-[#777] mb-3">
                   워터마크 설정
                 </p>
                 <Slider
@@ -525,7 +531,7 @@ function Slider({
     <div className="mb-3">
       <div className="flex items-center justify-between mb-1">
         <span className="text-[12px] text-[#333]">{label}</span>
-        <span className="text-[11px] text-[#999] bg-[#F7F7F7] rounded-md px-2 py-0.5">
+        <span className="text-[11px] text-[#777] bg-[#F7F7F7] rounded-md px-2 py-0.5">
           {value}
           {unit}
         </span>

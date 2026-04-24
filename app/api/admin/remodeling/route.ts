@@ -5,9 +5,10 @@ import { invalidatePublicCache } from "@/lib/cache";
 import fs from "fs";
 import path from "path";
 import { UPLOAD_DIR_RESOLVED } from "@/lib/paths";
+import { caseCreateSchema, caseUpdateSchema } from "@/lib/admin-schemas";
 
 export async function GET(req: NextRequest) {
-  if (!verifyToken(req)) return unauthorized();
+  if (!(await verifyToken(req))) return unauthorized();
   const db = getDb();
   const cases = db
     .prepare("SELECT * FROM remodeling_cases ORDER BY sort_order ASC")
@@ -33,21 +34,36 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!verifyToken(req)) return unauthorized();
-  const { title, sort_order, show_on_main } = await req.json();
+  if (!(await verifyToken(req))) return unauthorized();
+  const body = await req.json();
+  const parsed = caseCreateSchema.safeParse(body);
+  if (!parsed.success) {
+    return Response.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 },
+    );
+  }
+  const { title, sort_order, show_on_main } = parsed.data;
   const db = getDb();
   const result = db
     .prepare(
       "INSERT INTO remodeling_cases (title, sort_order, show_on_main) VALUES (?, ?, ?)",
     )
-    .run(title || "", sort_order ?? 0, show_on_main ?? 1);
+    .run(title, sort_order, show_on_main);
   invalidatePublicCache();
   return Response.json({ id: result.lastInsertRowid });
 }
 
 export async function PUT(req: NextRequest) {
-  if (!verifyToken(req)) return unauthorized();
+  if (!(await verifyToken(req))) return unauthorized();
   const body = await req.json();
+  const parsed = caseUpdateSchema.safeParse(body);
+  if (!parsed.success) {
+    return Response.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 },
+    );
+  }
   const { id, ...fields } = body;
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
 
@@ -72,7 +88,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!verifyToken(req)) return unauthorized();
+  if (!(await verifyToken(req))) return unauthorized();
   const { id } = await req.json();
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
   const db = getDb();

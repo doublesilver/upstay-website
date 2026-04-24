@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       { status: 401 },
     );
   }
-  const token = createToken();
+  const token = await createToken();
   const res = NextResponse.json({ token });
   setAuthCookie(res, token);
   return res;

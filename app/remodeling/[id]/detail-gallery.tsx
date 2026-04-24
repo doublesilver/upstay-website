@@ -75,23 +75,25 @@ export function DetailGallery({
     };
   }, [moveBefore, moveAfter]);
 
+  const lightboxImages = lightbox === "before" ? beforeImages : afterImages;
+  const lightboxIndex = lightbox === "before" ? beforeIndex : afterIndex;
+  const lightboxMove = lightbox === "before" ? moveBefore : moveAfter;
+
   useEffect(() => {
     if (lightbox === null) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setLightbox(null);
+      if (e.key === "ArrowLeft") lightboxMove(-1);
+      if (e.key === "ArrowRight") lightboxMove(1);
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
-  }, [lightbox]);
-
-  const lightboxImages = lightbox === "before" ? beforeImages : afterImages;
-  const lightboxIndex = lightbox === "before" ? beforeIndex : afterIndex;
-  const lightboxMove = lightbox === "before" ? moveBefore : moveAfter;
+  }, [lightbox, lightboxMove]);
 
   return (
     <div className="flex flex-col gap-3 md:gap-4">
@@ -145,43 +147,90 @@ export function DetailGallery({
           role="dialog"
           aria-modal="true"
           aria-label="사진 크게 보기"
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center"
           onClick={() => setLightbox(null)}
         >
           <div
-            className="flex flex-col items-center gap-3"
+            className="flex flex-col items-center gap-3 max-w-[90vw] w-full"
             onClick={(e) => e.stopPropagation()}
           >
+            <div className="flex items-center justify-between w-full px-1">
+              <span className="text-white text-sm">
+                {lightboxIndex + 1} / {lightboxImages.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => setLightbox(null)}
+                aria-label="닫기"
+                className="text-white text-xl leading-none px-2 py-1 hover:opacity-70 transition-opacity"
+              >
+                ✕
+              </button>
+            </div>
+
             <ProtectedImage
               src={lightboxImages[lightboxIndex]}
               alt={`라이트박스 ${lightboxIndex + 1}`}
               width={2000}
               height={1500}
               sizes="85vw"
-              className="max-w-[85vw] max-h-[80vh] w-auto h-auto object-contain"
+              className="max-w-[85vw] max-h-[65vh] w-auto h-auto object-contain"
               quality={85}
               placeholder="blur"
               blurDataURL={blurDataURL()}
             />
+
             {lightboxImages.length > 1 && (
               <div className="flex items-center">
                 <button
                   type="button"
                   onClick={() => lightboxMove(-1)}
                   aria-label="이전 사진"
-                  className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-white"
+                  className="w-8 h-8 rounded-full bg-white border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-gray-100"
                 >
                   &#9664;
                 </button>
-                <div className="w-px h-5 bg-[#E5E7EB]" />
+                <div className="w-px h-5 bg-[#555]" />
                 <button
                   type="button"
                   onClick={() => lightboxMove(1)}
                   aria-label="다음 사진"
-                  className="w-8 h-8 rounded-full bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-white"
+                  className="w-8 h-8 rounded-full bg-white border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-gray-100"
                 >
                   &#9654;
                 </button>
+              </div>
+            )}
+
+            {lightboxImages.length > 1 && (
+              <div className="flex gap-1.5 overflow-x-auto py-1 px-2 max-w-full">
+                {lightboxImages.map((url, i) => (
+                  <button
+                    key={`${url}-${i}`}
+                    type="button"
+                    onClick={() =>
+                      lightbox === "before"
+                        ? setBeforeIndex(i)
+                        : setAfterIndex(i)
+                    }
+                    className={`relative w-12 h-9 shrink-0 rounded overflow-hidden border-2 transition-opacity ${
+                      i === lightboxIndex
+                        ? "border-white opacity-100"
+                        : "border-transparent opacity-60 hover:opacity-90"
+                    }`}
+                  >
+                    <ProtectedImage
+                      src={url}
+                      alt={`썸네일 ${i + 1}`}
+                      fill
+                      sizes="48px"
+                      className="object-cover"
+                      quality={50}
+                      placeholder="blur"
+                      blurDataURL={blurDataURL()}
+                    />
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -217,7 +266,7 @@ function GallerySection({
       <p className="shrink-0 text-[11px] tracking-wider text-[#111] font-medium">
         {title}
       </p>
-      <div className="flex gap-3 bg-white rounded-xl p-3 border border-[#111]">
+      <div className="flex gap-3 items-start bg-white rounded-xl p-3 border border-[#111]">
         <div className="flex-1 min-w-0 flex flex-col gap-2">
           <div
             ref={containerRef}
@@ -245,7 +294,7 @@ function GallerySection({
                   onPrev();
                 }}
                 aria-label="이전 사진"
-                className="w-7 h-7 rounded flex items-center justify-center text-[#111] hover:bg-[#F1F8E9] transition-colors"
+                className="w-7 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
               >
                 &#9664;
               </button>
@@ -257,7 +306,7 @@ function GallerySection({
                   onNext();
                 }}
                 aria-label="다음 사진"
-                className="w-7 h-7 rounded flex items-center justify-center text-[#111] hover:bg-[#F1F8E9] transition-colors"
+                className="w-7 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
               >
                 &#9654;
               </button>
@@ -266,8 +315,8 @@ function GallerySection({
         </div>
         {images.length > 1 && (
           <>
-            <div className="w-px bg-[#E5E7EB] shrink-0" />
-            <div className="shrink-0 flex flex-col gap-1.5 w-[56px] md:w-[68px] max-h-[420px] overflow-y-auto">
+            <div className="w-px bg-[#E5E7EB] shrink-0 self-stretch" />
+            <div className="shrink-0 flex flex-col gap-1.5 w-[56px] md:w-[68px] max-h-[70vh] overflow-y-auto">
               {images.map((url, index) => (
                 <button
                   key={`${url}-${index}`}

@@ -55,7 +55,7 @@ async function optimize(buffer: Buffer, ext: string): Promise<Buffer> {
 }
 
 export async function POST(req: NextRequest) {
-  if (!verifyToken(req)) return unauthorized();
+  if (!(await verifyToken(req))) return unauthorized();
 
   if (!existsSync(UPLOAD_DIR)) {
     await mkdir(UPLOAD_DIR, { recursive: true });

@@ -4,7 +4,7 @@ import { verifyToken, unauthorized } from "@/lib/auth";
 import { invalidatePublicCache } from "@/lib/cache";
 
 export async function POST(req: NextRequest) {
-  if (!verifyToken(req)) return unauthorized();
+  if (!(await verifyToken(req))) return unauthorized();
   const { items, case_id, type } = await req.json();
   if (!case_id || !type || !Array.isArray(items)) {
     return Response.json(
