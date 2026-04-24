@@ -175,9 +175,9 @@ export default function AdminLayout({
             </h1>
 
             <form onSubmit={handleLogin} className="mt-8">
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-[13px] font-medium text-[#333] mb-2">
+              <div className="border border-[#111] rounded-xl overflow-hidden">
+                <div className="px-4 py-3">
+                  <label className="block text-[12px] font-medium text-[#666] mb-1">
                     아이디
                   </label>
                   <input
@@ -187,12 +187,13 @@ export default function AdminLayout({
                     autoComplete="off"
                     autoCapitalize="off"
                     spellCheck={false}
-                    className="w-full border border-[#111] rounded-xl px-4 py-3.5 text-[15px] outline-none transition-all focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                    className="w-full text-[15px] outline-none bg-transparent"
                     placeholder="아이디를 입력하세요"
                   />
                 </div>
-                <div>
-                  <label className="block text-[13px] font-medium text-[#333] mb-2">
+                <div className="h-px bg-[#E5E7EB]" />
+                <div className="px-4 py-3">
+                  <label className="block text-[12px] font-medium text-[#666] mb-1">
                     비밀번호
                   </label>
                   <input
@@ -200,10 +201,25 @@ export default function AdminLayout({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
-                    className="w-full border border-[#111] rounded-xl px-4 py-3.5 text-[15px] outline-none transition-all focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                    className="w-full text-[15px] outline-none bg-transparent"
                     placeholder="비밀번호를 입력하세요"
                   />
                 </div>
+                <div className="h-px bg-[#E5E7EB]" />
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full bg-[#111] text-white py-3.5 text-[15px] font-semibold hover:bg-[#333] active:scale-[0.98] disabled:opacity-60 transition-all"
+                >
+                  {submitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      로그인 중
+                    </span>
+                  ) : (
+                    "로그인"
+                  )}
+                </button>
               </div>
 
               {error && (
@@ -211,23 +227,6 @@ export default function AdminLayout({
                   {error}
                 </div>
               )}
-
-              <div className="h-px bg-[#E5E7EB] my-6" />
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-[#111] text-white rounded-xl py-3.5 text-[15px] font-semibold hover:bg-[#333] active:scale-[0.98] disabled:opacity-60 transition-all"
-              >
-                {submitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    로그인 중
-                  </span>
-                ) : (
-                  "로그인"
-                )}
-              </button>
             </form>
           </div>
         </div>
