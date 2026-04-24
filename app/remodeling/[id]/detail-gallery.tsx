@@ -313,13 +313,13 @@ function GallerySection({
         {images.length > 1 && (
           <>
             <div className="w-px bg-[#E5E7EB] shrink-0 self-stretch" />
-            <div className="shrink-0 flex flex-col gap-1.5 w-[56px] md:w-[68px]">
+            <div className="shrink-0 grid grid-rows-4 grid-flow-col gap-1.5 auto-cols-[56px] md:auto-cols-[68px]">
               {images.map((url, index) => (
                 <button
                   key={`${url}-${index}`}
                   type="button"
                   onClick={() => onChange(index)}
-                  className={`relative w-full h-[48px] shrink-0 border rounded-lg overflow-hidden bg-[#F1F8E9] ${
+                  className={`relative h-[48px] border rounded-lg overflow-hidden bg-[#F1F8E9] ${
                     index === activeIndex
                       ? "border-2 border-[#111]"
                       : "border border-[#ccc]"
