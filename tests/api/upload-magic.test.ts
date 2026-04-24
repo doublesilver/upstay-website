@@ -1,15 +1,17 @@
 import { beforeAll, describe, expect, test } from "vitest";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 import { NextRequest } from "next/server";
 import { setupTempDataDir } from "../api-helpers";
 
 let token: string;
 
-beforeAll(() => {
+beforeAll(async () => {
   setupTempDataDir();
-  token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET!, {
-    expiresIn: "1h",
-  });
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+  token = await new SignJWT({ role: "admin" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1h")
+    .sign(secret);
 });
 
 describe("/api/admin/upload magic number validation", () => {
