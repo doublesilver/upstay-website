@@ -96,9 +96,9 @@ export function DetailGallery({
   }, [lightbox, lightboxMove]);
 
   return (
-    <div className="flex flex-col gap-3 md:gap-4">
+    <div className="h-full min-h-0 flex flex-col gap-2 md:gap-3">
       {(beforeImages.length > 0 || afterImages.length > 0) && (
-        <div className="border border-[#111] rounded-xl p-3 bg-[#F1F8E9] flex flex-col gap-3">
+        <div className="flex-1 min-h-0 border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row gap-2 md:gap-3">
           {beforeImages.length > 0 && (
             <GallerySection
               title="Before (전)"
@@ -114,7 +114,7 @@ export function DetailGallery({
           )}
 
           {beforeImages.length > 0 && afterImages.length > 0 && (
-            <div className="h-px bg-[#E5E7EB] shrink-0" />
+            <div className="h-px landscape:h-auto landscape:w-px bg-[#E5E7EB] shrink-0" />
           )}
 
           {afterImages.length > 0 && (
@@ -135,8 +135,8 @@ export function DetailGallery({
 
       <div className="shrink-0">
         <p className="mb-1 text-[11px] text-[#999]">설명</p>
-        <div className="border border-[#E5E7EB] rounded-lg p-3">
-          <p className="text-[13px] md:text-[14px] text-[#333] leading-[1.6]">
+        <div className="border border-[#E5E7EB] rounded-lg px-3 py-2">
+          <p className="text-[13px] md:text-[14px] text-[#333] leading-[1.5] line-clamp-2">
             {title || "-"}
           </p>
         </div>
@@ -261,15 +261,15 @@ function GallerySection({
   onOpenLightbox: () => void;
 }) {
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex-1 min-h-0 min-w-0 flex flex-col gap-1">
       <p className="shrink-0 text-[11px] tracking-wider text-[#111] font-medium">
         {title}
       </p>
-      <div className="flex flex-col gap-2 bg-white rounded-xl p-3 border border-[#111]">
+      <div className="flex-1 min-h-0 flex flex-col gap-1.5 bg-white rounded-xl p-2 md:p-2.5 border border-[#111]">
         <div
           ref={containerRef}
           onClick={onOpenLightbox}
-          className="relative w-full aspect-[4/3] cursor-pointer"
+          className="flex-1 min-h-0 relative cursor-pointer"
         >
           <ProtectedImage
             src={images[activeIndex]}
@@ -282,7 +282,7 @@ function GallerySection({
           />
         </div>
         {images.length > 1 && (
-          <div className="flex justify-center items-center">
+          <div className="shrink-0 flex justify-center items-center">
             <button
               type="button"
               onClick={(e) => {
@@ -309,12 +309,14 @@ function GallerySection({
           </div>
         )}
         {images.length > 1 && (
-          <ThumbnailStrip
-            images={images}
-            activeIndex={activeIndex}
-            onChange={onChange}
-            altPrefix={altPrefix}
-          />
+          <div className="shrink-0">
+            <ThumbnailStrip
+              images={images}
+              activeIndex={activeIndex}
+              onChange={onChange}
+              altPrefix={altPrefix}
+            />
+          </div>
         )}
       </div>
     </section>

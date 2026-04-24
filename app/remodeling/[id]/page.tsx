@@ -61,7 +61,7 @@ export default async function RemodelingDetailPage({
     .filter(Boolean);
 
   return (
-    <Container className="pt-4 pb-4 md:pt-6 md:pb-6">
+    <Container className="h-[calc(100vh-3.5rem)] h-[calc(100dvh-3.5rem)] md:h-[calc(100vh-5rem)] md:h-[calc(100dvh-5rem)] overflow-hidden py-2 md:py-3 flex flex-col">
       <DetailGallery
         title={caseRow.title}
         beforeImages={beforeImages}
