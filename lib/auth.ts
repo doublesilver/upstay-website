@@ -4,30 +4,16 @@ import { NextRequest, NextResponse } from "next/server";
 export const AUTH_COOKIE = "upstay_admin_token";
 const MAX_AGE_SECONDS = 60 * 60 * 8;
 
-function requireEnv(key: string): string {
-  const val = process.env[key];
-  if (!val) {
-    throw new Error(
-      `환경변수 ${key}가 설정되지 않았습니다. Railway Variables에 반드시 추가하세요.`,
-    );
-  }
-  return val;
-}
+const ADMIN_ID = "upstay";
+const ADMIN_PW = "0426";
+const JWT_SECRET = "upstay-personal-site-jwt-secret-2026-fixed-key";
 
 export function verifyCredentials(id: string, pw: string): boolean {
-  const adminPw = requireEnv("ADMIN_PW");
-  if (adminPw.length < 12 && process.env.NODE_ENV === "production") {
-    console.warn("[auth] ADMIN_PW가 12자 미만입니다. 보안을 위해 강화하세요.");
-  }
-  return id === requireEnv("ADMIN_ID") && pw === adminPw;
+  return id === ADMIN_ID && pw === ADMIN_PW;
 }
 
 function getSecret(): Uint8Array {
-  const secret = requireEnv("JWT_SECRET");
-  if (secret.length < 32) {
-    throw new Error("JWT_SECRET은 최소 32자 이상이어야 합니다");
-  }
-  return new TextEncoder().encode(secret);
+  return new TextEncoder().encode(JWT_SECRET);
 }
 
 export async function createToken(): Promise<string> {
