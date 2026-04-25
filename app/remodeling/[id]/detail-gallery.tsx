@@ -134,7 +134,7 @@ export function DetailGallery({
       )}
 
       <div className="shrink-0">
-        <p className="mb-1 text-[11px] text-[#999]">설명</p>
+        <p className="mb-1 text-[11px] text-[#111]">설명</p>
         <div className="border border-[#E5E7EB] rounded-lg px-3 py-2">
           <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.5] line-clamp-2">
             {title || "-"}
@@ -151,7 +151,7 @@ export function DetailGallery({
           onClick={() => setLightbox(null)}
         >
           <div
-            className="flex flex-col items-center gap-3 max-w-[90vw] w-full"
+            className="flex flex-col items-center gap-3 max-w-[90vw] w-full border border-[#111] rounded-xl p-4 bg-white"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between w-full px-1">
