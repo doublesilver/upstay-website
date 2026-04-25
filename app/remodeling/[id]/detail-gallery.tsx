@@ -266,11 +266,6 @@ function GallerySection({
         {title}
       </p>
       <div className="flex-1 min-h-0 flex flex-col gap-1.5 bg-white rounded-xl p-2 md:p-2.5 border border-[#111]">
-        {images.length > 1 && (
-          <p className="shrink-0 text-center text-[11px] text-[#666] font-medium">
-            ( {activeIndex + 1} / {images.length} )
-          </p>
-        )}
         <div className="flex-1 min-h-0 flex items-center gap-2">
           {images.length > 1 && (
             <button
