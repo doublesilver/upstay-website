@@ -59,10 +59,7 @@ export function clearAuthCookie(res: NextResponse) {
 }
 
 export async function verifyToken(req: NextRequest): Promise<boolean> {
-  const cookieToken = req.cookies.get(AUTH_COOKIE)?.value;
-  const auth = req.headers.get("authorization");
-  const bearerToken = auth?.startsWith("Bearer ") ? auth.slice(7) : undefined;
-  const token = cookieToken || bearerToken;
+  const token = req.cookies.get(AUTH_COOKIE)?.value;
   if (!token) return false;
   try {
     await jwtVerify(token, getSecret());
