@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 export const AUTH_COOKIE = "upstay_admin_token";
 const MAX_AGE_SECONDS = 60 * 60 * 8;
 
-const ADMIN_ID = "upstay";
-const ADMIN_PW = "0426";
-const JWT_SECRET = "upstay-personal-site-jwt-secret-2026-fixed-key";
+export const ADMIN_ID = "upstay";
+export const ADMIN_PW = "0426";
+export const JWT_SECRET = "upstay-personal-site-jwt-secret-2026-fixed-key";
 
 export function verifyCredentials(id: string, pw: string): boolean {
   return id === ADMIN_ID && pw === ADMIN_PW;

@@ -2,13 +2,11 @@ import { mkdtempSync } from "fs";
 import os from "os";
 import path from "path";
 import { NextRequest } from "next/server";
+import { AUTH_COOKIE } from "../lib/auth";
 
 export function setupTempDataDir(): string {
   const dir = mkdtempSync(path.join(os.tmpdir(), "upstay-test-"));
   process.env.DATA_DIR = dir;
-  process.env.ADMIN_ID = "admin";
-  process.env.ADMIN_PW = "test";
-  process.env.JWT_SECRET = "test-secret-minimum-length-32-chars-for-validation";
   return dir;
 }
 
@@ -17,7 +15,11 @@ export function makeRequest(
   init?: RequestInit & { token?: string },
 ): NextRequest {
   const headers = new Headers(init?.headers as HeadersInit | undefined);
-  if (init?.token) headers.set("authorization", `Bearer ${init.token}`);
+  if (init?.token) {
+    const existing = headers.get("cookie");
+    const cookie = `${AUTH_COOKIE}=${init.token}`;
+    headers.set("cookie", existing ? `${existing}; ${cookie}` : cookie);
+  }
   const method = init?.method;
   const body = init?.body;
   return new NextRequest(url, {

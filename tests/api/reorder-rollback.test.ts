@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { SignJWT } from "jose";
+import { JWT_SECRET } from "../../lib/auth";
 import { NextRequest } from "next/server";
 import { setupTempDataDir } from "../api-helpers";
 
@@ -9,7 +10,7 @@ let token: string;
 
 beforeAll(async () => {
   setupTempDataDir();
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+  const secret = new TextEncoder().encode(JWT_SECRET);
   token = await new SignJWT({ role: "admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("1h")
@@ -37,7 +38,7 @@ describe("/api/admin/remodeling/reorder transaction behavior", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          authorization: `Bearer ${token}`,
+          cookie: `upstay_admin_token=${token}`,
         },
         body: JSON.stringify({
           items: [
@@ -78,7 +79,7 @@ describe("/api/admin/remodeling/reorder transaction behavior", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          authorization: `Bearer ${token}`,
+          cookie: `upstay_admin_token=${token}`,
         },
         body: JSON.stringify({
           items: [
