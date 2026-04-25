@@ -136,7 +136,7 @@ export function DetailGallery({
       <div className="shrink-0">
         <p className="mb-1 text-[11px] text-[#999]">설명</p>
         <div className="border border-[#E5E7EB] rounded-lg px-3 py-2">
-          <p className="text-[13px] md:text-[14px] text-[#333] leading-[1.5] line-clamp-2">
+          <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.5] line-clamp-2">
             {title || "-"}
           </p>
         </div>
@@ -174,7 +174,7 @@ export function DetailGallery({
               width={2000}
               height={1500}
               sizes="85vw"
-              className="max-w-[85vw] max-h-[65vh] w-auto h-auto object-contain"
+              className="max-w-[85vw] max-h-[65vh] w-auto h-auto object-contain border border-[#111] rounded"
               quality={85}
               placeholder="blur"
               blurDataURL={blurDataURL()}
@@ -200,6 +200,10 @@ export function DetailGallery({
                   &#9654;
                 </button>
               </div>
+            )}
+
+            {lightboxImages.length > 1 && (
+              <div className="w-full h-px bg-[#E5E5E5] my-2" />
             )}
 
             {lightboxImages.length > 1 && (
@@ -275,7 +279,7 @@ function GallerySection({
                 onPrev();
               }}
               aria-label="이전 사진"
-              className="shrink-0 w-10 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+              className="shrink-0 w-7 h-14 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
             >
               &#9664;
             </button>
@@ -283,14 +287,14 @@ function GallerySection({
           <div
             ref={containerRef}
             onClick={onOpenLightbox}
-            className="flex-1 min-h-0 self-stretch relative cursor-pointer"
+            className="flex-1 min-h-0 self-stretch relative cursor-pointer touch-pan-y select-none will-change-transform"
           >
             <ProtectedImage
               src={images[activeIndex]}
               alt={`${altPrefix} ${activeIndex + 1}`}
               fill
               sizes="(max-width: 768px) 90vw, 800px"
-              className="object-contain"
+              className="object-contain pointer-events-none"
               quality={70}
               priority
             />
@@ -303,7 +307,7 @@ function GallerySection({
                 onNext();
               }}
               aria-label="다음 사진"
-              className="shrink-0 w-10 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+              className="shrink-0 w-7 h-14 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
             >
               &#9654;
             </button>

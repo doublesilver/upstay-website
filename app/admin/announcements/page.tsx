@@ -184,7 +184,7 @@ export default function AnnouncementsAdminPage() {
                     setEditing({ ...editing, title: e.target.value })
                   }
                   placeholder="제목"
-                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                  className="w-full border-2 border-[#111] bg-[#FAFAFA] rounded-xl px-4 py-3 text-[14px] outline-none focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
                 />
                 <textarea
                   ref={contentRef}
@@ -194,7 +194,7 @@ export default function AnnouncementsAdminPage() {
                   }
                   rows={5}
                   aria-label="팝업 내용"
-                  className="w-full border border-[#DDD] bg-white rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)] transition-all resize-none"
+                  className="w-full border-2 border-[#111] bg-[#FAFAFA] rounded-xl px-4 py-3 text-[14px] outline-none focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)] transition-all resize-none"
                   placeholder="팝업 내용"
                 />
               </div>

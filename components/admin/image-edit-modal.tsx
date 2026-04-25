@@ -310,7 +310,7 @@ export function ImageEditModal({
               </div>
             </div>
 
-            <div className="border-t border-[#EBEBEB] px-3 py-2 bg-white">
+            <div className="border-t border-[#111] px-3 py-2 bg-white">
               <div className="flex gap-1.5 overflow-x-auto">
                 {images.map((image) => (
                   <button
@@ -335,7 +335,7 @@ export function ImageEditModal({
             </div>
           </div>
 
-          <div className="w-[280px] shrink-0 border-l border-[#EBEBEB] flex flex-col">
+          <div className="w-[280px] shrink-0 border-l border-[#111] flex flex-col">
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               <div className="border border-[#111] rounded-xl p-4">
                 <p className="text-[11px] font-bold tracking-wider text-[#777] mb-3">
@@ -351,6 +351,7 @@ export function ImageEditModal({
                   }
                   unit=""
                 />
+                <div className="h-px bg-[#E5E5E5] my-2" />
                 <Slider
                   label="밝기"
                   value={settings.brightness}
@@ -377,6 +378,7 @@ export function ImageEditModal({
                   }
                   unit="%"
                 />
+                <div className="h-px bg-[#E5E5E5] my-2" />
                 <Slider
                   label="크기"
                   value={settings.wmScale}
@@ -477,11 +479,11 @@ export function ImageEditModal({
               </div>
             </div>
 
-            <div className="border-t border-[#EBEBEB] p-4 flex items-center justify-end gap-2">
+            <div className="border-t border-[#111] p-4 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={reset}
-                className="inline-flex items-center gap-1 border border-[#DDD] rounded-lg px-3 py-2 text-[12px] text-[#666] hover:bg-[#F7F7F7] transition-all"
+                className="inline-flex items-center gap-1 border border-[#111] rounded-lg px-3 py-2 text-[12px] text-[#666] hover:bg-[#F7F7F7] transition-all"
               >
                 <RotateCcw size={12} />
                 초기화
@@ -490,7 +492,7 @@ export function ImageEditModal({
                 type="button"
                 onClick={applyOne}
                 disabled={saving !== null}
-                className="border border-[#DDD] rounded-lg px-4 py-2 text-[12px] text-[#333] hover:bg-[#F7F7F7] disabled:opacity-40 transition-all"
+                className="border border-[#111] rounded-lg px-4 py-2 text-[12px] text-[#333] hover:bg-[#F7F7F7] disabled:opacity-40 transition-all"
               >
                 {saving === "one" ? "적용 중.." : "적용"}
               </button>
@@ -534,14 +536,18 @@ function Slider({
           {unit}
         </span>
       </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-[#111]"
-      />
+      <div className="flex items-center gap-2">
+        <span className="text-[12px] text-[#666] w-3 text-center">-</span>
+        <input
+          type="range"
+          min={min}
+          max={max}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="flex-1 accent-[#111]"
+        />
+        <span className="text-[12px] text-[#666] w-3 text-center">+</span>
+      </div>
     </div>
   );
 }

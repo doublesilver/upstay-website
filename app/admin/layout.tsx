@@ -132,101 +132,52 @@ export default function AdminLayout({
 
   if (isLoginPage) {
     return (
-      <div className="min-h-screen bg-white flex">
-        {/* 좌측 비주얼 */}
-        <div className="hidden lg:flex lg:w-1/2 bg-[#F1F8E9] items-center justify-center relative overflow-hidden">
-          <div className="relative z-10 flex flex-col items-center">
-            <div style={{ width: "240px" }}>
+      <div className="min-h-screen bg-[#F1F8E9] flex items-center justify-center p-4">
+        <div className="bg-[#F1F8E9] rounded-xl shadow-lg w-[90%] max-w-[380px] p-5">
+          <div className="bg-white border border-[#111] rounded-xl overflow-hidden">
+            <div className="px-5 pt-5 pb-3 text-center">
               <Image
-                src="/logo.png"
+                src="/logo.svg"
                 alt="UPSTAY"
-                width={320}
-                height={160}
-                className="w-full h-auto"
+                width={140}
+                height={42}
+                className="mx-auto h-10 w-auto"
                 priority
               />
+              <h1 className="mt-3 text-[16px] font-bold text-[#111]">
+                관리자 로그인
+              </h1>
             </div>
-            <div
-              className="h-px bg-[#D1D5DB] my-2"
-              style={{ width: "219.68px" }}
-            />
-            <p className="text-[14px] text-[#666] whitespace-nowrap">
-              공간의 가치를 업스테이가 높여드립니다.
-            </p>
-          </div>
-        </div>
-
-        {/* 우측 로그인 폼 */}
-        <div className="flex-1 flex items-center justify-center px-6">
-          <div className="w-full max-w-[380px]">
-            <div className="lg:hidden mb-10 text-center">
-              <Image
-                src="/logo.png"
-                alt="UPSTAY"
-                width={160}
-                height={64}
-                className="mx-auto h-14 w-auto"
-                priority
+            <div className="mx-4 h-px bg-[#E5E5E5]" />
+            <form onSubmit={handleLogin} className="px-5 py-4 space-y-3">
+              <input
+                type="text"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                autoComplete="off"
+                placeholder="아이디"
+                className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
               />
-            </div>
-
-            <h1 className="text-[28px] font-bold text-[#111] tracking-tight">
-              관리자 로그인
-            </h1>
-
-            <form onSubmit={handleLogin} className="mt-8">
-              <div className="border border-[#111] rounded-xl overflow-hidden">
-                <div className="px-4 py-3">
-                  <label className="block text-[12px] font-medium text-[#666] mb-1">
-                    아이디
-                  </label>
-                  <input
-                    type="text"
-                    value={id}
-                    onChange={(e) => setId(e.target.value)}
-                    autoComplete="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    className="w-full text-[15px] outline-none bg-transparent"
-                    placeholder="아이디를 입력하세요"
-                  />
-                </div>
-                <div className="h-px bg-[#E5E7EB]" />
-                <div className="px-4 py-3">
-                  <label className="block text-[12px] font-medium text-[#666] mb-1">
-                    비밀번호
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    className="w-full text-[15px] outline-none bg-transparent"
-                    placeholder="비밀번호를 입력하세요"
-                  />
-                </div>
-                <div className="h-px bg-[#E5E7EB]" />
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full bg-[#111] text-white py-3.5 text-[15px] font-semibold hover:bg-[#333] active:scale-[0.98] disabled:opacity-60 transition-all"
-                >
-                  {submitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      로그인 중
-                    </span>
-                  ) : (
-                    "로그인"
-                  )}
-                </button>
-              </div>
-
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                placeholder="비밀번호"
+                className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
+              />
               {error && (
-                <div className="mt-4 bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-[13px] text-red-600">
+                <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-[12px] text-red-600">
                   {error}
                 </div>
               )}
+              <button
+                type="submit"
+                disabled={submitting || !id || !password}
+                className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                {submitting ? "로그인 중..." : "로그인"}
+              </button>
             </form>
           </div>
         </div>

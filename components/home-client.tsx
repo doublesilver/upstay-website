@@ -125,7 +125,9 @@ export function HomeClient({
               </div>
             )}
 
-            <div className="mt-3 md:mt-4 flex-1 min-h-0 space-y-3 md:space-y-4 overflow-y-auto">
+            <div className="shrink-0 mt-2 h-px bg-[#E5E5E5]" />
+
+            <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-y-auto">
               {initialCases.slice(0, 3).map((c, caseIndex) => {
                 const befores = c.before_images?.length
                   ? c.before_images
@@ -135,29 +137,33 @@ export function HomeClient({
                   : [c.after_image].filter(Boolean);
 
                 return (
-                  <Link
-                    key={c.id}
-                    href={`/remodeling/${c.id}`}
-                    className="block w-full bg-white border border-[#111111] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
-                  >
-                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                      <GalleryGrid
-                        label="Before"
-                        images={befores}
-                        title={c.title}
-                        caseIndex={caseIndex}
-                      />
-                      <span className="text-[18px] md:text-[22px] font-black text-[#111]">
-                        →
-                      </span>
-                      <GalleryGrid
-                        label="After"
-                        images={afters}
-                        title={c.title}
-                        caseIndex={caseIndex}
-                      />
-                    </div>
-                  </Link>
+                  <div key={c.id}>
+                    {caseIndex > 0 && (
+                      <div className="h-px bg-[#E5E5E5] my-3 md:my-4" />
+                    )}
+                    <Link
+                      href={`/remodeling/${c.id}`}
+                      className="block w-full bg-white border border-[#111111] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
+                    >
+                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                        <GalleryGrid
+                          label="Before"
+                          images={befores}
+                          title={c.title}
+                          caseIndex={caseIndex}
+                        />
+                        <span className="text-[18px] md:text-[22px] font-black text-[#111]">
+                          →
+                        </span>
+                        <GalleryGrid
+                          label="After"
+                          images={afters}
+                          title={c.title}
+                          caseIndex={caseIndex}
+                        />
+                      </div>
+                    </Link>
+                  </div>
                 );
               })}
             </div>
