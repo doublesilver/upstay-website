@@ -188,6 +188,7 @@ export default function AdminLayout({
                   placeholder="비밀번호"
                   className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
                 />
+                <div className="h-px bg-[#E5E5E5]" />
                 {error && (
                   <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-[12px] text-red-600">
                     {error}
