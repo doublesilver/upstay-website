@@ -184,8 +184,9 @@ export default function AnnouncementsAdminPage() {
                     setEditing({ ...editing, title: e.target.value })
                   }
                   placeholder="제목"
-                  className="w-full border-2 border-[#111] bg-[#FAFAFA] rounded-xl px-4 py-3 text-[14px] outline-none focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] transition-colors"
                 />
+                <div className="h-px bg-[#E5E5E5]" />
                 <textarea
                   ref={contentRef}
                   value={editing.content}
@@ -194,7 +195,7 @@ export default function AnnouncementsAdminPage() {
                   }
                   rows={5}
                   aria-label="팝업 내용"
-                  className="w-full border-2 border-[#111] bg-[#FAFAFA] rounded-xl px-4 py-3 text-[14px] outline-none focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)] transition-all resize-none"
+                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] transition-colors resize-none"
                   placeholder="팝업 내용"
                 />
               </div>
@@ -302,21 +303,21 @@ export default function AnnouncementsAdminPage() {
             key={item.id}
             className="bg-white border border-[#EBEBEB] rounded-2xl p-5 flex items-start justify-between gap-4 hover:shadow-sm transition-all"
           >
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2.5">
-                <span className="font-semibold text-[15px] text-[#111] truncate">
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="border border-[#111] rounded-lg px-3 py-2">
+                <span className="font-semibold text-[15px] text-[#111] truncate block">
                   {item.title || "(제목 없음)"}
                 </span>
               </div>
-              {item.content ? (
-                <p className="mt-1.5 text-[14px] text-[#333] line-clamp-3 whitespace-pre-wrap">
-                  {item.content}
-                </p>
-              ) : (
-                <p className="mt-1.5 text-[13px] text-[#BBB] italic">
-                  (빈 팝업)
-                </p>
-              )}
+              <div className="border border-[#111] rounded-lg px-3 py-2">
+                {item.content ? (
+                  <p className="text-[14px] text-[#333] line-clamp-3 whitespace-pre-wrap">
+                    {item.content}
+                  </p>
+                ) : (
+                  <p className="text-[13px] text-[#BBB] italic">(빈 팝업)</p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">

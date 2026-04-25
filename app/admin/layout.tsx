@@ -132,24 +132,45 @@ export default function AdminLayout({
 
   if (isLoginPage) {
     return (
-      <div className="min-h-screen bg-[#F1F8E9] flex items-center justify-center p-4">
-        <div className="bg-[#F1F8E9] rounded-xl shadow-lg w-[90%] max-w-[380px] p-5">
-          <div className="bg-white border border-[#111] rounded-xl overflow-hidden">
-            <div className="px-5 pt-5 pb-3 text-center">
+      <div className="min-h-screen bg-white flex">
+        <div className="hidden lg:flex lg:w-1/2 bg-[#F1F8E9] items-center justify-center relative overflow-hidden">
+          <div className="relative z-10 flex flex-col items-center">
+            <div style={{ width: "240px" }}>
               <Image
                 src="/logo.svg"
                 alt="UPSTAY"
-                width={140}
-                height={42}
-                className="mx-auto h-10 w-auto"
+                width={320}
+                height={160}
+                className="w-full h-auto"
                 priority
               />
-              <h1 className="mt-3 text-[16px] font-bold text-[#111]">
-                관리자 로그인
-              </h1>
             </div>
-            <div className="mx-4 h-px bg-[#E5E5E5]" />
-            <form onSubmit={handleLogin} className="px-5 py-4 space-y-3">
+            <div
+              className="h-px bg-[#D1D5DB] my-2"
+              style={{ width: "219.68px" }}
+            />
+            <p className="text-[14px] text-[#666] whitespace-nowrap">
+              공간의 가치를 업스테이가 높여드립니다.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="w-full max-w-[380px]">
+            <div className="lg:hidden mb-8 text-center">
+              <Image
+                src="/logo.svg"
+                alt="UPSTAY"
+                width={160}
+                height={64}
+                className="mx-auto h-12 w-auto"
+                priority
+              />
+            </div>
+
+            <h1 className="text-[20px] font-bold text-[#111]">관리자 로그인</h1>
+
+            <form onSubmit={handleLogin} className="mt-6 space-y-3">
               <input
                 type="text"
                 value={id}

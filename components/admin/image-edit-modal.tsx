@@ -341,6 +341,7 @@ export function ImageEditModal({
                 <p className="text-[11px] font-bold tracking-wider text-[#777] mb-3">
                   사진 보정
                 </p>
+                <div className="h-px bg-[#E5E5E5] mb-3" />
                 <Slider
                   label="선명도"
                   value={settings.sharpness}
@@ -368,6 +369,7 @@ export function ImageEditModal({
                 <p className="text-[11px] font-bold tracking-wider text-[#777] mb-3">
                   워터마크 설정
                 </p>
+                <div className="h-px bg-[#E5E5E5] mb-3" />
                 <Slider
                   label="투명도"
                   value={settings.wmOpacity}
@@ -479,7 +481,7 @@ export function ImageEditModal({
               </div>
             </div>
 
-            <div className="border-t border-[#111] p-4 flex items-center justify-end gap-2">
+            <div className="p-4 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={reset}
