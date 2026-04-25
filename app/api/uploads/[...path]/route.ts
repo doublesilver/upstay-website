@@ -8,6 +8,7 @@ import sharp from "sharp";
 import { UPLOAD_DIR, DATA_DIR } from "@/lib/paths";
 
 const CACHE_DIR = path.join(DATA_DIR, "cache");
+const UPLOAD_DIR_RESOLVED = path.resolve(UPLOAD_DIR);
 
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -25,7 +26,11 @@ export async function GET(
   const filename = segments.join("/");
   const filePath = path.resolve(UPLOAD_DIR, filename);
 
-  if (!filePath.startsWith(path.resolve(UPLOAD_DIR)) || !existsSync(filePath)) {
+  if (
+    (!filePath.startsWith(UPLOAD_DIR_RESOLVED + path.sep) &&
+      filePath !== UPLOAD_DIR_RESOLVED) ||
+    !existsSync(filePath)
+  ) {
     return new Response("Not found", { status: 404 });
   }
 

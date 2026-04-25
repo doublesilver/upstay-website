@@ -82,7 +82,13 @@ function insertDefaultConfig(database: Database.Database) {
   insert.run("remodeling_page_title", "리모델링");
   insert.run("remodeling_page_subtitle", "Before → After");
 
-  insert.run("schema_version", "4");
+  const migrationFiles = fs.existsSync(MIGRATIONS_DIR)
+    ? fs.readdirSync(MIGRATIONS_DIR).filter((f) => /^\d+_.*\.sql$/.test(f))
+    : [];
+  const latestVersion = String(
+    Math.max(0, ...migrationFiles.map((f) => parseInt(f.split("_")[0], 10))),
+  );
+  insert.run("schema_version", latestVersion);
 }
 
 function seedRemodelingCases(database: Database.Database) {

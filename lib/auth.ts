@@ -15,7 +15,11 @@ function requireEnv(key: string): string {
 }
 
 export function verifyCredentials(id: string, pw: string): boolean {
-  return id === requireEnv("ADMIN_ID") && pw === requireEnv("ADMIN_PW");
+  const adminPw = requireEnv("ADMIN_PW");
+  if (adminPw.length < 12 && process.env.NODE_ENV === "production") {
+    console.warn("[auth] ADMIN_PW가 12자 미만입니다. 보안을 위해 강화하세요.");
+  }
+  return id === requireEnv("ADMIN_ID") && pw === adminPw;
 }
 
 function getSecret(): Uint8Array {
