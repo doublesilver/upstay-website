@@ -106,8 +106,8 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
       title: config?.service_category4_title ?? "",
       description: config?.service_category4_desc ?? "",
       caption: config?.service_category4_caption ?? "",
-      titleStyle: parseStyle(config?.service_category4_style),
-      descStyle: parseStyle(config?.service_category4_style),
+      titleStyle: parseStyle(config?.service_category4_title_style),
+      descStyle: parseStyle(config?.service_category4_desc_style),
     },
     service_category5: {
       key: "service_category5",
@@ -115,8 +115,8 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
       title: config?.service_category5_title ?? "",
       description: config?.service_category5_desc ?? "",
       caption: config?.service_category5_caption ?? "",
-      titleStyle: parseStyle(config?.service_category5_style),
-      descStyle: parseStyle(config?.service_category5_style),
+      titleStyle: parseStyle(config?.service_category5_title_style),
+      descStyle: parseStyle(config?.service_category5_desc_style),
     },
   };
 
