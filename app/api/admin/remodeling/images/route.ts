@@ -18,45 +18,49 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { case_id, type, image_url, is_starred } = body;
+  const { case_id, type, image_url, is_starred } = parsed.data;
 
   const db = getDb();
 
-  if (is_starred) {
-    const cnt = db
-      .prepare(
-        "SELECT COUNT(*) as n FROM case_images WHERE case_id=? AND type=? AND is_starred=1",
-      )
-      .get(case_id, type) as { n: number };
-    if (cnt.n >= 4) {
+  let insertResult: {
+    result: { changes: number; lastInsertRowid: number | bigint };
+    nextOrder: number;
+  };
+  try {
+    insertResult = db.transaction(() => {
+      if (is_starred) {
+        const cnt = db
+          .prepare(
+            "SELECT COUNT(*) as n FROM case_images WHERE case_id=? AND type=? AND is_starred=1",
+          )
+          .get(case_id, type) as { n: number };
+        if (cnt.n >= 4) throw new Error("STAR_LIMIT");
+      }
+      const nextOrder = (
+        db
+          .prepare(
+            "SELECT COALESCE(MAX(match_order),0)+1 AS n FROM case_images WHERE case_id=? AND type=?",
+          )
+          .get(case_id, type) as { n: number }
+      ).n;
+      const r = db
+        .prepare(
+          "INSERT INTO case_images (case_id, type, match_order, image_url, is_starred) VALUES (?, ?, ?, ?, ?)",
+        )
+        .run(case_id, type, nextOrder, image_url || "", is_starred ? 1 : 0);
+      return { result: r, nextOrder };
+    })();
+  } catch (e) {
+    const msg = (e as Error).message || "";
+    if (msg === "STAR_LIMIT")
       return Response.json(
         { error: "별표는 BEFORE/AFTER 각 4개까지 선택 가능합니다" },
         { status: 409 },
       );
-    }
-  }
-
-  const nextOrder = (
-    db
-      .prepare(
-        "SELECT COALESCE(MAX(match_order),0)+1 AS n FROM case_images WHERE case_id=? AND type=?",
-      )
-      .get(case_id, type) as { n: number }
-  ).n;
-
-  let result;
-  try {
-    result = db
-      .prepare(
-        "INSERT INTO case_images (case_id, type, match_order, image_url, is_starred) VALUES (?, ?, ?, ?, ?)",
-      )
-      .run(case_id, type, nextOrder, image_url || "", is_starred ? 1 : 0);
-  } catch (e) {
-    const msg = (e as Error).message || "";
     if (
       msg.includes("UNIQUE constraint failed") &&
       msg.includes("slot_position")
-    ) {
+    )
       return Response.json(
         {
           error:
@@ -64,12 +68,11 @@ export async function POST(req: NextRequest) {
         },
         { status: 409 },
       );
-    }
     console.error("images error:", e);
     return Response.json({ error: "서버 오류" }, { status: 500 });
   }
 
-  if (!result.changes) {
+  if (!insertResult.result.changes) {
     return Response.json(
       { error: "이미지 저장에 실패했습니다" },
       { status: 500 },
@@ -81,7 +84,10 @@ export async function POST(req: NextRequest) {
   } catch {
     // 캐시 무효화 실패는 INSERT 성공에 영향 없음
   }
-  return Response.json({ id: result.lastInsertRowid, match_order: nextOrder });
+  return Response.json({
+    id: insertResult.result.lastInsertRowid,
+    match_order: insertResult.nextOrder,
+  });
 }
 
 export async function PUT(req: NextRequest) {
@@ -95,7 +101,10 @@ export async function PUT(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { id, ...fields } = body;
+  const { id, ...fields } = parsedPut.data as { id: number } & Record<
+    string,
+    unknown
+  >;
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
 
   const db = getDb();

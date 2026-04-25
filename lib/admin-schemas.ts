@@ -24,7 +24,10 @@ export const caseUpdateSchema = z.object({
 export const imagePostSchema = z.object({
   case_id: z.number().int(),
   type: z.string(),
-  image_url: z.string().optional(),
+  image_url: z
+    .string()
+    .regex(/^(\/api\/uploads\/[\w.-]+|https?:\/\/.+)$/, "잘못된 image_url 형식")
+    .optional(),
   is_starred: z.number().int().min(0).max(1).optional(),
 });
 

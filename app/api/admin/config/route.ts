@@ -36,7 +36,7 @@ export async function PUT(req: NextRequest) {
     "INSERT OR REPLACE INTO site_config (key, value) VALUES (?, ?)",
   );
 
-  for (const [key, value] of Object.entries(body)) {
+  for (const [key, value] of Object.entries(parsed.data)) {
     if (ALLOWED_KEYS.has(key)) {
       stmt.run(key, String(value ?? ""));
     }

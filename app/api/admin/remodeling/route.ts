@@ -64,7 +64,10 @@ export async function PUT(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { id, ...fields } = body;
+  const { id, ...fields } = parsed.data as { id: number } & Record<
+    string,
+    unknown
+  >;
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
 
   const allowed = ["title", "sort_order", "show_on_main"];
