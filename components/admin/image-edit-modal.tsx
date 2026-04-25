@@ -310,8 +310,8 @@ export function ImageEditModal({
               </div>
             </div>
 
-            <div className="border-t border-[#111] px-3 py-2 bg-white">
-              <div className="flex gap-1.5 overflow-x-auto">
+            <div className="border-t border-[#111] px-3 h-[80px] flex items-center bg-white">
+              <div className="flex gap-1.5 overflow-x-auto w-full">
                 {images.map((image) => (
                   <button
                     key={image.id}
@@ -336,12 +336,12 @@ export function ImageEditModal({
           </div>
 
           <div className="w-[280px] shrink-0 border-l border-[#111] flex flex-col">
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              <div className="border border-[#111] rounded-xl p-4">
-                <p className="text-[11px] font-bold tracking-wider text-[#777] mb-3">
+            <div className="flex-1 overflow-hidden p-3 space-y-2">
+              <div className="border border-[#111] rounded-xl p-3">
+                <p className="text-[11px] font-bold tracking-wider text-[#777] mb-2">
                   사진 보정
                 </p>
-                <div className="h-px bg-[#E5E5E5] mb-3" />
+                <div className="h-px bg-[#E5E5E5] mb-2" />
                 <Slider
                   label="선명도"
                   value={settings.sharpness}
@@ -365,11 +365,11 @@ export function ImageEditModal({
                 />
               </div>
 
-              <div className="border border-[#111] rounded-xl p-4">
-                <p className="text-[11px] font-bold tracking-wider text-[#777] mb-3">
+              <div className="border border-[#111] rounded-xl p-3">
+                <p className="text-[11px] font-bold tracking-wider text-[#777] mb-2">
                   워터마크 설정
                 </p>
-                <div className="h-px bg-[#E5E5E5] mb-3" />
+                <div className="h-px bg-[#E5E5E5] mb-2" />
                 <Slider
                   label="투명도"
                   value={settings.wmOpacity}
@@ -420,11 +420,11 @@ export function ImageEditModal({
                   }
                   unit="%"
                 />
-                <div className="mt-4 border border-[#111] rounded-xl p-4">
-                  <label className="block text-[12px] text-[#333] mb-2">
+                <div className="mt-2 border border-[#111] rounded-xl p-3">
+                  <label className="block text-[12px] text-[#333] mb-1.5">
                     위치
                   </label>
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-3 gap-1">
                     {POS_GRID.map((item) => {
                       const wmAspect = logoImg
                         ? logoImg.height / logoImg.width
@@ -466,7 +466,7 @@ export function ImageEditModal({
                               };
                             })
                           }
-                          className={`aspect-square rounded-lg text-[16px] transition-all ${
+                          className={`aspect-square rounded-lg text-[14px] transition-all ${
                             active
                               ? "bg-[#111] text-white"
                               : "bg-[#F7F7F7] text-[#666] hover:bg-[#EBEBEB]"
@@ -481,7 +481,7 @@ export function ImageEditModal({
               </div>
             </div>
 
-            <div className="p-4 flex items-center justify-end gap-2">
+            <div className="border-t border-[#111] px-4 h-[80px] flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={reset}
@@ -530,7 +530,7 @@ function Slider({
   unit: string;
 }) {
   return (
-    <div className="mb-3">
+    <div className="mb-2">
       <div className="flex items-center justify-between mb-1">
         <span className="text-[12px] text-[#333]">{label}</span>
         <span className="text-[11px] text-[#777] bg-[#F7F7F7] rounded-md px-2 py-0.5">

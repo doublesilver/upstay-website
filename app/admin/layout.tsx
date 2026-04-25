@@ -170,35 +170,37 @@ export default function AdminLayout({
 
             <h1 className="text-[20px] font-bold text-[#111]">관리자 로그인</h1>
 
-            <form onSubmit={handleLogin} className="mt-6 space-y-3">
-              <input
-                type="text"
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-                autoComplete="off"
-                placeholder="아이디"
-                className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                placeholder="비밀번호"
-                className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
-              />
-              {error && (
-                <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-[12px] text-red-600">
-                  {error}
-                </div>
-              )}
-              <button
-                type="submit"
-                disabled={submitting || !id || !password}
-                className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                {submitting ? "로그인 중..." : "로그인"}
-              </button>
+            <form onSubmit={handleLogin} className="mt-6">
+              <div className="border border-[#111] rounded-xl p-4 space-y-3">
+                <input
+                  type="text"
+                  value={id}
+                  onChange={(e) => setId(e.target.value)}
+                  autoComplete="off"
+                  placeholder="아이디"
+                  className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  placeholder="비밀번호"
+                  className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
+                />
+                {error && (
+                  <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-[12px] text-red-600">
+                    {error}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={submitting || !id || !password}
+                  className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  {submitting ? "로그인 중..." : "로그인"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
