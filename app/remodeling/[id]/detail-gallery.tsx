@@ -147,7 +147,7 @@ export function DetailGallery({
           role="dialog"
           aria-modal="true"
           aria-label="사진 크게 보기"
-          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center"
+          className="fixed inset-0 z-50 bg-[#F1F8E9] flex flex-col items-center justify-center"
           onClick={() => setLightbox(null)}
         >
           <div
@@ -155,14 +155,14 @@ export function DetailGallery({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between w-full px-1">
-              <span className="text-white text-sm">
-                {lightboxIndex + 1} / {lightboxImages.length}
+              <span className="text-[#111] text-sm">
+                ( {lightboxIndex + 1} / {lightboxImages.length} )
               </span>
               <button
                 type="button"
                 onClick={() => setLightbox(null)}
                 aria-label="닫기"
-                className="text-white text-xl leading-none px-2 py-1 hover:opacity-70 transition-opacity"
+                className="text-[#111] text-xl leading-none px-2 py-1 hover:opacity-70 transition-opacity"
               >
                 ✕
               </button>
@@ -181,12 +181,12 @@ export function DetailGallery({
             />
 
             {lightboxImages.length > 1 && (
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => lightboxMove(-1)}
                   aria-label="이전 사진"
-                  className="w-8 h-8 rounded-full bg-white border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-gray-100"
+                  className="w-12 h-8 rounded bg-white border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-gray-100"
                 >
                   &#9664;
                 </button>
@@ -195,7 +195,7 @@ export function DetailGallery({
                   type="button"
                   onClick={() => lightboxMove(1)}
                   aria-label="다음 사진"
-                  className="w-8 h-8 rounded-full bg-white border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-gray-100"
+                  className="w-12 h-8 rounded bg-white border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-gray-100"
                 >
                   &#9654;
                 </button>
@@ -215,7 +215,7 @@ export function DetailGallery({
                     }
                     className={`relative w-12 h-9 shrink-0 rounded overflow-hidden border-2 transition-opacity ${
                       i === lightboxIndex
-                        ? "border-white opacity-100"
+                        ? "border-[#111] opacity-100"
                         : "border-transparent opacity-60 hover:opacity-90"
                     }`}
                   >
@@ -266,23 +266,13 @@ function GallerySection({
         {title}
       </p>
       <div className="flex-1 min-h-0 flex flex-col gap-1.5 bg-white rounded-xl p-2 md:p-2.5 border border-[#111]">
-        <div
-          ref={containerRef}
-          onClick={onOpenLightbox}
-          className="flex-1 min-h-0 relative cursor-pointer"
-        >
-          <ProtectedImage
-            src={images[activeIndex]}
-            alt={`${altPrefix} ${activeIndex + 1}`}
-            fill
-            sizes="(max-width: 768px) 90vw, 800px"
-            className="object-contain"
-            quality={70}
-            priority
-          />
-        </div>
         {images.length > 1 && (
-          <div className="shrink-0 flex justify-center items-center">
+          <p className="shrink-0 text-center text-[11px] text-[#666] font-medium">
+            ( {activeIndex + 1} / {images.length} )
+          </p>
+        )}
+        <div className="flex-1 min-h-0 flex items-center gap-2">
+          {images.length > 1 && (
             <button
               type="button"
               onClick={(e) => {
@@ -290,11 +280,27 @@ function GallerySection({
                 onPrev();
               }}
               aria-label="이전 사진"
-              className="w-7 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+              className="shrink-0 w-10 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
             >
               &#9664;
             </button>
-            <div className="w-px h-5 bg-[#E5E7EB]" />
+          )}
+          <div
+            ref={containerRef}
+            onClick={onOpenLightbox}
+            className="flex-1 min-h-0 self-stretch relative cursor-pointer"
+          >
+            <ProtectedImage
+              src={images[activeIndex]}
+              alt={`${altPrefix} ${activeIndex + 1}`}
+              fill
+              sizes="(max-width: 768px) 90vw, 800px"
+              className="object-contain"
+              quality={70}
+              priority
+            />
+          </div>
+          {images.length > 1 && (
             <button
               type="button"
               onClick={(e) => {
@@ -302,12 +308,12 @@ function GallerySection({
                 onNext();
               }}
               aria-label="다음 사진"
-              className="w-7 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+              className="shrink-0 w-10 h-7 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
             >
               &#9654;
             </button>
-          </div>
-        )}
+          )}
+        </div>
         {images.length > 1 && (
           <div className="shrink-0">
             <ThumbnailStrip
