@@ -320,41 +320,45 @@ export default function AnnouncementsAdminPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <span
-                className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${
-                  item.is_visible
-                    ? "bg-green-50 text-green-600"
-                    : "bg-[#F7F7F7] text-[#999]"
-                }`}
-              >
-                {item.is_visible ? "공개" : "비공개"}
-              </span>
-              <button
-                onClick={() => handleToggleVisible(item)}
-                className={`relative w-10 h-5.5 rounded-full transition-colors ${
-                  item.is_visible ? "bg-[#111]" : "bg-[#DDD]"
-                }`}
-                title={item.is_visible ? "비공개로 전환" : "공개로 전환"}
-              >
+            <div className="flex flex-col items-center justify-center gap-2 shrink-0 border border-black rounded-lg p-2">
+              <div className="flex items-center justify-center gap-2">
                 <span
-                  className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform ${
-                    item.is_visible ? "translate-x-4.5" : ""
+                  className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${
+                    item.is_visible
+                      ? "bg-green-50 text-green-600"
+                      : "bg-[#F7F7F7] text-[#999]"
                   }`}
-                />
-              </button>
-              <button
-                onClick={() => setEditing(item)}
-                className="px-3 py-1.5 rounded-lg text-[12px] border border-[#DDD] text-[#333] hover:bg-[#F7F7F7]"
-              >
-                수정
-              </button>
-              <button
-                onClick={() => setDeleting(item.id)}
-                className="px-3 py-1.5 rounded-lg text-[12px] border border-red-200 text-red-500 hover:bg-red-50"
-              >
-                삭제
-              </button>
+                >
+                  {item.is_visible ? "공개" : "비공개"}
+                </span>
+                <button
+                  onClick={() => handleToggleVisible(item)}
+                  className={`relative w-10 h-5.5 rounded-full transition-colors ${
+                    item.is_visible ? "bg-[#111]" : "bg-[#DDD]"
+                  }`}
+                  title={item.is_visible ? "비공개로 전환" : "공개로 전환"}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform ${
+                      item.is_visible ? "translate-x-4.5" : ""
+                    }`}
+                  />
+                </button>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setEditing(item)}
+                  className="px-3 py-1.5 rounded-lg text-[12px] border border-[#DDD] text-[#333] hover:bg-[#F7F7F7]"
+                >
+                  수정
+                </button>
+                <button
+                  onClick={() => setDeleting(item.id)}
+                  className="px-3 py-1.5 rounded-lg text-[12px] border border-red-200 text-red-500 hover:bg-red-50"
+                >
+                  삭제
+                </button>
+              </div>
             </div>
           </div>
         ))}

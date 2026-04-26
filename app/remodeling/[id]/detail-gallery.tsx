@@ -134,8 +134,8 @@ export function DetailGallery({
       )}
 
       <div className="shrink-0">
-        <p className="mb-1 text-[11px] text-[#111]">설명</p>
-        <div className="border border-[#E5E7EB] rounded-lg px-3 py-2">
+        <p className="mb-1 text-[11px] text-[#111] font-bold">설명</p>
+        <div className="border border-black rounded-lg px-3 py-2">
           <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.5] line-clamp-2">
             {title || "-"}
           </p>
@@ -186,7 +186,7 @@ export function DetailGallery({
                   type="button"
                   onClick={() => lightboxMove(-1)}
                   aria-label="이전 사진"
-                  className="w-12 h-8 rounded bg-white border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-gray-100"
+                  className="w-12 h-8 rounded bg-lime-400 border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-lime-300"
                 >
                   &#9664;
                 </button>
@@ -195,7 +195,7 @@ export function DetailGallery({
                   type="button"
                   onClick={() => lightboxMove(1)}
                   aria-label="다음 사진"
-                  className="w-12 h-8 rounded bg-white border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-gray-100"
+                  className="w-12 h-8 rounded bg-lime-400 border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-lime-300"
                 >
                   &#9654;
                 </button>
@@ -314,7 +314,7 @@ function GallerySection({
           )}
         </div>
         {images.length > 1 && (
-          <div className="shrink-0">
+          <div className="shrink-0 border-t border-gray-300 pt-1.5">
             <ThumbnailStrip
               images={images}
               activeIndex={activeIndex}

@@ -184,7 +184,7 @@ export default function AdminLayout({
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
+                  autoComplete="off"
                   placeholder="비밀번호"
                   className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
                 />
@@ -196,7 +196,7 @@ export default function AdminLayout({
                 )}
                 <button
                   type="submit"
-                  disabled={submitting || !id || !password}
+                  disabled={submitting || !id.trim() || !password.trim()}
                   className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   {submitting ? "로그인 중..." : "로그인"}
