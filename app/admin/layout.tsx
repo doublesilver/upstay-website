@@ -81,10 +81,14 @@ export default function AdminLayout({
 
   const isLoginPage = pathname === "/admin";
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    if (!id.trim() || !password) {
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const submittedId = ((formData.get("id") as string) || id).trim();
+    const submittedPassword = (formData.get("password") as string) || password;
+    if (!submittedId || !submittedPassword) {
       setError("아이디와 비밀번호를 입력해주세요");
       return;
     }
@@ -95,7 +99,7 @@ export default function AdminLayout({
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, password }),
+        body: JSON.stringify({ id: submittedId, password: submittedPassword }),
         signal: controller.signal,
       });
       clearTimeout(timer);
@@ -174,6 +178,7 @@ export default function AdminLayout({
               <div className="border border-[#111] rounded-xl p-4 space-y-3">
                 <input
                   type="text"
+                  name="id"
                   value={id}
                   onChange={(e) => setId(e.target.value)}
                   autoComplete="off"
@@ -182,6 +187,7 @@ export default function AdminLayout({
                 />
                 <input
                   type="password"
+                  name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="off"
@@ -196,7 +202,7 @@ export default function AdminLayout({
                 )}
                 <button
                   type="submit"
-                  disabled={submitting || !id.trim() || !password.trim()}
+                  disabled={submitting}
                   className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   {submitting ? "로그인 중..." : "로그인"}
