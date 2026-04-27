@@ -155,7 +155,7 @@ export function DetailGallery({
           onClick={() => setLightbox(null)}
         >
           <div
-            className="flex flex-col items-center gap-3 max-w-[90vw] w-full border border-[#111] rounded-xl p-4 bg-white"
+            className="flex flex-col items-center gap-2 max-w-[94vw] w-full border border-[#111] rounded-xl p-2 bg-white"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between w-full px-1">
@@ -212,7 +212,7 @@ export function DetailGallery({
             )}
 
             {lightboxImages.length > 1 && (
-              <div className="flex gap-1.5 overflow-x-auto py-1 px-2 max-w-full">
+              <div className="flex gap-1 overflow-x-auto max-w-full">
                 {lightboxImages.map((url, i) => (
                   <button
                     key={`${url}-${i}`}
@@ -222,7 +222,7 @@ export function DetailGallery({
                         ? setBeforeIndex(i)
                         : setAfterIndex(i)
                     }
-                    className={`relative w-[76px] h-[56px] shrink-0 rounded overflow-hidden border-2 transition-opacity ${
+                    className={`relative w-[88px] h-[64px] shrink-0 rounded overflow-hidden border-2 transition-opacity ${
                       i === lightboxIndex
                         ? "border-[#111] opacity-100"
                         : "border-transparent opacity-60 hover:opacity-90"
@@ -232,7 +232,7 @@ export function DetailGallery({
                       src={url}
                       alt={`썸네일 ${i + 1}`}
                       fill
-                      sizes="76px"
+                      sizes="88px"
                       className="object-cover"
                       quality={50}
                       loading="eager"
