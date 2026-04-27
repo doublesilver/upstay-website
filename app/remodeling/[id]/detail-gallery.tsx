@@ -222,7 +222,7 @@ export function DetailGallery({
                         ? setBeforeIndex(i)
                         : setAfterIndex(i)
                     }
-                    className={`relative w-[60px] h-[44px] shrink-0 rounded overflow-hidden border-2 transition-opacity ${
+                    className={`relative w-[76px] h-[56px] shrink-0 rounded overflow-hidden border-2 transition-opacity ${
                       i === lightboxIndex
                         ? "border-[#111] opacity-100"
                         : "border-transparent opacity-60 hover:opacity-90"
@@ -232,7 +232,7 @@ export function DetailGallery({
                       src={url}
                       alt={`썸네일 ${i + 1}`}
                       fill
-                      sizes="60px"
+                      sizes="76px"
                       className="object-cover"
                       quality={50}
                       loading="eager"
