@@ -98,7 +98,7 @@ export function DetailGallery({
   return (
     <div className="h-full min-h-0 flex flex-col gap-2 md:gap-3">
       {(beforeImages.length > 0 || afterImages.length > 0) && (
-        <div className="flex-1 min-h-0 border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row gap-2 md:gap-3">
+        <div className="flex-1 min-h-0 border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row lg:flex-row gap-2 md:gap-3">
           {beforeImages.length > 0 && (
             <GallerySection
               title="Before (전)"
@@ -114,7 +114,7 @@ export function DetailGallery({
           )}
 
           {beforeImages.length > 0 && afterImages.length > 0 && (
-            <div className="h-px landscape:h-auto landscape:w-px bg-[#E5E7EB] shrink-0" />
+            <div className="h-px landscape:h-auto landscape:w-px lg:h-auto lg:w-px bg-[#E5E7EB] shrink-0" />
           )}
 
           {afterImages.length > 0 && (
@@ -133,7 +133,7 @@ export function DetailGallery({
         </div>
       )}
 
-      <div className="shrink-0 border border-black rounded-lg flex max-h-[20svh] overflow-hidden">
+      <div className="shrink-0 border border-black rounded-lg flex max-h-[20svh] overflow-hidden lg:hidden">
         <div className="shrink-0 flex flex-col items-center justify-center px-2 py-2 text-[12px] text-[#111] font-bold leading-[1.2]">
           <span>설</span>
           <span>명</span>
