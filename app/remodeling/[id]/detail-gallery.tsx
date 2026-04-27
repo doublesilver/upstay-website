@@ -242,15 +242,35 @@ function LightboxColumn({
           placeholder="blur"
           blurDataURL={blurDataURL()}
         />
+        {images.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={onPrev}
+              aria-label="이전 사진"
+              className="hidden lg:flex absolute left-2 top-1/2 -translate-y-1/2 w-10 h-24 rounded bg-[#F1F8E9]/90 border border-[#111] items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+            >
+              &#9664;
+            </button>
+            <button
+              type="button"
+              onClick={onNext}
+              aria-label="다음 사진"
+              className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 w-10 h-24 rounded bg-[#F1F8E9]/90 border border-[#111] items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+            >
+              &#9654;
+            </button>
+          </>
+        )}
       </div>
 
       {images.length > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2 lg:hidden">
           <button
             type="button"
             onClick={onPrev}
             aria-label="이전 사진"
-            className="w-12 h-8 lg:w-10 lg:h-24 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+            className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
           >
             &#9664;
           </button>
@@ -259,7 +279,7 @@ function LightboxColumn({
             type="button"
             onClick={onNext}
             aria-label="다음 사진"
-            className="w-12 h-8 lg:w-10 lg:h-24 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+            className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
           >
             &#9654;
           </button>
