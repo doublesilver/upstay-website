@@ -3,8 +3,11 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 
+const KAKAO_ID = "mh.0624";
+
 export function KakaoButton() {
   const [showKakaoInfo, setShowKakaoInfo] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!showKakaoInfo) return;
@@ -19,6 +22,21 @@ export function KakaoButton() {
       window.removeEventListener("keydown", handleKey);
     };
   }, [showKakaoInfo]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(false), 1500);
+    return () => clearTimeout(t);
+  }, [copied]);
+
+  const handleCopyId = async () => {
+    try {
+      await navigator.clipboard.writeText(KAKAO_ID);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   return (
     <>
@@ -39,28 +57,39 @@ export function KakaoButton() {
 
       {showKakaoInfo && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
           onClick={() => setShowKakaoInfo(false)}
           role="dialog"
           aria-modal="true"
-          aria-label="카카오톡 문의"
+          aria-label="카카오톡 친구추가"
         >
           <div
-            className="bg-white rounded-xl p-6 max-w-[320px] mx-4 text-center"
+            className="bg-[#F5F5E7] rounded-2xl p-5 w-full max-w-[320px]"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold text-[#111] mb-3">카카오톡 ID</h2>
-            <p className="text-sm text-[#555] mb-4">친구추가 후 문의주세요</p>
-            <div className="border border-[#111] rounded-lg p-3 text-center mb-4">
-              <span className="text-xl font-bold text-[#111]">mh.0624</span>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <span className="inline-flex w-5 h-5 rounded-full bg-[#06C755] text-white text-[11px] font-bold items-center justify-center">
+                ✓
+              </span>
+              <h2 className="text-[15px] font-medium text-[#111]">
+                카카오톡 친구추가
+              </h2>
             </div>
-            <div className="mx-3 h-px bg-[#E5E5E5] mb-4" />
+
+            <button
+              type="button"
+              onClick={handleCopyId}
+              className="w-full bg-white border border-[#DDD] rounded-lg py-3 px-4 mb-2 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition"
+            >
+              {copied ? "복사됨" : `ID: ${KAKAO_ID}`}
+            </button>
+
             <button
               type="button"
               onClick={() => setShowKakaoInfo(false)}
-              className="w-full bg-[#111] text-white py-3 rounded-lg font-semibold"
+              className="w-full bg-[#111] text-white rounded-lg py-3 text-[14px] font-medium hover:bg-[#333] transition"
             >
-              확인
+              닫기
             </button>
           </div>
         </div>
