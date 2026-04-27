@@ -53,7 +53,7 @@ export function Header({ config }: { config?: Record<string, string> }) {
               </span>
             ))}
           </nav>
-          <p className="mt-0 text-[11.5px] md:text-[13px] text-[#9CA3AF] tracking-tight [@media(max-width:380px)]:hidden">
+          <p className="mt-0 text-[11.5px] md:text-[13px] text-[#9CA3AF] tracking-tight [@media(max-width:380px)]:hidden lg:text-justify lg:[text-align-last:justify] lg:after:content-[''] lg:after:inline-block lg:after:w-full">
             {config?.slogan_text || SLOGAN}
           </p>
         </div>

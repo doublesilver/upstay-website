@@ -35,7 +35,7 @@ export function Footer({ config = {} }: { config?: Record<string, string> }) {
   return (
     <footer className="bg-[#F1F8E9] border-t border-[#111]">
       <Container className="py-6 md:py-8 text-[11px] md:text-[12px] text-[#4B5563] leading-7">
-        <table className="border-collapse">
+        <table className="border-collapse lg:mx-auto">
           <tbody>
             <tr>
               <td className="pr-1">·</td>

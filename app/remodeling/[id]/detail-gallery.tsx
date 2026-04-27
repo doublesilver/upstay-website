@@ -155,7 +155,7 @@ export function DetailGallery({
           onClick={() => setLightbox(null)}
         >
           <div
-            className="flex flex-col items-center gap-2 max-w-[94vw] w-full border border-[#111] rounded-xl p-2 bg-white"
+            className="flex flex-col items-center gap-2 max-w-[94vw] w-full lg:max-w-[720px] border border-[#111] rounded-xl p-2 bg-white"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between w-full px-1">
@@ -172,12 +172,12 @@ export function DetailGallery({
               </button>
             </div>
 
-            <div className="relative w-[85vw] aspect-[4/3] max-h-[70vh] overflow-hidden rounded">
+            <div className="relative w-[85vw] aspect-[4/3] max-h-[70vh] lg:w-full lg:max-h-[60vh] overflow-hidden rounded">
               <ProtectedImage
                 src={lightboxImages[lightboxIndex]}
                 alt={`라이트박스 ${lightboxIndex + 1}`}
                 fill
-                sizes="85vw"
+                sizes="(min-width: 1024px) 720px, 85vw"
                 className="object-cover"
                 quality={85}
                 placeholder="blur"
