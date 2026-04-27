@@ -231,12 +231,12 @@ function LightboxColumn({
         </span>
       </div>
 
-      <div className="relative w-full aspect-[4/3] overflow-hidden rounded">
+      <div className="relative w-full aspect-[4/3] lg:aspect-[3/4] overflow-hidden rounded">
         <ProtectedImage
           src={images[activeIndex]}
           alt={`${label} ${activeIndex + 1}`}
           fill
-          sizes="(min-width: 1024px) 500px, 85vw"
+          sizes="(min-width: 1024px) 450px, 85vw"
           className="object-cover"
           quality={85}
           placeholder="blur"
