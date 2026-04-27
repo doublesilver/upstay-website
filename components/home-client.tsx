@@ -83,7 +83,6 @@ export function HomeClient({
     setShowPopup(true);
   }, [initialAnnouncements.length]);
 
-  const photoGuideVisible = initialConfig.photo_guide_visible !== "0";
   const photoGuideStyle = styleToCss(
     parseStyle(initialConfig.photo_guide_style),
   );
@@ -97,24 +96,22 @@ export function HomeClient({
       <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
           <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
-            {photoGuideVisible && (
-              <div className="shrink-0 flex items-end justify-between gap-3">
-                <Link
-                  href="/remodeling"
-                  className="inline-block bg-white border border-[#ccc] rounded px-1 py-px hover:border-[#999] transition-colors"
+            <div className="shrink-0 flex items-end justify-between gap-3">
+              <Link
+                href="/remodeling"
+                className="inline-block bg-white border border-[#ccc] rounded px-1 py-px hover:border-[#999] transition-colors"
+              >
+                <h2
+                  className="text-[12px] md:text-[18px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
+                  style={photoGuideStyle}
                 >
-                  <h2
-                    className="text-[12px] md:text-[18px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
-                    style={photoGuideStyle}
-                  >
-                    {photoGuideTitle} →
-                  </h2>
-                </Link>
-                <span className="text-[9px] md:text-[12px] text-[#888] font-medium shrink-0 mt-0 relative top-[4px]">
-                  ( {photoGuideCaption} )
-                </span>
-              </div>
-            )}
+                  {photoGuideTitle} →
+                </h2>
+              </Link>
+              <span className="text-[9px] md:text-[12px] text-[#888] font-medium shrink-0 mt-0 relative top-[4px]">
+                ( {photoGuideCaption} )
+              </span>
+            </div>
 
             <div className="shrink-0 mt-2 h-px bg-[#E5E5E5]" />
 

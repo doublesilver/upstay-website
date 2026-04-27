@@ -182,20 +182,12 @@ export default function ConfigPage() {
         </section>
 
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <div className="flex items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-6">
             <h2 className="text-[16px] font-bold text-[#111]">
               • 사진안내 카테고리
             </h2>
-            <VisibilityToggle
-              visible={config.photo_guide_visible !== "0"}
-              onToggle={() => toggleVisible("photo_guide_visible")}
-            />
           </div>
-          <div
-            className={`space-y-5 transition-opacity ${
-              config.photo_guide_visible === "0" ? "opacity-50" : ""
-            }`}
-          >
+          <div className="space-y-5">
             <div>
               <StyleToolbar
                 value={getStyle("photo_guide_style")}
