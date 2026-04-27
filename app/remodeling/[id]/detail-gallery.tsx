@@ -222,7 +222,7 @@ export function DetailGallery({
                         ? setBeforeIndex(i)
                         : setAfterIndex(i)
                     }
-                    className={`relative w-12 h-9 shrink-0 rounded overflow-hidden border-2 transition-opacity ${
+                    className={`relative w-[60px] h-[44px] shrink-0 rounded overflow-hidden border-2 transition-opacity ${
                       i === lightboxIndex
                         ? "border-[#111] opacity-100"
                         : "border-transparent opacity-60 hover:opacity-90"
@@ -232,7 +232,7 @@ export function DetailGallery({
                       src={url}
                       alt={`썸네일 ${i + 1}`}
                       fill
-                      sizes="48px"
+                      sizes="60px"
                       className="object-cover"
                       quality={50}
                       loading="eager"
@@ -392,7 +392,7 @@ function ThumbnailStrip({
             key={`${url}-${index}`}
             type="button"
             onClick={() => onChange(index)}
-            className={`relative w-[68px] h-[52px] shrink-0 border rounded-lg overflow-hidden bg-[#F1F8E9] ${
+            className={`relative w-[84px] h-[64px] shrink-0 border rounded-lg overflow-hidden bg-[#F1F8E9] ${
               index === activeIndex
                 ? "border-2 border-[#111]"
                 : "border border-[#ccc]"
@@ -402,7 +402,7 @@ function ThumbnailStrip({
               src={url}
               alt={`${altPrefix} ${index + 1}`}
               fill
-              sizes="68px"
+              sizes="84px"
               className="object-cover"
               quality={70}
               loading="eager"
