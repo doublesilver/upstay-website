@@ -4,10 +4,17 @@ import { ProtectedImage } from "@/components/protected-image";
 import Link from "next/link";
 import { blurDataURL } from "@/lib/shimmer";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import dynamic from "next/dynamic";
 import { Container } from "@/components/container";
 import { ServiceSections } from "@/components/service-sections";
 import { Footer } from "@/components/footer";
 import type { RemodelingCase, Announcement } from "@/lib/home-data";
+
+const AnnouncementPopup = dynamic(
+  () =>
+    import("@/components/announcement-popup").then((m) => m.AnnouncementPopup),
+  { ssr: false },
+);
 
 interface Props {
   initialCases: RemodelingCase[];
@@ -27,22 +34,6 @@ function parseStyle(json?: string): TextStyle {
   } catch {
     return {};
   }
-}
-
-function renderPopupContent(text: string): React.ReactNode {
-  const lines = text.split("\n");
-  const nodes: React.ReactNode[] = [];
-  lines.forEach((line, i) => {
-    const tokens = line.split(/(\*\*.+?\*\*)/).map((token, j) => {
-      if (token.startsWith("**") && token.endsWith("**") && token.length >= 4) {
-        return <strong key={`b-${i}-${j}`}>{token.slice(2, -2)}</strong>;
-      }
-      return <span key={`t-${i}-${j}`}>{token}</span>;
-    });
-    nodes.push(<span key={`l-${i}`}>{tokens}</span>);
-    if (i < lines.length - 1) nodes.push(<br key={`br-${i}`} />);
-  });
-  return nodes;
 }
 
 function styleToCss(style: TextStyle): CSSProperties {
@@ -181,74 +172,11 @@ export function HomeClient({
       </section>
 
       {showPopup && initialAnnouncements.length > 0 && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          onClick={() => setShowPopup(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="popup-dialog-title"
-            onClick={(e) => e.stopPropagation()}
-            className="bg-[#F1F8E9] rounded-xl shadow-lg w-[90%] max-w-[320px] mx-4 p-5"
-          >
-            <h2 id="popup-dialog-title" className="sr-only">
-              공지 팝업
-            </h2>
-            {initialAnnouncements.map((a) => (
-              <div
-                key={a.id}
-                className="bg-white border border-[#111] rounded-xl overflow-hidden mb-4"
-              >
-                {a.title && (
-                  <>
-                    <div className="px-4 pt-3.5 pb-3 text-[14px] font-medium text-[#111]">
-                      {a.title}
-                    </div>
-                    <div className="mx-4 h-px bg-[#E5E5E5]" />
-                  </>
-                )}
-                <div className="px-4 pt-3.5 pb-4 text-[13px] text-[#333] leading-[1.7] min-h-[100px]">
-                  {renderPopupContent(a.content)}
-                </div>
-              </div>
-            ))}
-            <div className="h-px bg-[#E5E5E5] my-3" />
-            <div>
-              <button
-                ref={closeBtnRef}
-                onClick={() => {
-                  const durations = initialAnnouncements.map(
-                    (a) => a.dismiss_duration || "none",
-                  );
-                  let duration = "none";
-                  if (durations.includes("forever")) duration = "forever";
-                  else if (durations.includes("week")) duration = "week";
-                  else if (durations.includes("day")) duration = "day";
-
-                  if (duration === "day") {
-                    localStorage.setItem(
-                      "popup_dismiss_until",
-                      new Date(Date.now() + 86400000).toISOString(),
-                    );
-                  } else if (duration === "week") {
-                    localStorage.setItem(
-                      "popup_dismiss_until",
-                      new Date(Date.now() + 604800000).toISOString(),
-                    );
-                  } else if (duration === "forever") {
-                    localStorage.setItem("popup_dismiss_until", "forever");
-                  }
-
-                  setShowPopup(false);
-                }}
-                className="w-full py-3 bg-[#111] text-white rounded-lg text-[14px] font-medium"
-              >
-                닫기
-              </button>
-            </div>
-          </div>
-        </div>
+        <AnnouncementPopup
+          announcements={initialAnnouncements}
+          closeBtnRef={closeBtnRef}
+          onClose={() => setShowPopup(false)}
+        />
       )}
     </div>
   );
@@ -281,13 +209,13 @@ function GalleryGrid({
               alt={`${title || "리모델링 사례"} ${label} ${index + 1}번 사진`}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 45vw, 20vw"
+              sizes="(max-width: 768px) 45vw, 18vw"
               quality={70}
               placeholder="blur"
               blurDataURL={blurDataURL()}
               {...(caseIndex === 0 && index === 0 && label === "Before"
                 ? { priority: true, fetchPriority: "high" }
-                : {})}
+                : { loading: "lazy" })}
             />
           </div>
         ))}

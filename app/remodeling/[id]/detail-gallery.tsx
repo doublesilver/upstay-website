@@ -236,12 +236,45 @@ export function DetailGallery({
                       sizes="20vw"
                       className="object-cover"
                       quality={50}
-                      loading="eager"
+                      loading="lazy"
                     />
                   </button>
                 ))}
               </div>
             )}
+
+            <div className="hidden" aria-hidden="true">
+              {lightboxImages[
+                (lightboxIndex - 1 + lightboxImages.length) %
+                  lightboxImages.length
+              ] && (
+                <ProtectedImage
+                  src={
+                    lightboxImages[
+                      (lightboxIndex - 1 + lightboxImages.length) %
+                        lightboxImages.length
+                    ]
+                  }
+                  alt=""
+                  fill
+                  sizes="85vw"
+                  quality={85}
+                  loading="eager"
+                />
+              )}
+              {lightboxImages[(lightboxIndex + 1) % lightboxImages.length] && (
+                <ProtectedImage
+                  src={
+                    lightboxImages[(lightboxIndex + 1) % lightboxImages.length]
+                  }
+                  alt=""
+                  fill
+                  sizes="85vw"
+                  quality={85}
+                  loading="eager"
+                />
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -407,7 +440,7 @@ function ThumbnailStrip({
               sizes="20vw"
               className="object-cover"
               quality={70}
-              loading="eager"
+              loading="lazy"
             />
           </button>
         ))}
