@@ -263,7 +263,14 @@ export function ImageEditModal({
     if (!current) return;
     setSaving("one");
     const blob = await renderToBlob(current.image_url, logoImg, settings);
-    if (blob) await onApplyOne(current.id, blob);
+    if (blob === null) {
+      alert(
+        "워터마크 합성 실패: 이미지 로드 차단(CORS)일 수 있습니다. 새로고침 후 다시 시도해주세요.",
+      );
+      setSaving(null);
+      return;
+    }
+    await onApplyOne(current.id, blob);
     setSaving(null);
   };
 
@@ -274,7 +281,11 @@ export function ImageEditModal({
       async (id) => {
         const image = images.find((item) => item.id === id);
         if (!image) return null;
-        return renderToBlob(image.image_url, logoImg, settings);
+        const blob = await renderToBlob(image.image_url, logoImg, settings);
+        if (blob === null) {
+          console.warn(`이미지 합성 실패 (id=${id}): CORS 차단 가능성`);
+        }
+        return blob;
       },
     );
     setSaving(null);
