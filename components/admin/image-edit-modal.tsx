@@ -30,6 +30,7 @@ interface Props {
     getBlob: (imageId: number) => Promise<Blob | null>,
   ) => Promise<void> | void;
   onCancel: () => void;
+  onError?: (message: string) => void;
 }
 
 const DEFAULT_SETTINGS: EditSettings = {
@@ -180,6 +181,7 @@ export function ImageEditModal({
   onApplyOne,
   onApplyAll,
   onCancel,
+  onError,
 }: Props) {
   const [currentId, setCurrentId] = useState(initialImageId);
   const [settings, setSettings] = useState<EditSettings>(DEFAULT_SETTINGS);
@@ -207,6 +209,26 @@ export function ImageEditModal({
   useEffect(() => {
     closeBtnRef.current?.focus();
   }, []);
+
+  const posCalibratedRef = useRef(false);
+  useEffect(() => {
+    if (posCalibratedRef.current) return;
+    if (!logoImg || !previewRef.current) return;
+    if (settings.wmAnchor !== "c") return;
+    const aspect = logoImg.height / logoImg.width;
+    const imageAspect = getImageAspect(previewRef.current);
+    if (imageAspect <= 0) return;
+    const newPos = posFromAnchor("c", settings.wmScale, aspect, imageAspect);
+    setSettings((prev) =>
+      prev.wmAnchor === "c"
+        ? {
+            ...prev,
+            wmPos: clampWmPos(newPos, prev.wmScale, aspect, imageAspect),
+          }
+        : prev,
+    );
+    posCalibratedRef.current = true;
+  }, [logoImg, settings.wmAnchor, settings.wmScale]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -264,9 +286,10 @@ export function ImageEditModal({
     setSaving("one");
     const blob = await renderToBlob(current.image_url, logoImg, settings);
     if (blob === null) {
-      alert(
-        "워터마크 합성 실패: 이미지 로드 차단(CORS)일 수 있습니다. 새로고침 후 다시 시도해주세요.",
-      );
+      const msg =
+        "워터마크 합성 실패: 이미지 로드 차단(CORS)일 수 있습니다. 새로고침 후 다시 시도해주세요.";
+      if (onError) onError(msg);
+      else alert(msg);
       setSaving(null);
       return;
     }

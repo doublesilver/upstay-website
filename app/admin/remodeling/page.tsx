@@ -1279,7 +1279,11 @@ export default function RemodelingAdminPage() {
             for (const id of ids) {
               try {
                 const blob = await getBlob(id);
-                if (!blob) continue;
+                if (!blob) {
+                  if (!failMsg)
+                    failMsg = "워터마크 합성 실패 (CORS 차단 가능성)";
+                  continue;
+                }
                 const url = await uploadFile(blob);
                 await saveImage({ id, image_url_wm: url });
                 success += 1;
@@ -1297,6 +1301,7 @@ export default function RemodelingAdminPage() {
             }
             setEditorSection(null);
           }}
+          onError={(msg) => flash(msg)}
           onCancel={() => setEditorSection(null)}
         />
       )}
