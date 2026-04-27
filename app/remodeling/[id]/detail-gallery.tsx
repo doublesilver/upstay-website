@@ -138,7 +138,7 @@ export function DetailGallery({
           <span>설</span>
           <span>명</span>
         </div>
-        <div className="w-px bg-[#D1D5DB] shrink-0" />
+        <div className="w-px bg-[#D1D5DB] shrink-0 my-2" />
         <div className="flex-1 min-w-0 px-3 py-2 overflow-y-auto">
           <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.5] whitespace-pre-wrap">
             {title || "-"}
