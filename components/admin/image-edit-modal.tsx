@@ -9,12 +9,15 @@ export interface EditableImage {
   image_url_wm?: string;
 }
 
+export type WmAnchor = "tl" | "t" | "tr" | "l" | "c" | "r" | "bl" | "b" | "br";
+
 export interface EditSettings {
   sharpness: number;
   brightness: number;
   wmOpacity: number;
   wmScale: number;
   wmPos: { x: number; y: number };
+  wmAnchor: WmAnchor;
 }
 
 interface Props {
@@ -35,19 +38,59 @@ const DEFAULT_SETTINGS: EditSettings = {
   wmOpacity: 50,
   wmScale: 20,
   wmPos: { x: 0.4, y: 0.4 },
+  wmAnchor: "c",
 };
 
-const POS_GRID = [
-  { label: "↖", x: 0.15, y: 0.12 },
-  { label: "↑", x: 0.5, y: 0.12 },
-  { label: "↗", x: 0.85, y: 0.12 },
-  { label: "←", x: 0.15, y: 0.5 },
-  { label: "•", x: 0.5, y: 0.5 },
-  { label: "→", x: 0.85, y: 0.5 },
-  { label: "↙", x: 0.15, y: 0.88 },
-  { label: "↓", x: 0.5, y: 0.88 },
-  { label: "↘", x: 0.85, y: 0.88 },
+const ANCHOR_INSET = 0.01;
+
+const POS_GRID: { label: string; anchor: WmAnchor }[] = [
+  { label: "↖", anchor: "tl" },
+  { label: "↑", anchor: "t" },
+  { label: "↗", anchor: "tr" },
+  { label: "←", anchor: "l" },
+  { label: "•", anchor: "c" },
+  { label: "→", anchor: "r" },
+  { label: "↙", anchor: "bl" },
+  { label: "↓", anchor: "b" },
+  { label: "↘", anchor: "br" },
 ];
+
+function posFromAnchor(
+  anchor: WmAnchor,
+  wmScale: number,
+  logoAspect: number,
+  imageAspect: number,
+): { x: number; y: number } {
+  const wmW = wmScale / 100;
+  const wmH = (wmScale / 100) * logoAspect * imageAspect;
+  const inset = ANCHOR_INSET;
+  const left = inset;
+  const right = Math.max(inset, 1 - wmW - inset);
+  const cx = (1 - wmW) / 2;
+  const top = inset;
+  const bottom = Math.max(inset, 1 - wmH - inset);
+  const cy = Math.max(0, (1 - wmH) / 2);
+  switch (anchor) {
+    case "tl":
+      return { x: left, y: top };
+    case "t":
+      return { x: cx, y: top };
+    case "tr":
+      return { x: right, y: top };
+    case "l":
+      return { x: left, y: cy };
+    case "c":
+      return { x: cx, y: cy };
+    case "r":
+      return { x: right, y: cy };
+    case "bl":
+      return { x: left, y: bottom };
+    case "b":
+      return { x: cx, y: bottom };
+    case "br":
+      return { x: right, y: bottom };
+  }
+}
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -196,6 +239,7 @@ export function ImageEditModal({
       const dy = ev.clientY - startClientY;
       setSettings((prev) => ({
         ...prev,
+        wmAnchor: "c",
         wmPos: clampWmPos(
           { x: startWmX + dx / previewW, y: startWmY + dy / previewH },
           prev.wmScale,
@@ -392,23 +436,17 @@ export function ImageEditModal({
                       const imageAspect = getImageAspect(previewRef.current);
                       const maxScale = maxAllowedScale(aspect, imageAspect);
                       const clampedScale = Math.min(value, maxScale);
-                      const oldWmW = prev.wmScale / 100;
-                      const oldWmH =
-                        (prev.wmScale / 100) * aspect * imageAspect;
-                      const newWmW = clampedScale / 100;
-                      const newWmH =
-                        (clampedScale / 100) * aspect * imageAspect;
-                      const centerX = prev.wmPos.x + oldWmW / 2;
-                      const centerY = prev.wmPos.y + oldWmH / 2;
-                      const anchoredX =
-                        centerX > 0.5 ? 1 - newWmW : centerX - newWmW / 2;
-                      const anchoredY =
-                        centerY > 0.5 ? 1 - newWmH : centerY - newWmH / 2;
+                      const newPos = posFromAnchor(
+                        prev.wmAnchor,
+                        clampedScale,
+                        aspect,
+                        imageAspect,
+                      );
                       return {
                         ...prev,
                         wmScale: clampedScale,
                         wmPos: clampWmPos(
-                          { x: anchoredX, y: anchoredY },
+                          newPos,
                           clampedScale,
                           aspect,
                           imageAspect,
@@ -424,17 +462,7 @@ export function ImageEditModal({
                   </label>
                   <div className="grid grid-cols-3 gap-1">
                     {POS_GRID.map((item) => {
-                      const wmAspect = logoImg
-                        ? logoImg.height / logoImg.width
-                        : 1;
-                      const imageAspect = getImageAspect(previewRef.current);
-                      const centerX = settings.wmPos.x + settings.wmScale / 200;
-                      const centerY =
-                        settings.wmPos.y +
-                        (settings.wmScale / 200) * wmAspect * imageAspect;
-                      const active =
-                        Math.abs(centerX - item.x) < 0.02 &&
-                        Math.abs(centerY - item.y) < 0.02;
+                      const active = settings.wmAnchor === item.anchor;
 
                       return (
                         <button
@@ -448,15 +476,16 @@ export function ImageEditModal({
                               const imageAspect = getImageAspect(
                                 previewRef.current,
                               );
-                              const wmHHalf =
-                                (prev.wmScale / 200) * aspect * imageAspect;
                               return {
                                 ...prev,
+                                wmAnchor: item.anchor,
                                 wmPos: clampWmPos(
-                                  {
-                                    x: item.x - prev.wmScale / 200,
-                                    y: item.y - wmHHalf,
-                                  },
+                                  posFromAnchor(
+                                    item.anchor,
+                                    prev.wmScale,
+                                    aspect,
+                                    imageAspect,
+                                  ),
                                   prev.wmScale,
                                   aspect,
                                   imageAspect,

@@ -203,7 +203,7 @@ export default function AdminLayout({
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="w-full bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-50 transition-all"
                 >
                   {submitting ? "로그인 중..." : "로그인"}
                 </button>

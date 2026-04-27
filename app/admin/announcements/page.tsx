@@ -177,14 +177,14 @@ export default function AnnouncementsAdminPage() {
             </h2>
             <div className="px-6 py-5 space-y-4">
               <div className="flex flex-col gap-3">
-                <input
-                  type="text"
+                <textarea
                   value={editing.title}
                   onChange={(e) =>
                     setEditing({ ...editing, title: e.target.value })
                   }
-                  placeholder="제목"
-                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] transition-colors"
+                  rows={1}
+                  placeholder="제목 (엔터키로 줄바꿈)"
+                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
                 />
                 <div className="h-px bg-[#E5E5E5]" />
                 <textarea
