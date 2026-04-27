@@ -184,7 +184,17 @@ export function ImageEditModal({
   onError,
 }: Props) {
   const [currentId, setCurrentId] = useState(initialImageId);
-  const [settings, setSettings] = useState<EditSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<EditSettings>(() => {
+    if (typeof window === "undefined") return DEFAULT_SETTINGS;
+    try {
+      const raw = localStorage.getItem("upstay-wm-settings");
+      if (!raw) return DEFAULT_SETTINGS;
+      const parsed = JSON.parse(raw) as Partial<EditSettings>;
+      return { ...DEFAULT_SETTINGS, ...parsed };
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -215,6 +225,13 @@ export function ImageEditModal({
     if (posCalibratedRef.current) return;
     if (!logoImg || !previewRef.current) return;
     if (settings.wmAnchor !== "c") return;
+    if (
+      settings.wmPos.x !== DEFAULT_SETTINGS.wmPos.x ||
+      settings.wmPos.y !== DEFAULT_SETTINGS.wmPos.y
+    ) {
+      posCalibratedRef.current = true;
+      return;
+    }
     const aspect = logoImg.height / logoImg.width;
     const imageAspect = getImageAspect(previewRef.current);
     if (imageAspect <= 0) return;
@@ -228,7 +245,7 @@ export function ImageEditModal({
         : prev,
     );
     posCalibratedRef.current = true;
-  }, [logoImg, settings.wmAnchor, settings.wmScale]);
+  }, [logoImg, settings.wmAnchor, settings.wmScale, settings.wmPos]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -239,7 +256,13 @@ export function ImageEditModal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onCancel]);
 
-  const reset = () => setSettings(DEFAULT_SETTINGS);
+  const reset = () => {
+    setSettings(DEFAULT_SETTINGS);
+    posCalibratedRef.current = false;
+    try {
+      localStorage.removeItem("upstay-wm-settings");
+    } catch {}
+  };
 
   const onWmPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -281,6 +304,12 @@ export function ImageEditModal({
     document.addEventListener("pointerup", up);
   };
 
+  const persistSettings = (s: EditSettings) => {
+    try {
+      localStorage.setItem("upstay-wm-settings", JSON.stringify(s));
+    } catch {}
+  };
+
   const applyOne = async () => {
     if (!current) return;
     setSaving("one");
@@ -294,6 +323,7 @@ export function ImageEditModal({
       return;
     }
     await onApplyOne(current.id, blob);
+    persistSettings(settings);
     setSaving(null);
   };
 
@@ -311,6 +341,7 @@ export function ImageEditModal({
         return blob;
       },
     );
+    persistSettings(settings);
     setSaving(null);
   };
 
