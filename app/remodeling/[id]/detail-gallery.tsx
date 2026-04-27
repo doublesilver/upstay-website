@@ -231,12 +231,12 @@ function LightboxColumn({
         </span>
       </div>
 
-      <div className="relative w-full aspect-[4/3] lg:aspect-[3/4] overflow-hidden rounded">
+      <div className="relative w-full aspect-[4/3] overflow-hidden rounded">
         <ProtectedImage
           src={images[activeIndex]}
           alt={`${label} ${activeIndex + 1}`}
           fill
-          sizes="(min-width: 1024px) 450px, 85vw"
+          sizes="(min-width: 1024px) 500px, 85vw"
           className="object-cover"
           quality={85}
           placeholder="blur"
@@ -250,7 +250,7 @@ function LightboxColumn({
             type="button"
             onClick={onPrev}
             aria-label="이전 사진"
-            className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+            className="w-12 h-8 lg:w-10 lg:h-24 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
           >
             &#9664;
           </button>
@@ -259,7 +259,7 @@ function LightboxColumn({
             type="button"
             onClick={onNext}
             aria-label="다음 사진"
-            className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+            className="w-12 h-8 lg:w-10 lg:h-24 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
           >
             &#9654;
           </button>

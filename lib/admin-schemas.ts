@@ -43,6 +43,17 @@ export const imageSlotSchema = z.object({
   slot_position: z.number().int().min(0).max(4).optional(),
   match_order: z.number().int().optional(),
   is_starred: z.number().int().min(0).max(1).optional(),
+  image_url: z
+    .string()
+    .regex(/^(\/api\/uploads\/[\w.-]+|https?:\/\/.+)$/, "잘못된 image_url 형식")
+    .optional(),
+  image_url_wm: z
+    .string()
+    .regex(
+      /^(\/api\/uploads\/[\w.-]+|https?:\/\/.+)$/,
+      "잘못된 image_url_wm 형식",
+    )
+    .optional(),
 });
 
 export const configUpdateSchema = z.record(z.string(), z.unknown());
