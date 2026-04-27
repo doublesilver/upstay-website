@@ -601,15 +601,15 @@ function SortableCase({
           <div className="border-t border-[#111]" />
 
           <div className="flex items-start gap-3">
-            <label className="text-[13px] font-medium text-[#333] shrink-0 pt-2">
+            <label className="text-[13px] font-medium text-[#333] shrink-0 pt-1.5">
               내용
             </label>
             <textarea
               value={item.title}
               onChange={(e) => onTitleChange(item.id, e.target.value)}
-              placeholder="설명을 입력해 주세요&#10;엔터키로 줄바꿈 가능"
-              rows={3}
-              className="flex-1 text-[14px] text-[#111] outline-none border border-[#111] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#111]/70 resize-y min-h-[64px]"
+              placeholder="설명을 입력해 주세요 (엔터키로 줄바꿈)"
+              rows={1}
+              className="flex-1 text-[14px] text-[#111] outline-none border border-[#111] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#111]/70 resize-y"
             />
           </div>
         </div>
