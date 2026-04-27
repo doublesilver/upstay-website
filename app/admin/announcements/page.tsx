@@ -240,7 +240,7 @@ export default function AnnouncementsAdminPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setEditing(null)}
-                  className="px-5 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
+                  className="px-5 py-2.5 rounded-xl text-[14px] text-[#666] border border-[#111] hover:bg-[#F7F7F7] transition-all"
                 >
                   취소
                 </button>

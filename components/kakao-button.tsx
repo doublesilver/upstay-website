@@ -49,15 +49,12 @@ export function KakaoButton() {
             className="bg-white rounded-xl p-6 max-w-[320px] mx-4 text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold text-[#111] mb-3">
-              카카오톡 문의
-            </h2>
-            <p className="text-sm text-[#555] mb-4">
-              카카오톡에서 아래 아이디로 검색해 친구 추가 후 대화해주세요
-            </p>
-            <div className="border border-[#111] rounded-lg p-3 text-center mb-5">
+            <h2 className="text-lg font-bold text-[#111] mb-3">카카오톡 ID</h2>
+            <p className="text-sm text-[#555] mb-4">친구추가 후 문의주세요</p>
+            <div className="border border-[#111] rounded-lg p-3 text-center mb-4">
               <span className="text-xl font-bold text-[#111]">mh.0624</span>
             </div>
+            <div className="mx-3 h-px bg-[#E5E5E5] mb-4" />
             <button
               type="button"
               onClick={() => setShowKakaoInfo(false)}

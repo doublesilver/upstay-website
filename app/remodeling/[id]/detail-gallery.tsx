@@ -231,6 +231,8 @@ function LightboxColumn({
         </span>
       </div>
 
+      <div className="w-full h-px bg-[#E5E5E5]" />
+
       <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2">
         {images.length > 1 && (
           <button
