@@ -212,7 +212,7 @@ export function DetailGallery({
             )}
 
             {lightboxImages.length > 1 && (
-              <div className="flex gap-1 overflow-x-auto max-w-full">
+              <div className="flex gap-1 overflow-x-auto w-full">
                 {lightboxImages.map((url, i) => (
                   <button
                     key={`${url}-${i}`}
@@ -222,7 +222,8 @@ export function DetailGallery({
                         ? setBeforeIndex(i)
                         : setAfterIndex(i)
                     }
-                    className={`relative w-[88px] h-[64px] shrink-0 rounded overflow-hidden border-2 transition-opacity ${
+                    style={{ width: "calc((100% - 16px) / 5)" }}
+                    className={`relative shrink-0 aspect-[4/3] rounded overflow-hidden border-2 transition-opacity ${
                       i === lightboxIndex
                         ? "border-[#111] opacity-100"
                         : "border-transparent opacity-60 hover:opacity-90"
@@ -232,7 +233,7 @@ export function DetailGallery({
                       src={url}
                       alt={`썸네일 ${i + 1}`}
                       fill
-                      sizes="88px"
+                      sizes="20vw"
                       className="object-cover"
                       quality={50}
                       loading="eager"
@@ -385,14 +386,15 @@ function ThumbnailStrip({
     <div className="relative">
       <div
         ref={scrollRef}
-        className="flex gap-1.5 overflow-x-auto scrollbar-hide"
+        className="flex gap-1 overflow-x-auto scrollbar-hide w-full"
       >
         {images.map((url, index) => (
           <button
             key={`${url}-${index}`}
             type="button"
             onClick={() => onChange(index)}
-            className={`relative w-[84px] h-[64px] shrink-0 border rounded-lg overflow-hidden bg-[#F1F8E9] ${
+            style={{ width: "calc((100% - 16px) / 5)" }}
+            className={`relative shrink-0 aspect-[4/3] rounded-lg overflow-hidden bg-[#F1F8E9] ${
               index === activeIndex
                 ? "border-2 border-[#111]"
                 : "border border-[#ccc]"
@@ -402,7 +404,7 @@ function ThumbnailStrip({
               src={url}
               alt={`${altPrefix} ${index + 1}`}
               fill
-              sizes="84px"
+              sizes="20vw"
               className="object-cover"
               quality={70}
               loading="eager"
