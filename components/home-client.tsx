@@ -166,9 +166,6 @@ export function HomeClient({
                   </div>
                 );
               })}
-              {initialCases.slice(0, 3).length > 0 && (
-                <div className="h-px bg-[#E5E5E5] my-3 md:my-4" />
-              )}
             </div>
           </div>
         </Container>
