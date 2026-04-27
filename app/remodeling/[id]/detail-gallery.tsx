@@ -231,36 +231,38 @@ function LightboxColumn({
         </span>
       </div>
 
-      <div className="relative w-full aspect-[4/3] overflow-hidden rounded">
-        <ProtectedImage
-          src={images[activeIndex]}
-          alt={`${label} ${activeIndex + 1}`}
-          fill
-          sizes="(min-width: 1024px) 500px, 85vw"
-          className="object-cover"
-          quality={85}
-          placeholder="blur"
-          blurDataURL={blurDataURL()}
-        />
+      <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2">
         {images.length > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={onPrev}
-              aria-label="이전 사진"
-              className="hidden lg:flex absolute left-2 top-1/2 -translate-y-1/2 w-10 h-24 rounded bg-[#F1F8E9]/90 border border-[#111] items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
-            >
-              &#9664;
-            </button>
-            <button
-              type="button"
-              onClick={onNext}
-              aria-label="다음 사진"
-              className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 w-10 h-24 rounded bg-[#F1F8E9]/90 border border-[#111] items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
-            >
-              &#9654;
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={onPrev}
+            aria-label="이전 사진"
+            className="hidden lg:flex shrink-0 w-10 h-24 rounded bg-[#F1F8E9] border border-[#111] items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+          >
+            &#9664;
+          </button>
+        )}
+        <div className="relative w-full lg:flex-1 aspect-[4/3] overflow-hidden rounded">
+          <ProtectedImage
+            src={images[activeIndex]}
+            alt={`${label} ${activeIndex + 1}`}
+            fill
+            sizes="(min-width: 1024px) 450px, 85vw"
+            className="object-cover"
+            quality={85}
+            placeholder="blur"
+            blurDataURL={blurDataURL()}
+          />
+        </div>
+        {images.length > 1 && (
+          <button
+            type="button"
+            onClick={onNext}
+            aria-label="다음 사진"
+            className="hidden lg:flex shrink-0 w-10 h-24 rounded bg-[#F1F8E9] border border-[#111] items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+          >
+            &#9654;
+          </button>
         )}
       </div>
 
