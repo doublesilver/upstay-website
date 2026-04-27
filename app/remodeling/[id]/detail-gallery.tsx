@@ -172,17 +172,18 @@ export function DetailGallery({
               </button>
             </div>
 
-            <ProtectedImage
-              src={lightboxImages[lightboxIndex]}
-              alt={`라이트박스 ${lightboxIndex + 1}`}
-              width={2000}
-              height={1500}
-              sizes="85vw"
-              className="max-w-[85vw] max-h-[65vh] w-auto h-auto object-contain"
-              quality={85}
-              placeholder="blur"
-              blurDataURL={blurDataURL()}
-            />
+            <div className="relative w-[85vw] aspect-[4/3] max-h-[70vh] overflow-hidden rounded">
+              <ProtectedImage
+                src={lightboxImages[lightboxIndex]}
+                alt={`라이트박스 ${lightboxIndex + 1}`}
+                fill
+                sizes="85vw"
+                className="object-cover"
+                quality={85}
+                placeholder="blur"
+                blurDataURL={blurDataURL()}
+              />
+            </div>
 
             {lightboxImages.length > 1 && (
               <div className="flex items-center gap-2">
