@@ -1,10 +1,39 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { Container } from "@/components/container";
 import { KakaoButton } from "@/components/kakao-button";
 import { navItems, PHONE_URL, SLOGAN } from "@/lib/site";
 
 export function Header({ config }: { config?: Record<string, string> }) {
+  const navRef = useRef<HTMLElement>(null);
+  const [navWidth, setNavWidth] = useState<number | null>(null);
+  const [isLg, setIsLg] = useState(false);
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const update = () => setNavWidth(el.offsetWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsLg(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsLg(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   return (
     <header className="sticky top-0 z-40 bg-[#F1F8E9] border-b border-[#111]">
       <Container className="h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4">
@@ -34,8 +63,9 @@ export function Header({ config }: { config?: Record<string, string> }) {
         {/* 네비게이션 + 슬로건 (가운데) */}
         <div className="flex-1 min-w-0 text-center">
           <nav
+            ref={navRef}
             aria-label="주요 메뉴"
-            className="flex items-center justify-center gap-0.5 md:gap-2.5"
+            className="inline-flex items-center justify-center gap-0.5 md:gap-2.5"
           >
             {navItems.map((item, i) => (
               <span
@@ -53,7 +83,10 @@ export function Header({ config }: { config?: Record<string, string> }) {
               </span>
             ))}
           </nav>
-          <p className="mt-0 text-[11.5px] md:text-[13px] text-[#9CA3AF] tracking-tight [@media(max-width:380px)]:hidden lg:text-justify lg:[text-align-last:justify] lg:after:content-[''] lg:after:inline-block lg:after:w-full">
+          <p
+            className="mt-0 text-[11.5px] md:text-[13px] text-[#9CA3AF] tracking-tight [@media(max-width:380px)]:hidden lg:mx-auto lg:text-justify lg:[text-align-last:justify] lg:after:content-[''] lg:after:inline-block lg:after:w-full"
+            style={isLg && navWidth ? { width: navWidth } : undefined}
+          >
             {config?.slogan_text || SLOGAN}
           </p>
         </div>
