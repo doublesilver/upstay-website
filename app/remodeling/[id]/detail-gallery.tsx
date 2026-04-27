@@ -75,8 +75,6 @@ export function DetailGallery({
     };
   }, [moveBefore, moveAfter]);
 
-  const lightboxImages = lightbox === "before" ? beforeImages : afterImages;
-  const lightboxIndex = lightbox === "before" ? beforeIndex : afterIndex;
   const lightboxMove = lightbox === "before" ? moveBefore : moveAfter;
 
   useEffect(() => {
@@ -151,17 +149,14 @@ export function DetailGallery({
           role="dialog"
           aria-modal="true"
           aria-label="사진 크게 보기"
-          className="fixed inset-0 z-50 bg-[#F1F8E9] flex flex-col items-center justify-center"
+          className="fixed inset-0 z-50 bg-[#F1F8E9] flex flex-col items-center justify-center p-2"
           onClick={() => setLightbox(null)}
         >
           <div
-            className="flex flex-col items-center gap-2 max-w-[94vw] w-full lg:max-w-[720px] border border-[#111] rounded-xl p-2 bg-white"
+            className="flex flex-col gap-2 max-w-[94vw] w-full lg:max-w-[1100px] border border-[#111] rounded-xl p-2 bg-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between w-full px-1">
-              <span className="text-[#111] text-sm">
-                ( {lightboxIndex + 1} / {lightboxImages.length} )
-              </span>
+            <div className="flex items-center justify-end w-full px-1">
               <button
                 type="button"
                 onClick={() => setLightbox(null)}
@@ -172,112 +167,158 @@ export function DetailGallery({
               </button>
             </div>
 
-            <div className="relative w-[85vw] aspect-[4/3] max-h-[70vh] lg:w-full lg:max-h-[60vh] overflow-hidden rounded">
-              <ProtectedImage
-                src={lightboxImages[lightboxIndex]}
-                alt={`라이트박스 ${lightboxIndex + 1}`}
-                fill
-                sizes="(min-width: 1024px) 720px, 85vw"
-                className="object-cover"
-                quality={85}
-                placeholder="blur"
-                blurDataURL={blurDataURL()}
-              />
-            </div>
-
-            {lightboxImages.length > 1 && (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => lightboxMove(-1)}
-                  aria-label="이전 사진"
-                  className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
-                >
-                  &#9664;
-                </button>
-                <div className="w-px h-5 bg-[#555]" />
-                <button
-                  type="button"
-                  onClick={() => lightboxMove(1)}
-                  aria-label="다음 사진"
-                  className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
-                >
-                  &#9654;
-                </button>
-              </div>
-            )}
-
-            {lightboxImages.length > 1 && (
-              <div className="w-full h-px bg-[#E5E5E5] my-2" />
-            )}
-
-            {lightboxImages.length > 1 && (
-              <div className="flex gap-1 overflow-x-auto w-full">
-                {lightboxImages.map((url, i) => (
-                  <button
-                    key={`${url}-${i}`}
-                    type="button"
-                    onClick={() =>
-                      lightbox === "before"
-                        ? setBeforeIndex(i)
-                        : setAfterIndex(i)
-                    }
-                    style={{ width: "calc((100% - 16px) / 5)" }}
-                    className={`relative shrink-0 aspect-[4/3] rounded overflow-hidden border-2 transition-opacity ${
-                      i === lightboxIndex
-                        ? "border-[#111] opacity-100"
-                        : "border-transparent opacity-60 hover:opacity-90"
-                    }`}
-                  >
-                    <ProtectedImage
-                      src={url}
-                      alt={`썸네일 ${i + 1}`}
-                      fill
-                      sizes="20vw"
-                      className="object-cover"
-                      quality={50}
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="hidden" aria-hidden="true">
-              {lightboxImages[
-                (lightboxIndex - 1 + lightboxImages.length) %
-                  lightboxImages.length
-              ] && (
-                <ProtectedImage
-                  src={
-                    lightboxImages[
-                      (lightboxIndex - 1 + lightboxImages.length) %
-                        lightboxImages.length
-                    ]
-                  }
-                  alt=""
-                  fill
-                  sizes="85vw"
-                  quality={85}
-                  loading="eager"
+            <div className="flex lg:flex-row flex-col gap-4">
+              <div
+                className={`${lightbox === "before" ? "" : "hidden"} lg:block ${beforeImages.length === 0 ? "hidden" : ""} flex-1 min-w-0`}
+              >
+                <LightboxColumn
+                  label="Before (전)"
+                  images={beforeImages}
+                  activeIndex={beforeIndex}
+                  onPrev={() => moveBefore(-1)}
+                  onNext={() => moveBefore(1)}
+                  onSelect={setBeforeIndex}
                 />
+              </div>
+
+              {beforeImages.length > 0 && afterImages.length > 0 && (
+                <div className="hidden lg:block w-px bg-[#E5E7EB] shrink-0 self-stretch" />
               )}
-              {lightboxImages[(lightboxIndex + 1) % lightboxImages.length] && (
-                <ProtectedImage
-                  src={
-                    lightboxImages[(lightboxIndex + 1) % lightboxImages.length]
-                  }
-                  alt=""
-                  fill
-                  sizes="85vw"
-                  quality={85}
-                  loading="eager"
+
+              <div
+                className={`${lightbox === "after" ? "" : "hidden"} lg:block ${afterImages.length === 0 ? "hidden" : ""} flex-1 min-w-0`}
+              >
+                <LightboxColumn
+                  label="After (후)"
+                  images={afterImages}
+                  activeIndex={afterIndex}
+                  onPrev={() => moveAfter(-1)}
+                  onNext={() => moveAfter(1)}
+                  onSelect={setAfterIndex}
                 />
-              )}
+              </div>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function LightboxColumn({
+  label,
+  images,
+  activeIndex,
+  onPrev,
+  onNext,
+  onSelect,
+}: {
+  label: string;
+  images: string[];
+  activeIndex: number;
+  onPrev: () => void;
+  onNext: () => void;
+  onSelect: (index: number) => void;
+}) {
+  if (images.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between px-1">
+        <span className="text-[#111] text-sm font-medium">{label}</span>
+        <span className="text-[#111] text-sm">
+          ( {activeIndex + 1} / {images.length} )
+        </span>
+      </div>
+
+      <div className="relative w-full aspect-[4/3] overflow-hidden rounded">
+        <ProtectedImage
+          src={images[activeIndex]}
+          alt={`${label} ${activeIndex + 1}`}
+          fill
+          sizes="(min-width: 1024px) 500px, 85vw"
+          className="object-cover"
+          quality={85}
+          placeholder="blur"
+          blurDataURL={blurDataURL()}
+        />
+      </div>
+
+      {images.length > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={onPrev}
+            aria-label="이전 사진"
+            className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+          >
+            &#9664;
+          </button>
+          <div className="w-px h-5 bg-[#555]" />
+          <button
+            type="button"
+            onClick={onNext}
+            aria-label="다음 사진"
+            className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+          >
+            &#9654;
+          </button>
+        </div>
+      )}
+
+      {images.length > 1 && (
+        <>
+          <div className="w-full h-px bg-[#E5E5E5]" />
+          <div className="flex gap-1 overflow-x-auto w-full">
+            {images.map((url, i) => (
+              <button
+                key={`${url}-${i}`}
+                type="button"
+                onClick={() => onSelect(i)}
+                style={{ width: "calc((100% - 16px) / 5)" }}
+                className={`relative shrink-0 aspect-[4/3] rounded overflow-hidden border-2 transition-opacity ${
+                  i === activeIndex
+                    ? "border-[#111] opacity-100"
+                    : "border-transparent opacity-60 hover:opacity-90"
+                }`}
+              >
+                <ProtectedImage
+                  src={url}
+                  alt={`${label} 썸네일 ${i + 1}`}
+                  fill
+                  sizes="20vw"
+                  className="object-cover"
+                  quality={50}
+                  loading="lazy"
+                />
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div className="hidden" aria-hidden="true">
+        {images[(activeIndex - 1 + images.length) % images.length] && (
+          <ProtectedImage
+            src={images[(activeIndex - 1 + images.length) % images.length]}
+            alt=""
+            fill
+            sizes="500px"
+            quality={85}
+            loading="eager"
+          />
+        )}
+        {images[(activeIndex + 1) % images.length] && (
+          <ProtectedImage
+            src={images[(activeIndex + 1) % images.length]}
+            alt=""
+            fill
+            sizes="500px"
+            quality={85}
+            loading="eager"
+          />
+        )}
+      </div>
     </div>
   );
 }

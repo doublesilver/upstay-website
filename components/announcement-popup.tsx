@@ -74,7 +74,7 @@ export function AnnouncementPopup({
           >
             {a.title && (
               <>
-                <div className="px-4 pt-3.5 pb-3 text-[14px] font-medium text-[#111]">
+                <div className="px-4 pt-3.5 pb-3 text-[14px] font-medium text-[#111] whitespace-pre-wrap">
                   {a.title}
                 </div>
                 <div className="mx-4 h-px bg-[#E5E5E5]" />

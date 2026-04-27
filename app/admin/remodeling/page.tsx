@@ -1265,7 +1265,7 @@ export default function RemodelingAdminPage() {
           onApplyOne={async (id, blob) => {
             try {
               const url = await uploadFile(blob);
-              await saveImage({ id, image_url: url });
+              await saveImage({ id, image_url_wm: url });
               load();
               flash("변경사항이 적용되었습니다");
             } catch (error) {
@@ -1281,7 +1281,7 @@ export default function RemodelingAdminPage() {
                 const blob = await getBlob(id);
                 if (!blob) continue;
                 const url = await uploadFile(blob);
-                await saveImage({ id, image_url: url });
+                await saveImage({ id, image_url_wm: url });
                 success += 1;
               } catch (error) {
                 if (!failMsg) failMsg = errMsg(error);

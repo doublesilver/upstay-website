@@ -305,7 +305,7 @@ export default function AnnouncementsAdminPage() {
           >
             <div className="flex-1 min-w-0 space-y-2">
               <div className="border border-[#111] rounded-lg px-3 py-2">
-                <span className="font-semibold text-[15px] text-[#111] truncate block">
+                <span className="font-semibold text-[15px] text-[#111] whitespace-pre-wrap line-clamp-3 block">
                   {item.title || "(제목 없음)"}
                 </span>
               </div>
