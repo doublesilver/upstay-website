@@ -92,10 +92,10 @@ export function HomeClient({
     initialConfig.photo_guide_caption || "Before → After";
 
   return (
-    <div className="snap-y snap-mandatory h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-y-auto">
-      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden">
-        <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col">
-          <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto">
+    <div className="snap-y snap-mandatory h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-y-auto lg:snap-none lg:h-auto lg:overflow-visible">
+      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden lg:h-auto lg:min-h-0 lg:overflow-visible">
+        <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col lg:h-auto">
+          <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto lg:flex-none lg:overflow-visible">
             <div className="shrink-0 flex items-end justify-between gap-3">
               <Link
                 href="/remodeling"
@@ -115,7 +115,7 @@ export function HomeClient({
 
             <div className="shrink-0 mt-2 h-px bg-[#E5E5E5]" />
 
-            <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-y-auto">
+            <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-y-auto lg:flex-none lg:overflow-visible">
               {initialCases.slice(0, 3).map((c, caseIndex) => {
                 const befores = c.before_images?.length
                   ? c.before_images
@@ -159,7 +159,7 @@ export function HomeClient({
         </Container>
       </section>
 
-      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#faf8f5] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden">
+      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#faf8f5] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden lg:h-auto lg:min-h-0 lg:overflow-visible">
         <Container className="py-4 md:py-8 w-full flex-1 flex items-center">
           <div className="w-full">
             <ServiceSections config={initialConfig} />
