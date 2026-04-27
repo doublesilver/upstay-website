@@ -133,9 +133,13 @@ export function DetailGallery({
         </div>
       )}
 
-      <div className="shrink-0 flex flex-col">
-        <p className="mb-1 text-[11px] text-[#111] font-bold">설명</p>
-        <div className="border border-black rounded-lg px-3 py-2 max-h-[20svh] overflow-y-auto">
+      <div className="shrink-0 border border-black rounded-lg flex max-h-[20svh] overflow-hidden">
+        <div className="shrink-0 flex flex-col items-center justify-center px-2 py-2 text-[12px] text-[#111] font-bold leading-[1.2]">
+          <span>설</span>
+          <span>명</span>
+        </div>
+        <div className="w-px bg-[#D1D5DB] shrink-0" />
+        <div className="flex-1 min-w-0 px-3 py-2 overflow-y-auto">
           <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.5] whitespace-pre-wrap">
             {title || "-"}
           </p>
@@ -168,17 +172,18 @@ export function DetailGallery({
               </button>
             </div>
 
-            <ProtectedImage
-              src={lightboxImages[lightboxIndex]}
-              alt={`라이트박스 ${lightboxIndex + 1}`}
-              width={2000}
-              height={1500}
-              sizes="85vw"
-              className="max-w-[85vw] max-h-[65vh] w-auto h-auto object-contain border border-[#111] rounded"
-              quality={85}
-              placeholder="blur"
-              blurDataURL={blurDataURL()}
-            />
+            <div className="relative w-[85vw] h-[65vh] border border-[#111] rounded overflow-hidden bg-white">
+              <ProtectedImage
+                src={lightboxImages[lightboxIndex]}
+                alt={`라이트박스 ${lightboxIndex + 1}`}
+                fill
+                sizes="85vw"
+                className="object-contain"
+                quality={85}
+                placeholder="blur"
+                blurDataURL={blurDataURL()}
+              />
+            </div>
 
             {lightboxImages.length > 1 && (
               <div className="flex items-center gap-2">
