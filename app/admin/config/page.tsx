@@ -18,12 +18,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { Toast } from "@/components/admin/toast";
-import {
-  StyleToolbar,
-  parseStyle,
-  type TextStyle,
-} from "@/components/admin/style-toolbar";
-import { styleToCss } from "@/lib/text-style";
+import { parseStyle, styleToCss, type TextStyle } from "@/lib/text-style";
 import { apiFetch, getHeaders } from "@/lib/admin-api";
 import { DEFAULT_CONFIG, type ConfigRecord } from "@/lib/config-schema";
 
@@ -48,6 +43,68 @@ const CATEGORY_LABELS: Record<string, string> = {
   service_category5: "안내 카테고리 ( 5 )",
 };
 
+function insertBulletInto(
+  el: HTMLInputElement | HTMLTextAreaElement,
+  apply: (newValue: string) => void,
+) {
+  const s = el.selectionStart ?? el.value.length;
+  const e = el.selectionEnd ?? el.value.length;
+  const value = el.value;
+  const lines = value.split("\n");
+  let charCount = 0;
+  let startLine = 0;
+  let endLine = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const lineEnd = charCount + lines[i].length;
+    if (charCount <= s && s <= lineEnd + 1) startLine = i;
+    if (charCount <= e && e <= lineEnd + 1) endLine = i;
+    charCount += lines[i].length + 1;
+  }
+  const newLines = lines.map((line, i) =>
+    i >= startLine && i <= endLine ? "• " + line : line,
+  );
+  const newValue = newLines.join("\n");
+  const added = (endLine - startLine + 1) * 2;
+  apply(newValue);
+  requestAnimationFrame(() => {
+    el.focus();
+    el.setSelectionRange(s + 2, e + added);
+  });
+}
+
+type ToolbarButtonProps = {
+  active: boolean;
+  disabled: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  title?: string;
+};
+
+function ToolbarButton({
+  active,
+  disabled,
+  onClick,
+  children,
+  title,
+}: ToolbarButtonProps) {
+  return (
+    <button
+      type="button"
+      title={title}
+      disabled={disabled}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      className={`w-8 h-8 rounded-lg text-[13px] border transition-colors flex items-center justify-center ${
+        active
+          ? "bg-[#111] text-white border-[#111]"
+          : "bg-white text-[#666] border-[#DDD] hover:border-[#111]"
+      } disabled:opacity-30 disabled:hover:border-[#DDD]`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function ConfigPage() {
   const [config, setConfig] = useState<Config>({ ...DEFAULT_CONFIG });
   const [saving, setSaving] = useState(false);
@@ -56,6 +113,9 @@ export default function ConfigPage() {
 
   const sloganRef = useRef<HTMLInputElement | null>(null);
   const photoGuideTitleRef = useRef<HTMLInputElement | null>(null);
+
+  const [sloganActive, setSloganActive] = useState(false);
+  const [photoGuideActive, setPhotoGuideActive] = useState(false);
 
   const categorySensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -87,6 +147,14 @@ export default function ConfigPage() {
 
   const getStyle = (key: keyof Config): TextStyle =>
     parseStyle(config[key] || "{}");
+
+  const toggleBoldFor = (key: keyof Config) => {
+    const cur = getStyle(key);
+    setStyle(key)({
+      ...cur,
+      fontWeight: cur.fontWeight === "bold" ? undefined : "bold",
+    });
+  };
 
   const toggleVisible = (key: keyof Config) => {
     setConfig((prev) => ({
@@ -136,6 +204,9 @@ export default function ConfigPage() {
     }));
   };
 
+  const sloganBold = getStyle("slogan_text_style").fontWeight === "bold";
+  const photoGuideBold = getStyle("photo_guide_style").fontWeight === "bold";
+
   return (
     <div>
       <div className="flex items-start justify-between mb-8">
@@ -161,19 +232,37 @@ export default function ConfigPage() {
 
       <div className={`space-y-10 ${loading ? "hidden" : ""}`}>
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
-          <h2 className="text-[16px] font-bold text-[#111] mb-4">• 헤더</h2>
-          <StyleToolbar
-            value={getStyle("slogan_text_style")}
-            onChange={setStyle("slogan_text_style")}
-            inputRef={sloganRef}
-            onTextChange={setText("slogan_text")}
-            hideSize
-          />
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-[16px] font-bold text-[#111] flex-1">• 헤더</h2>
+            <div className="flex items-center gap-1">
+              <ToolbarButton
+                active={sloganActive && sloganBold}
+                disabled={!sloganActive}
+                onClick={() => toggleBoldFor("slogan_text_style")}
+                title="굵게"
+              >
+                <span className="font-bold">B</span>
+              </ToolbarButton>
+              <ToolbarButton
+                active={false}
+                disabled={!sloganActive}
+                onClick={() => {
+                  if (sloganRef.current)
+                    insertBulletInto(sloganRef.current, setText("slogan_text"));
+                }}
+                title="글머리기호"
+              >
+                •
+              </ToolbarButton>
+            </div>
+          </div>
           <input
             ref={sloganRef}
             type="text"
             value={config.slogan_text}
             onChange={set("slogan_text")}
+            onFocus={() => setSloganActive(true)}
+            onBlur={() => setSloganActive(false)}
             aria-label="헤더 슬로건"
             placeholder="헤더 슬로건"
             className={inputCls}
@@ -183,23 +272,43 @@ export default function ConfigPage() {
 
         <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-[16px] font-bold text-[#111]">
+            <h2 className="text-[16px] font-bold text-[#111] flex-1">
               • 사진안내 카테고리
             </h2>
+            <div className="flex items-center gap-1">
+              <ToolbarButton
+                active={photoGuideActive && photoGuideBold}
+                disabled={!photoGuideActive}
+                onClick={() => toggleBoldFor("photo_guide_style")}
+                title="굵게"
+              >
+                <span className="font-bold">B</span>
+              </ToolbarButton>
+              <ToolbarButton
+                active={false}
+                disabled={!photoGuideActive}
+                onClick={() => {
+                  if (photoGuideTitleRef.current)
+                    insertBulletInto(
+                      photoGuideTitleRef.current,
+                      setText("photo_guide_title"),
+                    );
+                }}
+                title="글머리기호"
+              >
+                •
+              </ToolbarButton>
+            </div>
           </div>
           <div className="space-y-5">
             <div>
-              <StyleToolbar
-                value={getStyle("photo_guide_style")}
-                onChange={setStyle("photo_guide_style")}
-                inputRef={photoGuideTitleRef}
-                onTextChange={setText("photo_guide_title")}
-              />
               <input
                 ref={photoGuideTitleRef}
                 type="text"
                 value={config.photo_guide_title}
                 onChange={set("photo_guide_title")}
+                onFocus={() => setPhotoGuideActive(true)}
+                onBlur={() => setPhotoGuideActive(false)}
                 aria-label="사진안내 제목"
                 className={inputCls}
                 style={styleToCss(getStyle("photo_guide_style"))}
@@ -239,8 +348,8 @@ export default function ConfigPage() {
                   captionValue={config[`${key}_caption`] ?? ""}
                   titleStyle={getStyle(`${key}_title_style`)}
                   descStyle={getStyle(`${key}_desc_style`)}
-                  onTitleStyleChange={setStyle(`${key}_title_style`)}
-                  onDescStyleChange={setStyle(`${key}_desc_style`)}
+                  onTitleBold={() => toggleBoldFor(`${key}_title_style`)}
+                  onDescBold={() => toggleBoldFor(`${key}_desc_style`)}
                   onTitleChange={set(`${key}_title`)}
                   onDescChange={set(`${key}_desc`)}
                   onCaptionChange={set(`${key}_caption`)}
@@ -267,8 +376,8 @@ type ConfigSectionProps = {
   captionValue: string;
   titleStyle: TextStyle;
   descStyle: TextStyle;
-  onTitleStyleChange: (style: TextStyle) => void;
-  onDescStyleChange: (style: TextStyle) => void;
+  onTitleBold: () => void;
+  onDescBold: () => void;
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDescChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onCaptionChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -324,8 +433,8 @@ function ConfigSection({
   captionValue,
   titleStyle,
   descStyle,
-  onTitleStyleChange,
-  onDescStyleChange,
+  onTitleBold,
+  onDescBold,
   onTitleChange,
   onDescChange,
   onCaptionChange,
@@ -335,44 +444,75 @@ function ConfigSection({
 }: ConfigSectionProps) {
   const titleRef = useRef<HTMLInputElement | null>(null);
   const descRef = useRef<HTMLTextAreaElement | null>(null);
+  const [activeField, setActiveField] = useState<"title" | "desc" | null>(null);
+
+  const isBold =
+    activeField === "title"
+      ? titleStyle.fontWeight === "bold"
+      : activeField === "desc"
+        ? descStyle.fontWeight === "bold"
+        : false;
+
+  const handleBold = () => {
+    if (activeField === "title") onTitleBold();
+    else if (activeField === "desc") onDescBold();
+  };
+
+  const handleBullet = () => {
+    if (activeField === "title" && titleRef.current) {
+      insertBulletInto(titleRef.current, onTitleTextChange);
+    } else if (activeField === "desc" && descRef.current) {
+      insertBulletInto(descRef.current, onDescTextChange);
+    }
+  };
 
   return (
     <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
       <div className="flex items-center gap-3 mb-6">
         {dragHandle}
         <h2 className="text-[16px] font-bold text-[#111] flex-1">• {title}</h2>
+        <div className="flex items-center gap-1">
+          <ToolbarButton
+            active={isBold}
+            disabled={activeField === null}
+            onClick={handleBold}
+            title="굵게"
+          >
+            <span className="font-bold">B</span>
+          </ToolbarButton>
+          <ToolbarButton
+            active={false}
+            disabled={activeField === null}
+            onClick={handleBullet}
+            title="글머리기호"
+          >
+            •
+          </ToolbarButton>
+        </div>
         <VisibilityToggle visible={visible} onToggle={onToggle} />
       </div>
       <div
         className={`space-y-5 transition-opacity ${visible ? "" : "opacity-50"}`}
       >
         <div>
-          <StyleToolbar
-            value={titleStyle}
-            onChange={onTitleStyleChange}
-            inputRef={titleRef}
-            onTextChange={onTitleTextChange}
-          />
           <input
             ref={titleRef}
             type="text"
             value={titleValue}
             onChange={onTitleChange}
+            onFocus={() => setActiveField("title")}
+            onBlur={() => setActiveField(null)}
             className={`${inputCls}`}
             style={styleToCss(titleStyle)}
           />
         </div>
         <div>
-          <StyleToolbar
-            value={descStyle}
-            onChange={onDescStyleChange}
-            inputRef={descRef}
-            onTextChange={onDescTextChange}
-          />
           <textarea
             ref={descRef}
             value={descValue}
             onChange={onDescChange}
+            onFocus={() => setActiveField("desc")}
+            onBlur={() => setActiveField(null)}
             rows={3}
             className={`${inputCls}`}
             style={styleToCss(descStyle)}
