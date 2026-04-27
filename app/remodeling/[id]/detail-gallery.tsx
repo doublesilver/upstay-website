@@ -172,7 +172,7 @@ export function DetailGallery({
               </button>
             </div>
 
-            <div className="relative w-[85vw] h-[65vh] border border-[#111] rounded overflow-hidden bg-white">
+            <div className="relative w-[85vw] h-[65vh] overflow-hidden">
               <ProtectedImage
                 src={lightboxImages[lightboxIndex]}
                 alt={`라이트박스 ${lightboxIndex + 1}`}
