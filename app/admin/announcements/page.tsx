@@ -301,7 +301,7 @@ export default function AnnouncementsAdminPage() {
         {items.map((item) => (
           <div
             key={item.id}
-            className="bg-white border border-[#EBEBEB] rounded-2xl p-5 flex items-start justify-between gap-4 hover:shadow-sm transition-all"
+            className="bg-white border border-[#EBEBEB] rounded-2xl p-5 flex items-center justify-between gap-4 hover:shadow-sm transition-all"
           >
             <div className="flex-1 min-w-0 space-y-2">
               <div className="border border-[#111] rounded-lg px-3 py-2">

@@ -186,7 +186,7 @@ export function DetailGallery({
                   type="button"
                   onClick={() => lightboxMove(-1)}
                   aria-label="이전 사진"
-                  className="w-12 h-8 rounded bg-lime-400 border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-lime-300"
+                  className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
                 >
                   &#9664;
                 </button>
@@ -195,7 +195,7 @@ export function DetailGallery({
                   type="button"
                   onClick={() => lightboxMove(1)}
                   aria-label="다음 사진"
-                  className="w-12 h-8 rounded bg-lime-400 border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-lime-300"
+                  className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
                 >
                   &#9654;
                 </button>

@@ -255,7 +255,7 @@ export function ImageEditModal({
         onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl w-full max-w-[1100px] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
       >
-        <div className="flex items-center justify-between px-6 py-3 border-b border-[#EBEBEB]">
+        <div className="flex items-center justify-between px-6 py-3 border-b border-black">
           <h3
             id="image-edit-title"
             className="text-[16px] font-bold text-[#111]"
