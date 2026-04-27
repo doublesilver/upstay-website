@@ -98,7 +98,7 @@ export function DetailGallery({
   return (
     <div className="h-full min-h-0 flex flex-col gap-2 md:gap-3">
       {(beforeImages.length > 0 || afterImages.length > 0) && (
-        <div className="shrink-0 h-[58svh] md:h-[62svh] border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row gap-2 md:gap-3">
+        <div className="flex-1 min-h-0 border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row gap-2 md:gap-3">
           {beforeImages.length > 0 && (
             <GallerySection
               title="Before (전)"
@@ -133,9 +133,9 @@ export function DetailGallery({
         </div>
       )}
 
-      <div className="flex-1 min-h-0 flex flex-col">
-        <p className="shrink-0 mb-1 text-[11px] text-[#111] font-bold">설명</p>
-        <div className="flex-1 min-h-0 border border-black rounded-lg px-3 py-2 overflow-y-auto">
+      <div className="shrink-0 flex flex-col">
+        <p className="mb-1 text-[11px] text-[#111] font-bold">설명</p>
+        <div className="border border-black rounded-lg px-3 py-2 max-h-[20svh] overflow-y-auto">
           <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.5] whitespace-pre-wrap">
             {title || "-"}
           </p>
