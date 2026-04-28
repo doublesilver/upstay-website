@@ -165,7 +165,7 @@ export function DetailGallery({
                 type="button"
                 onClick={() => setLightbox(null)}
                 aria-label="닫기"
-                className="bg-[#F1F8E9] border border-[#DDD] text-[#111] text-[14px] font-medium px-4 py-1.5 rounded-lg hover:bg-[#E8F0DC] hover:border-[#999] transition-colors"
+                className="bg-white border border-[#111] text-[#111] text-[14px] font-medium px-4 py-1.5 rounded-lg hover:bg-[#F5F5F5] transition-colors"
               >
                 닫기
               </button>
@@ -394,39 +394,41 @@ function GallerySection({
               &#9664;
             </button>
           )}
-          <div
-            ref={containerRef}
-            onClick={onOpenLightbox}
-            onMouseMove={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              setHoverPos({
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top,
-              });
-            }}
-            onMouseLeave={() => setHoverPos(null)}
-            className="flex-1 min-h-0 self-stretch relative cursor-pointer touch-pan-y select-none will-change-transform"
-          >
-            <ProtectedImage
-              src={images[activeIndex]}
-              alt={`${altPrefix} ${activeIndex + 1}`}
-              fill
-              sizes="(max-width: 768px) 90vw, 800px"
-              className="object-contain pointer-events-none"
-              quality={70}
-              priority
-            />
-            {hoverPos && (
-              <div
-                className="hidden md:block absolute pointer-events-none bg-black/75 text-white text-[11px] font-medium px-2 py-1 rounded whitespace-nowrap z-10"
-                style={{
-                  left: hoverPos.x + 14,
-                  top: hoverPos.y + 14,
-                }}
-              >
-                크게보기
-              </div>
-            )}
+          <div className="flex-1 min-h-0 min-w-0 self-stretch flex items-center justify-center">
+            <div
+              ref={containerRef}
+              onClick={onOpenLightbox}
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setHoverPos({
+                  x: e.clientX - rect.left,
+                  y: e.clientY - rect.top,
+                });
+              }}
+              onMouseLeave={() => setHoverPos(null)}
+              className="relative cursor-pointer touch-pan-y select-none will-change-transform h-full max-w-full aspect-[4/3]"
+            >
+              <ProtectedImage
+                src={images[activeIndex]}
+                alt={`${altPrefix} ${activeIndex + 1}`}
+                fill
+                sizes="(max-width: 768px) 90vw, 800px"
+                className="object-contain pointer-events-none"
+                quality={70}
+                priority
+              />
+              {hoverPos && (
+                <div
+                  className="hidden md:block absolute pointer-events-none bg-black/75 text-white text-[11px] font-medium px-2 py-1 rounded whitespace-nowrap z-10"
+                  style={{
+                    left: hoverPos.x + 14,
+                    top: hoverPos.y + 14,
+                  }}
+                >
+                  크게보기
+                </div>
+              )}
+            </div>
           </div>
           {images.length > 1 && (
             <button
