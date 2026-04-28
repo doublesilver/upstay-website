@@ -287,18 +287,24 @@ function AnnouncementCard({
     setDraft((prev) => ({ ...prev, [field]: value }));
   };
 
+  const isWrapped = (text: string) =>
+    text.startsWith("**") && text.endsWith("**") && text.length >= 4;
+
   const toggleBoldAll = () => {
-    const wrap = (text: string) => {
-      if (text.startsWith("**") && text.endsWith("**") && text.length >= 4) {
-        return text.slice(2, -2);
-      }
-      return `**${text}**`;
-    };
-    setDraft((prev) => ({
-      ...prev,
-      title: wrap(prev.title),
-      content: wrap(prev.content),
-    }));
+    setDraft((prev) => {
+      const titleWrapped = isWrapped(prev.title);
+      const contentWrapped = isWrapped(prev.content);
+      const allWrapped = titleWrapped && contentWrapped;
+      const apply = (text: string, wrapped: boolean) => {
+        if (allWrapped) return text.slice(2, -2);
+        return wrapped ? text : `**${text}**`;
+      };
+      return {
+        ...prev,
+        title: apply(prev.title, titleWrapped),
+        content: apply(prev.content, contentWrapped),
+      };
+    });
   };
 
   const appendBulletAll = () => {
@@ -309,18 +315,11 @@ function AnnouncementCard({
     };
     setDraft((prev) => ({
       ...prev,
-      title: append(prev.title),
       content: append(prev.content),
     }));
   };
 
-  const allBold =
-    draft.title.startsWith("**") &&
-    draft.title.endsWith("**") &&
-    draft.content.startsWith("**") &&
-    draft.content.endsWith("**") &&
-    draft.title.length >= 4 &&
-    draft.content.length >= 4;
+  const allBold = isWrapped(draft.title) && isWrapped(draft.content);
 
   const canSave = isDirty && draft.content.trim().length > 0;
 
