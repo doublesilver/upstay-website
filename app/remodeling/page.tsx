@@ -26,9 +26,9 @@ export default function RemodelingPage() {
                 href={`/remodeling/${c.id}`}
                 aria-hidden="true"
                 tabIndex={-1}
-                className="group inline-block bg-white border border-[#ccc] rounded px-1 py-px hover:border-[#999] transition-colors mb-1 ml-1"
+                className="group inline-block bg-white border border-[#ccc] rounded px-1.5 py-px hover:border-[#999] transition-colors mb-0.5"
               >
-                <span className="text-[12px] md:text-[18px] font-bold tracking-tight text-[#111111] group-hover:text-[#6B7280] transition-colors">
+                <span className="text-[11px] font-medium text-[#666] group-hover:text-[#111] transition-colors">
                   전체보기 →
                 </span>
               </Link>
