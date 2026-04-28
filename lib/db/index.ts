@@ -55,8 +55,6 @@ function initSchema(database: Database.Database) {
       content TEXT NOT NULL DEFAULT '',
       is_visible INTEGER NOT NULL DEFAULT 1,
       dismiss_duration TEXT NOT NULL DEFAULT 'none',
-      title_style TEXT NOT NULL DEFAULT '{}',
-      content_style TEXT NOT NULL DEFAULT '{}',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
