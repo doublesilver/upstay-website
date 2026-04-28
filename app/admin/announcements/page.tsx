@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { flushSync } from "react-dom";
+import { useEffect, useState, useCallback } from "react";
 import { Toast } from "@/components/admin/toast";
 import { apiFetch, getHeaders } from "@/lib/admin-api";
 
@@ -270,11 +269,6 @@ function AnnouncementCard({
   onDirtyChange,
 }: CardProps) {
   const [draft, setDraft] = useState<Announcement>(item);
-  const [activeField, setActiveField] = useState<"title" | "content" | null>(
-    null,
-  );
-  const titleRef = useRef<HTMLTextAreaElement>(null);
-  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setDraft(item);
@@ -293,55 +287,40 @@ function AnnouncementCard({
     setDraft((prev) => ({ ...prev, [field]: value }));
   };
 
-  const wrapBold = () => {
-    const field = activeField;
-    if (!field) return;
-    const el = field === "title" ? titleRef.current : contentRef.current;
-    if (!el) return;
-    const { selectionStart: s, selectionEnd: e, value } = el;
-    const selected = value.slice(s, e);
-    let newValue: string;
-    let newStart: number;
-    let newEnd: number;
-    if (selected) {
-      newValue = value.slice(0, s) + `**${selected}**` + value.slice(e);
-      newStart = s;
-      newEnd = e + 4;
-    } else {
-      newValue = value.slice(0, s) + "****" + value.slice(s);
-      newStart = s + 2;
-      newEnd = s + 2;
-    }
-    flushSync(() => updateField(field, newValue));
-    el.focus();
-    el.setSelectionRange(newStart, newEnd);
+  const toggleBoldAll = () => {
+    const wrap = (text: string) => {
+      if (text.startsWith("**") && text.endsWith("**") && text.length >= 4) {
+        return text.slice(2, -2);
+      }
+      return `**${text}**`;
+    };
+    setDraft((prev) => ({
+      ...prev,
+      title: wrap(prev.title),
+      content: wrap(prev.content),
+    }));
   };
 
-  const insertBullet = () => {
-    const field = activeField;
-    if (!field) return;
-    const el = field === "title" ? titleRef.current : contentRef.current;
-    if (!el) return;
-    const { selectionStart: s, selectionEnd: e, value } = el;
-    const lines = value.split("\n");
-    let charCount = 0;
-    let startLine = 0;
-    let endLine = 0;
-    for (let i = 0; i < lines.length; i++) {
-      const lineEnd = charCount + lines[i].length;
-      if (charCount <= s && s <= lineEnd + 1) startLine = i;
-      if (charCount <= e && e <= lineEnd + 1) endLine = i;
-      charCount += lines[i].length + 1;
-    }
-    const newLines = lines.map((line, i) =>
-      i >= startLine && i <= endLine ? "• " + line : line,
-    );
-    const newValue = newLines.join("\n");
-    const added = (endLine - startLine + 1) * 2;
-    flushSync(() => updateField(field, newValue));
-    el.focus();
-    el.setSelectionRange(s + 2, e + added);
+  const appendBulletAll = () => {
+    const append = (text: string) => {
+      if (text.length === 0) return "• ";
+      if (text.endsWith("\n")) return text + "• ";
+      return text + "\n• ";
+    };
+    setDraft((prev) => ({
+      ...prev,
+      title: append(prev.title),
+      content: append(prev.content),
+    }));
   };
+
+  const allBold =
+    draft.title.startsWith("**") &&
+    draft.title.endsWith("**") &&
+    draft.content.startsWith("**") &&
+    draft.content.endsWith("**") &&
+    draft.title.length >= 4 &&
+    draft.content.length >= 4;
 
   const canSave = isDirty && draft.content.trim().length > 0;
 
@@ -355,20 +334,16 @@ function AnnouncementCard({
     >
       <div className="flex-1 space-y-2 min-w-0">
         <textarea
-          ref={titleRef}
           value={draft.title}
           onChange={(e) => updateField("title", e.target.value)}
-          onFocus={() => setActiveField("title")}
           rows={1}
           placeholder="제목 (엔터키로 줄바꿈)"
           aria-label="팝업 제목"
           className="w-full border border-[#DDD] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
         />
         <textarea
-          ref={contentRef}
           value={draft.content}
           onChange={(e) => updateField("content", e.target.value)}
-          onFocus={() => setActiveField("content")}
           rows={4}
           placeholder="팝업 내용"
           aria-label="팝업 내용"
@@ -402,12 +377,12 @@ function AnnouncementCard({
         <div className="flex gap-1">
           <button
             type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              wrapBold();
-            }}
-            disabled={activeField === null}
-            className="flex-1 h-8 border border-[#DDD] rounded-md text-[13px] font-bold disabled:opacity-30 hover:border-[#111] transition-colors"
+            onClick={toggleBoldAll}
+            className={`flex-1 h-8 rounded-md text-[13px] font-bold border transition-colors ${
+              allBold
+                ? "bg-[#111] text-white border-[#111]"
+                : "bg-white border-[#DDD] hover:border-[#111]"
+            }`}
             title="굵게"
             aria-label="굵게"
           >
@@ -415,12 +390,8 @@ function AnnouncementCard({
           </button>
           <button
             type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              insertBullet();
-            }}
-            disabled={activeField === null}
-            className="flex-1 h-8 border border-[#DDD] rounded-md text-[13px] disabled:opacity-30 hover:border-[#111] transition-colors"
+            onClick={appendBulletAll}
+            className="flex-1 h-8 border border-[#DDD] rounded-md text-[13px] bg-white hover:border-[#111] transition-colors"
             title="글머리기호"
             aria-label="글머리기호"
           >
