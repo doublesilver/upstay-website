@@ -170,14 +170,9 @@ function SortableThumb({
   onToggleCheck: () => void;
   onAssignSlot: (slot: number) => void;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `img-${image.id}` });
+  const { setNodeRef, transform, transition, isDragging } = useSortable({
+    id: `img-${image.id}`,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -189,12 +184,10 @@ function SortableThumb({
     <div
       ref={setNodeRef}
       style={style}
-      {...(selectionMode ? {} : attributes)}
-      {...(selectionMode ? {} : listeners)}
       onClick={selectionMode ? onToggleCheck : onOpenImage}
-      className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all touch-none ${
-        selectionMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-      } ${checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#111]"}`}
+      className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all cursor-pointer ${
+        checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#111]"
+      }`}
     >
       {image.image_url ? (
         <Image
