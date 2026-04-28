@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Toast } from "@/components/admin/toast";
 import { apiFetch, getHeaders } from "@/lib/admin-api";
+import { parseStyle, styleToCss, type TextStyle } from "@/lib/text-style";
 
 interface Announcement {
   id: number;
@@ -10,6 +11,8 @@ interface Announcement {
   content: string;
   is_visible: number;
   dismiss_duration: string;
+  title_style: string;
+  content_style: string;
   created_at: string;
 }
 
@@ -26,6 +29,8 @@ const NEW_ITEM: Announcement = {
   content: "",
   is_visible: 1,
   dismiss_duration: "none",
+  title_style: "{}",
+  content_style: "{}",
   created_at: "",
 };
 
@@ -277,7 +282,9 @@ function AnnouncementCard({
   const isDirty =
     draft.title !== item.title ||
     draft.content !== item.content ||
-    draft.dismiss_duration !== item.dismiss_duration;
+    draft.dismiss_duration !== item.dismiss_duration ||
+    draft.title_style !== item.title_style ||
+    draft.content_style !== item.content_style;
 
   useEffect(() => {
     onDirtyChange(isDirty);
@@ -287,20 +294,22 @@ function AnnouncementCard({
     setDraft((prev) => ({ ...prev, [field]: value }));
   };
 
-  const isWrapped = (text: string) =>
-    text.startsWith("**") && text.endsWith("**") && text.length >= 4;
+  const titleStyle: TextStyle = parseStyle(draft.title_style);
+  const contentStyle: TextStyle = parseStyle(draft.content_style);
+  const titleBold = titleStyle.fontWeight === "bold";
+  const contentBold = contentStyle.fontWeight === "bold";
+  const allBold = titleBold && contentBold;
 
   const toggleBoldAll = () => {
     setDraft((prev) => {
-      const wrap = (text: string) => {
-        if (text.length === 0) return text;
-        if (isWrapped(text)) return text.slice(2, -2);
-        return `**${text}**`;
-      };
+      const t = parseStyle(prev.title_style);
+      const c = parseStyle(prev.content_style);
+      const isAll = t.fontWeight === "bold" && c.fontWeight === "bold";
+      const next = isAll ? undefined : "bold";
       return {
         ...prev,
-        title: wrap(prev.title),
-        content: wrap(prev.content),
+        title_style: JSON.stringify({ ...t, fontWeight: next }),
+        content_style: JSON.stringify({ ...c, fontWeight: next }),
       };
     });
   };
@@ -316,13 +325,6 @@ function AnnouncementCard({
       content: append(prev.content),
     }));
   };
-
-  const titleHasContent = draft.title.length > 0;
-  const contentHasContent = draft.content.length > 0;
-  const titleBoldOk = !titleHasContent || isWrapped(draft.title);
-  const contentBoldOk = !contentHasContent || isWrapped(draft.content);
-  const allBold =
-    (titleHasContent || contentHasContent) && titleBoldOk && contentBoldOk;
 
   const canSave = isDirty && draft.content.trim().length > 0;
 
@@ -340,6 +342,7 @@ function AnnouncementCard({
           placeholder="제목 (엔터키로 줄바꿈)"
           aria-label="팝업 제목"
           className="w-full border border-[#111] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
+          style={styleToCss(titleStyle)}
         />
         <textarea
           value={draft.content}
@@ -348,6 +351,7 @@ function AnnouncementCard({
           placeholder="팝업 내용"
           aria-label="팝업 내용"
           className="w-full border border-[#111] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
+          style={styleToCss(contentStyle)}
         />
       </div>
 

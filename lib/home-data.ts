@@ -14,6 +14,8 @@ export interface Announcement {
   title: string;
   content: string;
   dismiss_duration: string;
+  title_style: string;
+  content_style: string;
   created_at: string;
 }
 
@@ -106,7 +108,7 @@ export function getVisibleAnnouncements(): Announcement[] {
   const db = getDb();
   return db
     .prepare(
-      "SELECT id, title, content, dismiss_duration, created_at FROM announcements WHERE is_visible = 1 ORDER BY created_at DESC LIMIT 5",
+      "SELECT id, title, content, dismiss_duration, title_style, content_style, created_at FROM announcements WHERE is_visible = 1 ORDER BY created_at DESC LIMIT 5",
     )
     .all() as Announcement[];
 }

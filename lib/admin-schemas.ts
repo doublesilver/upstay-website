@@ -13,6 +13,8 @@ export const announcementSchema = z.object({
     .default(""),
   is_visible: z.number().int().min(0).max(1),
   dismiss_duration: z.enum(["none", "day", "week", "forever"]).default("none"),
+  title_style: z.string().max(200).default("{}"),
+  content_style: z.string().max(200).default("{}"),
 });
 
 export const caseCreateSchema = z.object({

@@ -2,22 +2,7 @@
 
 import type { Announcement } from "@/lib/home-data";
 import type { RefObject } from "react";
-
-function renderPopupContent(text: string): React.ReactNode {
-  const lines = text.split("\n");
-  const nodes: React.ReactNode[] = [];
-  lines.forEach((line, i) => {
-    const tokens = line.split(/(\*\*.+?\*\*)/).map((token, j) => {
-      if (token.startsWith("**") && token.endsWith("**") && token.length >= 4) {
-        return <strong key={`b-${i}-${j}`}>{token.slice(2, -2)}</strong>;
-      }
-      return <span key={`t-${i}-${j}`}>{token}</span>;
-    });
-    nodes.push(<span key={`l-${i}`}>{tokens}</span>);
-    if (i < lines.length - 1) nodes.push(<br key={`br-${i}`} />);
-  });
-  return nodes;
-}
+import { parseStyle, styleToCss } from "@/lib/text-style";
 
 export function AnnouncementPopup({
   announcements,
@@ -67,24 +52,34 @@ export function AnnouncementPopup({
         <h2 id="popup-dialog-title" className="sr-only">
           공지 팝업
         </h2>
-        {announcements.map((a) => (
-          <div
-            key={a.id}
-            className="bg-white border border-[#111] rounded-xl overflow-hidden mb-4"
-          >
-            {a.title && (
-              <>
-                <div className="px-4 pt-3.5 pb-3 text-[14px] font-medium text-[#111] whitespace-pre-wrap">
-                  {a.title}
-                </div>
-                <div className="mx-4 h-px bg-[#E5E5E5]" />
-              </>
-            )}
-            <div className="px-4 pt-3.5 pb-4 text-[13px] text-[#333] leading-[1.7] min-h-[100px]">
-              {renderPopupContent(a.content)}
+        {announcements.map((a) => {
+          const titleStyle = styleToCss(parseStyle(a.title_style));
+          const contentStyle = styleToCss(parseStyle(a.content_style));
+          return (
+            <div
+              key={a.id}
+              className="bg-white border border-[#111] rounded-xl overflow-hidden mb-4"
+            >
+              {a.title && (
+                <>
+                  <div
+                    className="px-4 pt-3.5 pb-3 text-[14px] font-medium text-[#111] whitespace-pre-wrap"
+                    style={titleStyle}
+                  >
+                    {a.title}
+                  </div>
+                  <div className="mx-4 h-px bg-[#E5E5E5]" />
+                </>
+              )}
+              <div
+                className="px-4 pt-3.5 pb-4 text-[13px] text-[#333] leading-[1.7] min-h-[100px] whitespace-pre-wrap"
+                style={contentStyle}
+              >
+                {a.content}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div className="h-px bg-[#E5E5E5] my-3" />
         <div>
           <button

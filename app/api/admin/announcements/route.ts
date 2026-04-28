@@ -23,13 +23,27 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { title, content, is_visible, dismiss_duration } = parsed.data;
+  const {
+    title,
+    content,
+    is_visible,
+    dismiss_duration,
+    title_style,
+    content_style,
+  } = parsed.data;
   const db = getDb();
   const result = db
     .prepare(
-      "INSERT INTO announcements (title, content, is_visible, dismiss_duration) VALUES (?, ?, ?, ?)",
+      "INSERT INTO announcements (title, content, is_visible, dismiss_duration, title_style, content_style) VALUES (?, ?, ?, ?, ?, ?)",
     )
-    .run(title, content, is_visible, dismiss_duration);
+    .run(
+      title,
+      content,
+      is_visible,
+      dismiss_duration,
+      title_style,
+      content_style,
+    );
   invalidatePublicCache();
   return Response.json({ id: result.lastInsertRowid });
 }
@@ -44,12 +58,28 @@ export async function PUT(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { id, title, content, is_visible, dismiss_duration } = parsed.data;
+  const {
+    id,
+    title,
+    content,
+    is_visible,
+    dismiss_duration,
+    title_style,
+    content_style,
+  } = parsed.data;
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
   const db = getDb();
   db.prepare(
-    "UPDATE announcements SET title=?, content=?, is_visible=?, dismiss_duration=? WHERE id=?",
-  ).run(title, content, is_visible, dismiss_duration, id);
+    "UPDATE announcements SET title=?, content=?, is_visible=?, dismiss_duration=?, title_style=?, content_style=? WHERE id=?",
+  ).run(
+    title,
+    content,
+    is_visible,
+    dismiss_duration,
+    title_style,
+    content_style,
+    id,
+  );
   invalidatePublicCache();
   return Response.json({ ok: true });
 }
