@@ -292,17 +292,15 @@ function AnnouncementCard({
 
   const toggleBoldAll = () => {
     setDraft((prev) => {
-      const titleWrapped = isWrapped(prev.title);
-      const contentWrapped = isWrapped(prev.content);
-      const allWrapped = titleWrapped && contentWrapped;
-      const apply = (text: string, wrapped: boolean) => {
-        if (allWrapped) return text.slice(2, -2);
-        return wrapped ? text : `**${text}**`;
+      const wrap = (text: string) => {
+        if (text.length === 0) return text;
+        if (isWrapped(text)) return text.slice(2, -2);
+        return `**${text}**`;
       };
       return {
         ...prev,
-        title: apply(prev.title, titleWrapped),
-        content: apply(prev.content, contentWrapped),
+        title: wrap(prev.title),
+        content: wrap(prev.content),
       };
     });
   };
@@ -319,7 +317,12 @@ function AnnouncementCard({
     }));
   };
 
-  const allBold = isWrapped(draft.title) && isWrapped(draft.content);
+  const titleHasContent = draft.title.length > 0;
+  const contentHasContent = draft.content.length > 0;
+  const titleBoldOk = !titleHasContent || isWrapped(draft.title);
+  const contentBoldOk = !contentHasContent || isWrapped(draft.content);
+  const allBold =
+    (titleHasContent || contentHasContent) && titleBoldOk && contentBoldOk;
 
   const canSave = isDirty && draft.content.trim().length > 0;
 
