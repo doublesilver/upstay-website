@@ -406,7 +406,7 @@ function GallerySection({
                 });
               }}
               onMouseLeave={() => setHoverPos(null)}
-              className="relative cursor-pointer touch-pan-y select-none will-change-transform h-full max-w-full aspect-[4/3]"
+              className="relative cursor-pointer touch-pan-y select-none will-change-transform w-full max-h-full aspect-[4/3]"
             >
               <ProtectedImage
                 src={images[activeIndex]}
