@@ -325,10 +325,8 @@ function AnnouncementCard({
 
   return (
     <div
-      className={`bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-4 transition-colors ${
-        isDirty
-          ? "border-2 border-yellow-300"
-          : "border border-[#EBEBEB] hover:shadow-sm"
+      className={`bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-4 transition-colors border border-[#111] ${
+        isDirty ? "ring-2 ring-yellow-300" : "hover:shadow-sm"
       }`}
     >
       <div className="flex-1 space-y-2 min-w-0">
@@ -350,7 +348,7 @@ function AnnouncementCard({
         />
       </div>
 
-      <div className="md:w-[160px] flex flex-col gap-2 shrink-0">
+      <div className="md:w-[160px] flex flex-col gap-2 shrink-0 border border-[#111] rounded-lg p-2">
         {!isNew && (
           <div className="flex items-center justify-between gap-2">
             <span className="text-[12px] text-[#666]">
@@ -418,6 +416,8 @@ function AnnouncementCard({
             ● 미저장
           </div>
         )}
+
+        <div className="h-px bg-[#DDD] my-1" />
 
         <div className="flex gap-1 mt-auto">
           <button
