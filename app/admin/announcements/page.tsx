@@ -336,7 +336,7 @@ function AnnouncementCard({
           rows={1}
           placeholder="제목 (엔터키로 줄바꿈)"
           aria-label="팝업 제목"
-          className="w-full border border-[#DDD] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
+          className="w-full border border-[#111] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
         />
         <textarea
           value={draft.content}
@@ -344,7 +344,7 @@ function AnnouncementCard({
           rows={4}
           placeholder="팝업 내용"
           aria-label="팝업 내용"
-          className="w-full border border-[#DDD] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
+          className="w-full border border-[#111] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
         />
       </div>
 
