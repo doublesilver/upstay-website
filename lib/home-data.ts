@@ -20,6 +20,7 @@ export interface Announcement {
 function buildCases(
   rows: { id: number; title: string }[],
   imageLimit?: number,
+  options: { starredOnly?: boolean } = {},
 ): RemodelingCase[] {
   if (rows.length === 0) return [];
 
@@ -27,12 +28,19 @@ function buildCases(
   const caseIds = rows.map((c) => c.id);
   const placeholders = caseIds.map(() => "?").join(",");
 
+  const where = options.starredOnly
+    ? `case_id IN (${placeholders}) AND image_url <> '' AND slot_position > 0`
+    : `case_id IN (${placeholders}) AND image_url <> ''`;
+  const orderBy = options.starredOnly
+    ? `slot_position ASC, id ASC`
+    : `CASE WHEN slot_position > 0 THEN 0 ELSE 1 END ASC, slot_position ASC, id ASC`;
+
   const allImages = db
     .prepare(
       `SELECT case_id, type, slot_position, image_url, image_url_wm
        FROM case_images
-       WHERE case_id IN (${placeholders}) AND image_url <> '' AND slot_position > 0
-       ORDER BY slot_position ASC, id ASC`,
+       WHERE ${where}
+       ORDER BY ${orderBy}`,
     )
     .all(...caseIds) as {
     case_id: number;
@@ -80,7 +88,7 @@ export function getMainCases(): RemodelingCase[] {
     )
     .all() as { id: number; title: string }[];
 
-  return buildCases(cases, 4);
+  return buildCases(cases, 4, { starredOnly: true });
 }
 
 export function getAllCases(): RemodelingCase[] {
