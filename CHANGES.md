@@ -86,3 +86,41 @@
 - production 데이터 영향: 0 — 모두 UI/UX 변경
 - 기존 워터마크 박힌 25개 이미지: 재업로드 외 제거 불가 (대표님 안내 필요, `QUESTIONS.md` Q5)
 - 후속 차수 follow-up: title→description rename 검토, 워터마크 옵션 진행 결정 후 처리
+
+## v3.6 (2026-04-28 카톡 추가 피드백)
+
+### 작업 1 — 카카오 모달 정렬
+
+- `components/kakao-button.tsx` — 체크 ✓ 이모지 span 제거, 모달 max-w 320 → 260px로 축소하여 ID 박스/닫기 버튼이 제목 텍스트 끝선과 자연 정렬
+
+### 작업 5 — 사례 카드 전체보기 위치 변경
+
+- `components/home-client.tsx` — 카드 헤더 단독 "전체보기" 행 제거
+- GalleryGrid label="Before"일 때 라벨 위에 "전체보기 →" 좌측 정렬, group-hover 색상 전환
+- After 영역에는 invisible spacer로 정렬 유지
+
+### 작업 4 — 라이트박스 사진 크게
+
+- `app/remodeling/[id]/detail-gallery.tsx:156` — 라이트박스 컨테이너 `lg:max-w-[1100px]` → `lg:max-w-[1400px]`로 확대
+
+### 작업 3 — PC 상세 화면 설명 박스 표시
+
+- `app/remodeling/[id]/detail-gallery.tsx:134` — 모바일 설명 박스의 `lg:hidden` 제거 → PC에서도 동일 위치에 표시
+- 갤러리 영역은 flex-1로 자동 축소 (max-h-[20svh] 설명 박스만큼)
+
+### 작업 6 — config B/· 일괄 토글
+
+- `app/admin/config/page.tsx` 전면 수정
+- activeField/sloganActive/photoGuideActive 추적 제거, B/· 항상 활성화
+- 카테고리 B 클릭 = title_style + desc_style 양쪽 fontWeight bold 동시 토글 (allBold면 normal로, 아니면 둘 다 bold로)
+- 카테고리 · 클릭 = title + desc 양쪽 끝에 "• " 추가 (`appendBullet` 헬퍼)
+- 헤더/사진안내 동일 패턴 (단일 필드)
+- `insertBulletInto` cursor 기반 헬퍼 제거, `appendBullet` 단순 추가 헬퍼로 교체
+
+### 작업 2 — 팝업 B/· 일괄 적용
+
+- `app/admin/announcements/page.tsx`
+- AnnouncementCard에서 activeField state, titleRef/contentRef, flushSync 의존 제거
+- B 클릭 = title + content 양쪽 전체 텍스트를 \*\* 페어로 감싸기 토글 (`toggleBoldAll`)
+- · 클릭 = 양쪽 끝에 "• " 추가 (`appendBulletAll`)
+- B 버튼은 양쪽 모두 bold 상태일 때 active 시각 표시
