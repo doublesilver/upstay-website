@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const AUTH_COOKIE = "upstay_admin_token";
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  throw new Error(
-    "JWT_SECRET 환경변수가 설정되지 않았거나 32자 미만입니다 (취약)",
-  );
+
+function getSecretBytes(): Uint8Array | null {
+  const v = process.env.JWT_SECRET;
+  if (!v || v.length < 32) return null;
+  return new TextEncoder().encode(v);
 }
-const SECRET_BYTES = new TextEncoder().encode(JWT_SECRET);
 
 async function verifyJwtEdge(token: string): Promise<boolean> {
+  const secret = getSecretBytes();
+  if (!secret) return false;
   try {
-    await jwtVerify(token, SECRET_BYTES);
+    await jwtVerify(token, secret);
     return true;
   } catch {
     return false;
