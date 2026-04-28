@@ -3,11 +3,12 @@
 import { ProtectedImage } from "@/components/protected-image";
 import Link from "next/link";
 import { blurDataURL } from "@/lib/shimmer";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Container } from "@/components/container";
 import { ServiceSections } from "@/components/service-sections";
 import { Footer } from "@/components/footer";
+import { parseStyle, styleToCss } from "@/lib/text-style";
 import type { RemodelingCase, Announcement } from "@/lib/home-data";
 
 const AnnouncementPopup = dynamic(
@@ -20,28 +21,6 @@ interface Props {
   initialCases: RemodelingCase[];
   initialAnnouncements: Announcement[];
   initialConfig: Record<string, string>;
-}
-
-interface TextStyle {
-  fontSize?: string;
-  fontWeight?: string;
-}
-
-function parseStyle(json?: string): TextStyle {
-  if (!json) return {};
-  try {
-    return JSON.parse(json);
-  } catch {
-    return {};
-  }
-}
-
-function styleToCss(style: TextStyle): CSSProperties {
-  const css: CSSProperties = {};
-  if (style.fontSize) css.fontSize = style.fontSize;
-  if (style.fontWeight)
-    css.fontWeight = style.fontWeight as CSSProperties["fontWeight"];
-  return css;
 }
 
 export function HomeClient({
