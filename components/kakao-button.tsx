@@ -64,17 +64,17 @@ export function KakaoButton() {
           aria-label="카카오톡 친구추가"
         >
           <div
-            className="bg-[#F5F5E7] rounded-2xl p-5 w-full max-w-[260px]"
+            className="bg-[#F5F5E7] rounded-2xl p-5 max-w-[calc(100vw-2rem)] w-fit flex flex-col items-stretch"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-[15px] font-medium text-[#111] text-center mb-4">
+            <h2 className="text-[15px] font-medium text-[#111] text-center mb-4 whitespace-nowrap">
               카카오톡 친구추가
             </h2>
 
             <button
               type="button"
               onClick={handleCopyId}
-              className="w-full bg-white border border-[#DDD] rounded-lg py-3 px-4 mb-2 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition"
+              className="bg-white border border-[#DDD] rounded-lg py-3 px-2 mb-2 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition whitespace-nowrap"
             >
               {copied ? "복사됨" : `ID: ${KAKAO_ID}`}
             </button>
@@ -82,7 +82,7 @@ export function KakaoButton() {
             <button
               type="button"
               onClick={() => setShowKakaoInfo(false)}
-              className="w-full bg-[#111] text-white rounded-lg py-3 text-[14px] font-medium hover:bg-[#333] transition"
+              className="bg-[#111] text-white rounded-lg py-3 text-[14px] font-medium hover:bg-[#333] transition"
             >
               닫기
             </button>
