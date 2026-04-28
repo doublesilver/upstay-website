@@ -315,15 +315,22 @@ function AnnouncementCard({
   };
 
   const appendBulletAll = () => {
-    const append = (text: string) => {
-      if (text.length === 0) return "• ";
-      if (text.endsWith("\n")) return text + "• ";
-      return text + "\n• ";
-    };
-    setDraft((prev) => ({
-      ...prev,
-      content: append(prev.content),
-    }));
+    setDraft((prev) => {
+      const lines = prev.content.split("\n");
+      const nonEmpty = lines.filter((l) => l.length > 0);
+      if (nonEmpty.length === 0) {
+        return { ...prev, content: "• " };
+      }
+      const allBulleted = nonEmpty.every((l) => l.startsWith("• "));
+      const next = lines
+        .map((l) => {
+          if (l.length === 0) return l;
+          if (allBulleted) return l.startsWith("• ") ? l.slice(2) : l;
+          return l.startsWith("• ") ? l : "• " + l;
+        })
+        .join("\n");
+      return { ...prev, content: next };
+    });
   };
 
   const canSave = isDirty && draft.content.trim().length > 0;
