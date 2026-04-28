@@ -171,6 +171,8 @@ export function DetailGallery({
               </button>
             </div>
 
+            <div className="h-px bg-[#DDD] mx-1" />
+
             <div className="flex lg:flex-row flex-col gap-4 lg:gap-6">
               <div
                 className={`${lightbox === "before" ? "" : "hidden"} lg:block ${beforeImages.length === 0 ? "hidden" : ""} flex-1 min-w-0 border border-[#111] rounded-xl p-3 bg-white`}
