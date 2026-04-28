@@ -23,12 +23,22 @@ export async function GET(
   { params }: { params: Promise<{ path: string[] }> },
 ) {
   const { path: segments } = await params;
+  if (segments.length === 0) {
+    return new Response("Not found", { status: 404 });
+  }
   const filename = segments.join("/");
+  if (filename.includes("\0")) {
+    return new Response("Not found", { status: 404 });
+  }
+  const ext = path.extname(filename).toLowerCase();
+  const ALLOWED_EXT = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+  if (!ALLOWED_EXT.includes(ext)) {
+    return new Response("Not found", { status: 404 });
+  }
   const filePath = path.resolve(UPLOAD_DIR, filename);
 
   if (
-    (!filePath.startsWith(UPLOAD_DIR_RESOLVED + path.sep) &&
-      filePath !== UPLOAD_DIR_RESOLVED) ||
+    !filePath.startsWith(UPLOAD_DIR_RESOLVED + path.sep) ||
     !existsSync(filePath)
   ) {
     return new Response("Not found", { status: 404 });
@@ -38,8 +48,6 @@ export async function GET(
   if (!fileStat.isFile()) {
     return new Response("Not found", { status: 404 });
   }
-
-  const ext = path.extname(filename).toLowerCase();
   const accept = req.headers.get("accept") ?? "";
 
   let targetFormat: "avif" | "webp" | null = null;
