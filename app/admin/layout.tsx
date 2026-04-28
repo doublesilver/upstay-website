@@ -221,8 +221,8 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-[#F7F7F7] flex">
       {/* 사이드바 */}
-      <aside className="w-[240px] bg-white border-r border-[#EBEBEB] flex flex-col shrink-0 sticky top-0 h-screen">
-        <div className="px-2 py-3 border-b border-[#EBEBEB]">
+      <aside className="w-[240px] bg-white border-r border-[#111] flex flex-col shrink-0 sticky top-0 h-screen">
+        <div className="px-2 py-3 border-b border-[#111]">
           <Link href="/admin" className="block mx-auto w-[70%]">
             <Image
               src="/logo.svg"
@@ -256,7 +256,7 @@ export default function AdminLayout({
           ))}
         </nav>
 
-        <div className="px-3 py-4 border-t border-[#EBEBEB] space-y-0.5">
+        <div className="px-3 py-4 border-t border-[#111] space-y-0.5">
           <Link
             href="/"
             target="_blank"
