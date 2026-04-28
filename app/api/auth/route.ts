@@ -11,9 +11,17 @@ const WINDOW_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 function clientIp(req: NextRequest): string {
+  const real = req.headers.get("x-real-ip");
+  if (real) return real.trim();
   const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return req.headers.get("x-real-ip") || "unknown";
+  if (forwarded) {
+    const ips = forwarded
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return ips[ips.length - 1] || "unknown";
+  }
+  return "unknown";
 }
 
 function checkRateLimit(ip: string): { ok: boolean; retryAfterSec?: number } {
@@ -38,6 +46,9 @@ function checkRateLimit(ip: string): { ok: boolean; retryAfterSec?: number } {
 function recordAttempt(ip: string, success: boolean) {
   const db = getDb();
   const now = Date.now();
+  db.prepare("DELETE FROM auth_rate_limit WHERE window_start < ?").run(
+    now - WINDOW_MS,
+  );
   if (success) {
     db.prepare("DELETE FROM auth_rate_limit WHERE ip = ?").run(ip);
     return;

@@ -195,11 +195,8 @@ function applyMigrations(database: Database.Database) {
       try {
         database.exec(sql);
       } catch (e) {
-        if (
-          file === "004_add_dismiss_duration.sql" &&
-          String(e).includes("duplicate column")
-        ) {
-          // 기존 배포 DB에는 이미 컬럼 존재 — 마이그레이션 기록만 남김
+        if (String(e).includes("duplicate column")) {
+          // ALTER ADD COLUMN 멱등 처리 — 기존 배포 DB에 이미 컬럼이 있으면 마이그레이션 기록만 남김
         } else {
           throw e;
         }
