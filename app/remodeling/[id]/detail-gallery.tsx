@@ -131,7 +131,7 @@ export function DetailGallery({
         </div>
       )}
 
-      <div className="shrink-0 border border-[#DDD] rounded-lg flex max-h-[20svh] overflow-hidden lg:hidden">
+      <div className="shrink-0 border border-[#DDD] rounded-lg flex max-h-[20svh] overflow-hidden">
         <div className="shrink-0 flex items-center justify-center bg-[#F0F0F0] px-4 py-2 min-w-[64px] border-r border-[#DDD]">
           <span className="text-[13px] font-medium text-[#555]">설명</span>
         </div>
@@ -151,7 +151,7 @@ export function DetailGallery({
           onClick={() => setLightbox(null)}
         >
           <div
-            className="flex flex-col gap-2 max-w-[94vw] w-full lg:max-w-[1100px] border border-[#111] rounded-xl p-2 bg-white"
+            className="flex flex-col gap-2 max-w-[94vw] w-full lg:max-w-[1400px] border border-[#111] rounded-xl p-2 bg-white"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-end w-full px-1">
