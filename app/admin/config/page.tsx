@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -43,62 +43,38 @@ const CATEGORY_LABELS: Record<string, string> = {
   service_category5: "안내 카테고리 ( 5 )",
 };
 
-function insertBulletInto(
-  el: HTMLInputElement | HTMLTextAreaElement,
-  apply: (newValue: string) => void,
-) {
-  const s = el.selectionStart ?? el.value.length;
-  const e = el.selectionEnd ?? el.value.length;
-  const value = el.value;
-  const lines = value.split("\n");
-  let charCount = 0;
-  let startLine = 0;
-  let endLine = 0;
-  for (let i = 0; i < lines.length; i++) {
-    const lineEnd = charCount + lines[i].length;
-    if (charCount <= s && s <= lineEnd + 1) startLine = i;
-    if (charCount <= e && e <= lineEnd + 1) endLine = i;
-    charCount += lines[i].length + 1;
-  }
-  const newLines = lines.map((line, i) =>
-    i >= startLine && i <= endLine ? "• " + line : line,
-  );
-  const newValue = newLines.join("\n");
-  const added = (endLine - startLine + 1) * 2;
-  apply(newValue);
-  requestAnimationFrame(() => {
-    el.focus();
-    el.setSelectionRange(s + 2, e + added);
-  });
+function appendBullet(text: string): string {
+  if (text.length === 0) return "• ";
+  if (text.endsWith("\n")) return text + "• ";
+  return text + "\n• ";
 }
 
 type ToolbarButtonProps = {
   active: boolean;
-  disabled: boolean;
   onClick: () => void;
   children: React.ReactNode;
   title?: string;
+  ariaLabel?: string;
 };
 
 function ToolbarButton({
   active,
-  disabled,
   onClick,
   children,
   title,
+  ariaLabel,
 }: ToolbarButtonProps) {
   return (
     <button
       type="button"
       title={title}
-      disabled={disabled}
-      onMouseDown={(e) => e.preventDefault()}
+      aria-label={ariaLabel ?? title}
       onClick={onClick}
       className={`w-8 h-8 rounded-lg text-[13px] border transition-colors flex items-center justify-center ${
         active
           ? "bg-[#111] text-white border-[#111]"
           : "bg-white text-[#666] border-[#DDD] hover:border-[#111]"
-      } disabled:opacity-30 disabled:hover:border-[#DDD]`}
+      }`}
     >
       {children}
     </button>
@@ -110,12 +86,6 @@ export default function ConfigPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(true);
-
-  const sloganRef = useRef<HTMLInputElement | null>(null);
-  const photoGuideTitleRef = useRef<HTMLInputElement | null>(null);
-
-  const [sloganActive, setSloganActive] = useState(false);
-  const [photoGuideActive, setPhotoGuideActive] = useState(false);
 
   const categorySensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -236,8 +206,7 @@ export default function ConfigPage() {
             <h2 className="text-[16px] font-bold text-[#111] flex-1">• 헤더</h2>
             <div className="flex items-center gap-1">
               <ToolbarButton
-                active={sloganActive && sloganBold}
-                disabled={!sloganActive}
+                active={sloganBold}
                 onClick={() => toggleBoldFor("slogan_text_style")}
                 title="굵게"
               >
@@ -245,11 +214,9 @@ export default function ConfigPage() {
               </ToolbarButton>
               <ToolbarButton
                 active={false}
-                disabled={!sloganActive}
-                onClick={() => {
-                  if (sloganRef.current)
-                    insertBulletInto(sloganRef.current, setText("slogan_text"));
-                }}
+                onClick={() =>
+                  setText("slogan_text")(appendBullet(config.slogan_text))
+                }
                 title="글머리기호"
               >
                 •
@@ -257,12 +224,9 @@ export default function ConfigPage() {
             </div>
           </div>
           <input
-            ref={sloganRef}
             type="text"
             value={config.slogan_text}
             onChange={set("slogan_text")}
-            onFocus={() => setSloganActive(true)}
-            onBlur={() => setSloganActive(false)}
             aria-label="헤더 슬로건"
             placeholder="헤더 슬로건"
             className={inputCls}
@@ -277,8 +241,7 @@ export default function ConfigPage() {
             </h2>
             <div className="flex items-center gap-1">
               <ToolbarButton
-                active={photoGuideActive && photoGuideBold}
-                disabled={!photoGuideActive}
+                active={photoGuideBold}
                 onClick={() => toggleBoldFor("photo_guide_style")}
                 title="굵게"
               >
@@ -286,14 +249,11 @@ export default function ConfigPage() {
               </ToolbarButton>
               <ToolbarButton
                 active={false}
-                disabled={!photoGuideActive}
-                onClick={() => {
-                  if (photoGuideTitleRef.current)
-                    insertBulletInto(
-                      photoGuideTitleRef.current,
-                      setText("photo_guide_title"),
-                    );
-                }}
+                onClick={() =>
+                  setText("photo_guide_title")(
+                    appendBullet(config.photo_guide_title),
+                  )
+                }
                 title="글머리기호"
               >
                 •
@@ -303,12 +263,9 @@ export default function ConfigPage() {
           <div className="space-y-5">
             <div>
               <input
-                ref={photoGuideTitleRef}
                 type="text"
                 value={config.photo_guide_title}
                 onChange={set("photo_guide_title")}
-                onFocus={() => setPhotoGuideActive(true)}
-                onBlur={() => setPhotoGuideActive(false)}
                 aria-label="사진안내 제목"
                 className={inputCls}
                 style={styleToCss(getStyle("photo_guide_style"))}
@@ -348,13 +305,32 @@ export default function ConfigPage() {
                   captionValue={config[`${key}_caption`] ?? ""}
                   titleStyle={getStyle(`${key}_title_style`)}
                   descStyle={getStyle(`${key}_desc_style`)}
-                  onTitleBold={() => toggleBoldFor(`${key}_title_style`)}
-                  onDescBold={() => toggleBoldFor(`${key}_desc_style`)}
+                  onBoldToggle={() => {
+                    const t = getStyle(`${key}_title_style`);
+                    const d = getStyle(`${key}_desc_style`);
+                    const allBold =
+                      t.fontWeight === "bold" && d.fontWeight === "bold";
+                    if (allBold) {
+                      toggleBoldFor(`${key}_title_style`);
+                      toggleBoldFor(`${key}_desc_style`);
+                    } else {
+                      if (t.fontWeight !== "bold")
+                        toggleBoldFor(`${key}_title_style`);
+                      if (d.fontWeight !== "bold")
+                        toggleBoldFor(`${key}_desc_style`);
+                    }
+                  }}
+                  onBulletAppend={() => {
+                    setText(`${key}_title`)(
+                      appendBullet(config[`${key}_title`] ?? ""),
+                    );
+                    setText(`${key}_desc`)(
+                      appendBullet(config[`${key}_desc`] ?? ""),
+                    );
+                  }}
                   onTitleChange={set(`${key}_title`)}
                   onDescChange={set(`${key}_desc`)}
                   onCaptionChange={set(`${key}_caption`)}
-                  onTitleTextChange={setText(`${key}_title`)}
-                  onDescTextChange={setText(`${key}_desc`)}
                 />
               ))}
             </div>
@@ -376,13 +352,11 @@ type ConfigSectionProps = {
   captionValue: string;
   titleStyle: TextStyle;
   descStyle: TextStyle;
-  onTitleBold: () => void;
-  onDescBold: () => void;
+  onBoldToggle: () => void;
+  onBulletAppend: () => void;
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDescChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onCaptionChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onTitleTextChange: (newValue: string) => void;
-  onDescTextChange: (newValue: string) => void;
   dragHandle?: React.ReactNode;
 };
 
@@ -433,38 +407,15 @@ function ConfigSection({
   captionValue,
   titleStyle,
   descStyle,
-  onTitleBold,
-  onDescBold,
+  onBoldToggle,
+  onBulletAppend,
   onTitleChange,
   onDescChange,
   onCaptionChange,
-  onTitleTextChange,
-  onDescTextChange,
   dragHandle,
 }: ConfigSectionProps) {
-  const titleRef = useRef<HTMLInputElement | null>(null);
-  const descRef = useRef<HTMLTextAreaElement | null>(null);
-  const [activeField, setActiveField] = useState<"title" | "desc" | null>(null);
-
-  const isBold =
-    activeField === "title"
-      ? titleStyle.fontWeight === "bold"
-      : activeField === "desc"
-        ? descStyle.fontWeight === "bold"
-        : false;
-
-  const handleBold = () => {
-    if (activeField === "title") onTitleBold();
-    else if (activeField === "desc") onDescBold();
-  };
-
-  const handleBullet = () => {
-    if (activeField === "title" && titleRef.current) {
-      insertBulletInto(titleRef.current, onTitleTextChange);
-    } else if (activeField === "desc" && descRef.current) {
-      insertBulletInto(descRef.current, onDescTextChange);
-    }
-  };
+  const allBold =
+    titleStyle.fontWeight === "bold" && descStyle.fontWeight === "bold";
 
   return (
     <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
@@ -472,18 +423,12 @@ function ConfigSection({
         {dragHandle}
         <h2 className="text-[16px] font-bold text-[#111] flex-1">• {title}</h2>
         <div className="flex items-center gap-1">
-          <ToolbarButton
-            active={isBold}
-            disabled={activeField === null}
-            onClick={handleBold}
-            title="굵게"
-          >
+          <ToolbarButton active={allBold} onClick={onBoldToggle} title="굵게">
             <span className="font-bold">B</span>
           </ToolbarButton>
           <ToolbarButton
             active={false}
-            disabled={activeField === null}
-            onClick={handleBullet}
+            onClick={onBulletAppend}
             title="글머리기호"
           >
             •
@@ -496,23 +441,17 @@ function ConfigSection({
       >
         <div>
           <input
-            ref={titleRef}
             type="text"
             value={titleValue}
             onChange={onTitleChange}
-            onFocus={() => setActiveField("title")}
-            onBlur={() => setActiveField(null)}
             className={`${inputCls}`}
             style={styleToCss(titleStyle)}
           />
         </div>
         <div>
           <textarea
-            ref={descRef}
             value={descValue}
             onChange={onDescChange}
-            onFocus={() => setActiveField("desc")}
-            onBlur={() => setActiveField(null)}
             rows={3}
             className={`${inputCls}`}
             style={styleToCss(descStyle)}
