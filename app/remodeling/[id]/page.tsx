@@ -53,11 +53,11 @@ export default async function RemodelingDetailPage({
 
   const beforeImages = images
     .filter((i) => i.type === "before")
-    .map((i) => i.image_url_wm || i.image_url)
+    .map((i) => i.image_url)
     .filter(Boolean);
   const afterImages = images
     .filter((i) => i.type === "after")
-    .map((i) => i.image_url_wm || i.image_url)
+    .map((i) => i.image_url)
     .filter(Boolean);
 
   if (beforeImages.length === 0 && afterImages.length === 0) notFound();

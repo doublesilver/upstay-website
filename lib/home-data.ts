@@ -61,11 +61,11 @@ function buildCases(
       const images = imageMap.get(c.id) || [];
       const befores = images
         .filter((i) => i.type === "before")
-        .map((i) => i.image_url_wm || i.image_url)
+        .map((i) => i.image_url)
         .filter(Boolean);
       const afters = images
         .filter((i) => i.type === "after")
-        .map((i) => i.image_url_wm || i.image_url)
+        .map((i) => i.image_url)
         .filter(Boolean);
 
       return {
