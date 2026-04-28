@@ -21,10 +21,10 @@ export default function RemodelingPage() {
             : [c.after_image].filter(Boolean);
           return (
             <div key={c.id}>
-              {i > 0 && <div className="h-px bg-[#E5E5E5] my-4 md:my-5" />}
+              {i > 0 && <div className="h-px bg-[#E5E5E5] my-1 md:my-2" />}
               <Link
                 href={`/remodeling/${c.id}`}
-                className="inline-block text-[12px] md:text-[13px] text-[#666] hover:text-[#111] transition-colors mb-1.5 ml-1"
+                className="inline-block px-3 py-1 border border-[#DDD] rounded-full text-[11px] md:text-[13px] text-[#666] hover:border-[#111] hover:text-[#111] hover:bg-[#FAFAFA] transition-colors bg-white mb-1 ml-1"
               >
                 전체보기
               </Link>
