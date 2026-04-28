@@ -1292,6 +1292,14 @@ export default function RemodelingAdminPage() {
             setEditorSection(null);
           }}
           onError={(msg) => flash(msg)}
+          onReorder={(oldIndex, newIndex) =>
+            handleReorderImages(
+              editorSection.caseId,
+              editorSection.type,
+              oldIndex,
+              newIndex,
+            )
+          }
           onCancel={() => setEditorSection(null)}
         />
       )}

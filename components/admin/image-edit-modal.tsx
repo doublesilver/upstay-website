@@ -2,6 +2,20 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export interface EditableImage {
   id: number;
@@ -31,6 +45,52 @@ interface Props {
   ) => Promise<void> | void;
   onCancel: () => void;
   onError?: (message: string) => void;
+  onReorder?: (oldIndex: number, newIndex: number) => void;
+}
+
+function SortableThumb({
+  image,
+  active,
+  onClick,
+}: {
+  image: EditableImage;
+  active: boolean;
+  onClick: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `edit-${image.id}` });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      style={style}
+      onClick={onClick}
+      {...attributes}
+      {...listeners}
+      className={`w-16 h-16 rounded-md overflow-hidden border-2 shrink-0 transition-all cursor-grab active:cursor-grabbing touch-none ${
+        active ? "border-[#111]" : "border-transparent hover:border-[#DDD]"
+      }`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={image.image_url_wm || image.image_url}
+        alt=""
+        draggable={false}
+        className="w-full h-full object-cover pointer-events-none select-none"
+      />
+    </button>
+  );
 }
 
 const DEFAULT_SETTINGS: EditSettings = {
@@ -182,7 +242,19 @@ export function ImageEditModal({
   onApplyAll,
   onCancel,
   onError,
+  onReorder,
 }: Props) {
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !onReorder) return;
+    const oldIndex = images.findIndex((img) => `edit-${img.id}` === active.id);
+    const newIndex = images.findIndex((img) => `edit-${img.id}` === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    onReorder(oldIndex, newIndex);
+  };
   const [currentId, setCurrentId] = useState(initialImageId);
   const [settings, setSettings] = useState<EditSettings>(() => {
     if (typeof window === "undefined") return DEFAULT_SETTINGS;
@@ -420,27 +492,27 @@ export function ImageEditModal({
             </div>
 
             <div className="border-t border-[#111] px-3 h-[80px] flex items-center bg-white">
-              <div className="flex gap-1.5 overflow-x-auto w-full">
-                {images.map((image) => (
-                  <button
-                    key={image.id}
-                    type="button"
-                    onClick={() => setCurrentId(image.id)}
-                    className={`w-16 h-16 rounded-md overflow-hidden border-2 shrink-0 transition-all ${
-                      image.id === currentId
-                        ? "border-[#111]"
-                        : "border-transparent hover:border-[#DDD]"
-                    }`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={image.image_url_wm || image.image_url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
+              <DndContext
+                sensors={dndSensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={images.map((image) => `edit-${image.id}`)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  <div className="flex gap-1.5 overflow-x-auto w-full">
+                    {images.map((image) => (
+                      <SortableThumb
+                        key={image.id}
+                        image={image}
+                        active={image.id === currentId}
+                        onClick={() => setCurrentId(image.id)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             </div>
           </div>
 
