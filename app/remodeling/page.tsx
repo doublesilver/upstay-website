@@ -24,10 +24,13 @@ export default function RemodelingPage() {
               {i > 0 && <div className="h-px bg-[#E5E5E5] my-4 md:my-5" />}
               <Link
                 href={`/remodeling/${c.id}`}
-                className="block w-full bg-white border border-[#111111] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
+                className="group block w-full bg-white border border-[#111111] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
               >
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                   <div>
+                    <p className="text-[11px] md:text-[12px] text-[#666] group-hover:text-[#111] transition-colors mb-0.5">
+                      전체보기 →
+                    </p>
                     <p className="text-[11px] md:text-[11px] text-[#666] mb-1 font-medium">
                       Before (전)
                     </p>
@@ -55,6 +58,12 @@ export default function RemodelingPage() {
                     &rarr;
                   </span>
                   <div>
+                    <p
+                      className="text-[11px] md:text-[12px] mb-0.5 invisible"
+                      aria-hidden
+                    >
+                      전체보기
+                    </p>
                     <p className="text-[11px] md:text-[11px] text-[#666] mb-1 font-medium">
                       After (후)
                     </p>
