@@ -74,10 +74,12 @@ export function KakaoButton() {
             <button
               type="button"
               onClick={handleCopyId}
-              className="bg-white border border-[#DDD] rounded-lg py-3 px-2 mb-2 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition whitespace-nowrap"
+              className="bg-white border border-[#DDD] rounded-lg py-3 px-2 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition whitespace-nowrap"
             >
               {copied ? "복사됨" : `ID: ${KAKAO_ID}`}
             </button>
+
+            <div className="h-px bg-[#DDD] my-3" />
 
             <button
               type="button"
