@@ -132,7 +132,7 @@ export function DetailGallery({
       )}
 
       <div className="shrink-0 border border-[#111] rounded-lg flex max-h-[20svh] overflow-hidden">
-        <div className="shrink-0 flex flex-col items-center justify-center bg-[#F0F0F0] px-3 py-2 min-w-[40px]">
+        <div className="shrink-0 flex flex-col items-center justify-center bg-white px-3 py-2 min-w-[40px]">
           <span className="text-[13px] font-medium text-[#555] leading-[1.2]">
             설
           </span>
