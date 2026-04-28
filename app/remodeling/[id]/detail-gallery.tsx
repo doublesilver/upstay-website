@@ -131,14 +131,12 @@ export function DetailGallery({
         </div>
       )}
 
-      <div className="shrink-0 border border-black rounded-lg flex max-h-[20svh] overflow-hidden lg:hidden">
-        <div className="shrink-0 flex flex-col items-center justify-center px-2 py-2 text-[12px] text-[#111] font-bold leading-[1.2]">
-          <span>설</span>
-          <span>명</span>
+      <div className="shrink-0 border border-[#DDD] rounded-lg flex max-h-[20svh] overflow-hidden lg:hidden">
+        <div className="shrink-0 flex items-center justify-center bg-[#F0F0F0] px-4 py-2 min-w-[64px] border-r border-[#DDD]">
+          <span className="text-[13px] font-medium text-[#555]">설명</span>
         </div>
-        <div className="w-px bg-[#D1D5DB] shrink-0 my-2" />
         <div className="flex-1 min-w-0 px-3 py-2 overflow-y-auto">
-          <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.5] whitespace-pre-wrap">
+          <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.7] whitespace-pre-wrap">
             {title || "-"}
           </p>
         </div>
@@ -167,9 +165,9 @@ export function DetailGallery({
               </button>
             </div>
 
-            <div className="flex lg:flex-row flex-col gap-4">
+            <div className="flex lg:flex-row flex-col gap-4 lg:gap-10">
               <div
-                className={`${lightbox === "before" ? "" : "hidden"} lg:block ${beforeImages.length === 0 ? "hidden" : ""} flex-1 min-w-0`}
+                className={`${lightbox === "before" ? "" : "hidden"} lg:block ${beforeImages.length === 0 ? "hidden" : ""} flex-1 min-w-0 lg:px-2`}
               >
                 <LightboxColumn
                   label="Before (전)"
@@ -182,11 +180,11 @@ export function DetailGallery({
               </div>
 
               {beforeImages.length > 0 && afterImages.length > 0 && (
-                <div className="hidden lg:block w-px bg-[#E5E7EB] shrink-0 self-stretch" />
+                <div className="hidden lg:block w-px bg-[#DDD] shrink-0 self-stretch" />
               )}
 
               <div
-                className={`${lightbox === "after" ? "" : "hidden"} lg:block ${afterImages.length === 0 ? "hidden" : ""} flex-1 min-w-0`}
+                className={`${lightbox === "after" ? "" : "hidden"} lg:block ${afterImages.length === 0 ? "hidden" : ""} flex-1 min-w-0 lg:px-2`}
               >
                 <LightboxColumn
                   label="After (후)"
