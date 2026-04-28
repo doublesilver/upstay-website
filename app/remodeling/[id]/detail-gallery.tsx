@@ -132,8 +132,13 @@ export function DetailGallery({
       )}
 
       <div className="shrink-0 border border-[#DDD] rounded-lg flex max-h-[20svh] overflow-hidden">
-        <div className="shrink-0 flex items-center justify-center bg-[#F0F0F0] px-4 py-2 min-w-[64px] border-r border-[#DDD]">
-          <span className="text-[13px] font-medium text-[#555]">설명</span>
+        <div className="shrink-0 flex flex-col items-center justify-center bg-[#F0F0F0] px-3 py-2 min-w-[40px] border-r border-[#DDD]">
+          <span className="text-[13px] font-medium text-[#555] leading-[1.2]">
+            설
+          </span>
+          <span className="text-[13px] font-medium text-[#555] leading-[1.2]">
+            명
+          </span>
         </div>
         <div className="flex-1 min-w-0 px-3 py-2 overflow-y-auto">
           <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.7] whitespace-pre-wrap">
@@ -151,7 +156,7 @@ export function DetailGallery({
           onClick={() => setLightbox(null)}
         >
           <div
-            className="flex flex-col gap-2 max-w-[94vw] w-full lg:max-w-[1400px] border border-[#111] rounded-xl p-2 bg-white"
+            className="flex flex-col gap-2 max-w-[94vw] w-full lg:max-w-[1400px]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-end w-full px-1">
@@ -165,9 +170,9 @@ export function DetailGallery({
               </button>
             </div>
 
-            <div className="flex lg:flex-row flex-col gap-4 lg:gap-10">
+            <div className="flex lg:flex-row flex-col gap-4 lg:gap-6">
               <div
-                className={`${lightbox === "before" ? "" : "hidden"} lg:block ${beforeImages.length === 0 ? "hidden" : ""} flex-1 min-w-0 lg:px-2`}
+                className={`${lightbox === "before" ? "" : "hidden"} lg:block ${beforeImages.length === 0 ? "hidden" : ""} flex-1 min-w-0 border border-[#111] rounded-xl p-3 bg-white`}
               >
                 <LightboxColumn
                   label="Before (전)"
@@ -179,12 +184,8 @@ export function DetailGallery({
                 />
               </div>
 
-              {beforeImages.length > 0 && afterImages.length > 0 && (
-                <div className="hidden lg:block w-px bg-[#DDD] shrink-0 self-stretch" />
-              )}
-
               <div
-                className={`${lightbox === "after" ? "" : "hidden"} lg:block ${afterImages.length === 0 ? "hidden" : ""} flex-1 min-w-0 lg:px-2`}
+                className={`${lightbox === "after" ? "" : "hidden"} lg:block ${afterImages.length === 0 ? "hidden" : ""} flex-1 min-w-0 border border-[#111] rounded-xl p-3 bg-white`}
               >
                 <LightboxColumn
                   label="After (후)"
@@ -366,6 +367,10 @@ function GallerySection({
   altPrefix: string;
   onOpenLightbox: () => void;
 }) {
+  const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+
   return (
     <section className="flex-1 min-h-0 min-w-0 flex flex-col gap-1">
       <p className="shrink-0 text-[11px] tracking-wider text-[#111] font-medium">
@@ -389,6 +394,14 @@ function GallerySection({
           <div
             ref={containerRef}
             onClick={onOpenLightbox}
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setHoverPos({
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top,
+              });
+            }}
+            onMouseLeave={() => setHoverPos(null)}
             className="flex-1 min-h-0 self-stretch relative cursor-pointer touch-pan-y select-none will-change-transform"
           >
             <ProtectedImage
@@ -400,6 +413,17 @@ function GallerySection({
               quality={70}
               priority
             />
+            {hoverPos && (
+              <div
+                className="hidden md:block absolute pointer-events-none bg-black/75 text-white text-[11px] font-medium px-2 py-1 rounded whitespace-nowrap z-10"
+                style={{
+                  left: hoverPos.x + 14,
+                  top: hoverPos.y + 14,
+                }}
+              >
+                크게보기
+              </div>
+            )}
           </div>
           {images.length > 1 && (
             <button
