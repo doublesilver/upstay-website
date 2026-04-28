@@ -3,7 +3,7 @@ import { DetailGallery } from "./detail-gallery";
 import { getDb } from "@/lib/db";
 import { notFound } from "next/navigation";
 
-export const revalidate = 600;
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   try {
@@ -59,6 +59,8 @@ export default async function RemodelingDetailPage({
     .filter((i) => i.type === "after")
     .map((i) => i.image_url_wm || i.image_url)
     .filter(Boolean);
+
+  if (beforeImages.length === 0 && afterImages.length === 0) notFound();
 
   return (
     <Container className="h-[calc(100vh-3.5rem)] h-[calc(100svh-3.5rem)] md:h-[calc(100vh-5rem)] md:h-[calc(100svh-5rem)] overflow-hidden py-2 md:py-3 flex flex-col">
