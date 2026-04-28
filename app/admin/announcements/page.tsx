@@ -14,59 +14,29 @@ interface Announcement {
   created_at: string;
 }
 
+const DISMISS_OPTIONS = [
+  { value: "none", label: "매번 표시" },
+  { value: "day", label: "하루 안 보임" },
+  { value: "week", label: "일주일 안 보임" },
+  { value: "forever", label: "다시 안 보임" },
+];
+
+const NEW_ITEM: Announcement = {
+  id: 0,
+  title: "",
+  content: "",
+  is_visible: 1,
+  dismiss_duration: "none",
+  created_at: "",
+};
+
 export default function AnnouncementsAdminPage() {
   const [items, setItems] = useState<Announcement[]>([]);
-  const [editing, setEditing] = useState<Announcement | null>(null);
   const [toast, setToast] = useState("");
   const [deleting, setDeleting] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const contentRef = useRef<HTMLTextAreaElement>(null);
-
-  const wrapBold = () => {
-    const el = contentRef.current;
-    if (!el || !editing) return;
-    const { selectionStart: s, selectionEnd: e, value } = el;
-    const selected = value.slice(s, e);
-    let newValue: string;
-    let newStart: number;
-    let newEnd: number;
-    if (selected) {
-      newValue = value.slice(0, s) + `**${selected}**` + value.slice(e);
-      newStart = s;
-      newEnd = e + 4;
-    } else {
-      newValue = value.slice(0, s) + "****" + value.slice(s);
-      newStart = s + 2;
-      newEnd = s + 2;
-    }
-    flushSync(() => setEditing({ ...editing, content: newValue }));
-    el.focus();
-    el.setSelectionRange(newStart, newEnd);
-  };
-
-  const insertBullet = () => {
-    const el = contentRef.current;
-    if (!el || !editing) return;
-    const { selectionStart: s, selectionEnd: e, value } = el;
-    const lines = value.split("\n");
-    let charCount = 0;
-    let startLine = 0;
-    let endLine = 0;
-    for (let i = 0; i < lines.length; i++) {
-      const lineEnd = charCount + lines[i].length;
-      if (charCount <= s && s <= lineEnd + 1) startLine = i;
-      if (charCount <= e && e <= lineEnd + 1) endLine = i;
-      charCount += lines[i].length + 1;
-    }
-    const newLines = lines.map((line, i) =>
-      i >= startLine && i <= endLine ? "• " + line : line,
-    );
-    const newValue = newLines.join("\n");
-    const added = (endLine - startLine + 1) * 2;
-    flushSync(() => setEditing({ ...editing, content: newValue }));
-    el.focus();
-    el.setSelectionRange(s + 2, e + added);
-  };
+  const [creatingNew, setCreatingNew] = useState(false);
+  const [dirtyMap, setDirtyMap] = useState<Record<number, boolean>>({});
 
   const load = useCallback(() => {
     apiFetch("/api/admin/announcements", { headers: getHeaders() })
@@ -79,27 +49,49 @@ export default function AnnouncementsAdminPage() {
   useEffect(load, [load]);
 
   useEffect(() => {
-    if (!editing && deleting === null) return;
+    const isDirty = Object.values(dirtyMap).some(Boolean);
+    if (!isDirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirtyMap]);
+
+  useEffect(() => {
+    if (deleting === null) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      if (deleting !== null) setDeleting(null);
-      else if (editing) setEditing(null);
+      if (e.key === "Escape") setDeleting(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [editing, deleting]);
+  }, [deleting]);
 
-  const handleSave = async () => {
-    if (!editing) return;
-    const method = editing.id ? "PUT" : "POST";
+  const setDirty = useCallback((id: number, isDirty: boolean) => {
+    setDirtyMap((prev) => {
+      if (Boolean(prev[id]) === isDirty) return prev;
+      const next = { ...prev };
+      if (isDirty) next[id] = true;
+      else delete next[id];
+      return next;
+    });
+  }, []);
+
+  const handleSave = async (item: Announcement) => {
+    const method = item.id ? "PUT" : "POST";
     try {
       await apiFetch("/api/admin/announcements", {
         method,
         headers: getHeaders(),
-        body: JSON.stringify(editing),
+        body: JSON.stringify(item),
       });
-      setEditing(null);
-      setToast(editing.id ? "수정되었습니다" : "등록되었습니다");
+      setToast(item.id ? "수정되었습니다" : "등록되었습니다");
+      if (item.id) setDirty(item.id, false);
+      else {
+        setCreatingNew(false);
+        setDirty(0, false);
+      }
       load();
     } catch {
       setToast("저장 실패");
@@ -114,6 +106,7 @@ export default function AnnouncementsAdminPage() {
         body: JSON.stringify({ id }),
       });
       setDeleting(null);
+      setDirty(id, false);
       setToast("삭제되었습니다");
       load();
     } catch {
@@ -122,6 +115,10 @@ export default function AnnouncementsAdminPage() {
   };
 
   const handleToggleVisible = async (item: Announcement) => {
+    if (dirtyMap[item.id]) {
+      setToast("저장하지 않은 변경사항이 있습니다");
+      return;
+    }
     try {
       await apiFetch("/api/admin/announcements", {
         method: "PUT",
@@ -134,130 +131,82 @@ export default function AnnouncementsAdminPage() {
     }
   };
 
-  const newItem = (): Announcement => ({
-    id: 0,
-    title: "",
-    content: "",
-    is_visible: 1,
-    dismiss_duration: "none",
-    created_at: "",
-  });
-
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-[26px] font-bold text-[#111] tracking-tight">
-            팝업창
-          </h1>
-        </div>
+        <h1 className="text-[26px] font-bold text-[#111] tracking-tight">
+          팝업창
+        </h1>
         <button
-          onClick={() => setEditing(newItem())}
-          className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
+          onClick={() => setCreatingNew(true)}
+          disabled={creatingNew}
+          className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all disabled:opacity-40"
         >
           + 새 팝업
         </button>
       </div>
 
-      {/* 편집 모달 */}
-      {editing && (
-        <div
-          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
-          onClick={() => setEditing(null)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="announcement-edit-title"
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden"
-          >
-            <h2 id="announcement-edit-title" className="sr-only">
-              팝업 편집
-            </h2>
-            <div className="px-6 py-5 space-y-4">
-              <div className="flex flex-col gap-3">
-                <textarea
-                  value={editing.title}
-                  onChange={(e) =>
-                    setEditing({ ...editing, title: e.target.value })
-                  }
-                  rows={1}
-                  placeholder="제목 (엔터키로 줄바꿈)"
-                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
-                />
-                <div className="h-px bg-[#E5E5E5]" />
-                <textarea
-                  ref={contentRef}
-                  value={editing.content}
-                  onChange={(e) =>
-                    setEditing({ ...editing, content: e.target.value })
-                  }
-                  rows={5}
-                  aria-label="팝업 내용"
-                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#111] transition-colors resize-none"
-                  placeholder="팝업 내용"
-                />
-              </div>
-              <div className="border-t border-[#EBEBEB]" />
-              <div>
-                <select
-                  aria-label="팝업 닫기 설정"
-                  value={editing.dismiss_duration || "none"}
-                  onChange={(e) =>
-                    setEditing({ ...editing, dismiss_duration: e.target.value })
-                  }
-                  className="w-full border border-[#DDD] rounded-xl px-4 py-3 text-[14px] outline-none transition-all focus:border-[#111] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
-                >
-                  <option value="none">매번 표시</option>
-                  <option value="day">닫으면 하루 동안 안 보임</option>
-                  <option value="week">닫으면 일주일 동안 안 보임</option>
-                  <option value="forever">닫으면 다시 안 보임</option>
-                </select>
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t border-[#EBEBEB] flex items-center justify-between gap-3">
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={wrapBold}
-                  className="w-9 h-9 border border-[#DDD] rounded-lg hover:bg-[#F7F7F7] font-bold text-[14px]"
-                  title="굵게"
-                  aria-label="굵게"
-                >
-                  B
-                </button>
-                <button
-                  type="button"
-                  onClick={insertBullet}
-                  className="w-9 h-9 border border-[#DDD] rounded-lg hover:bg-[#F7F7F7] text-[14px]"
-                  title="글머리기호"
-                  aria-label="글머리기호"
-                >
-                  •
-                </button>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setEditing(null)}
-                  className="px-5 py-2.5 rounded-xl text-[14px] text-[#666] border border-[#111] hover:bg-[#F7F7F7] transition-all"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={!editing.content}
-                  className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] disabled:opacity-30 transition-all"
-                >
-                  저장
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="space-y-3">
+        {creatingNew && (
+          <AnnouncementCard
+            key="new"
+            item={NEW_ITEM}
+            isNew
+            onSave={handleSave}
+            onCancel={() => {
+              setCreatingNew(false);
+              setDirty(0, false);
+            }}
+            onDelete={() => {}}
+            onToggleVisible={() => {}}
+            onDirtyChange={(d) => setDirty(0, d)}
+          />
+        )}
 
-      {/* 삭제 확인 모달 */}
+        {items.map((item) => (
+          <AnnouncementCard
+            key={item.id}
+            item={item}
+            onSave={handleSave}
+            onDelete={() => setDeleting(item.id)}
+            onToggleVisible={() => handleToggleVisible(item)}
+            onDirtyChange={(d) => setDirty(item.id, d)}
+          />
+        ))}
+
+        {loading && items.length === 0 && !creatingNew && (
+          <div className="py-20 text-center text-[#999] text-[14px]">
+            로딩 중...
+          </div>
+        )}
+
+        {!loading && items.length === 0 && !creatingNew && (
+          <div className="bg-white border border-[#EBEBEB] rounded-2xl py-16 text-center">
+            <div className="w-16 h-16 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#CCC"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14,2 14,8 20,8" />
+              </svg>
+            </div>
+            <p className="text-[15px] font-medium text-[#999]">
+              등록된 공지가 없습니다
+            </p>
+            <p className="mt-1 text-[13px] text-[#CCC]">
+              새 공지를 작성해보세요
+            </p>
+          </div>
+        )}
+      </div>
+
       {deleting !== null && (
         <div
           className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
@@ -296,107 +245,238 @@ export default function AnnouncementsAdminPage() {
         </div>
       )}
 
-      {/* 공지 목록 */}
-      <div className="space-y-3">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white border border-[#EBEBEB] rounded-2xl p-5 flex items-center justify-between gap-4 hover:shadow-sm transition-all"
-          >
-            <div className="flex-1 min-w-0 space-y-2">
-              <div className="border border-[#111] rounded-lg px-3 py-2">
-                <span className="font-semibold text-[15px] text-[#111] whitespace-pre-wrap line-clamp-3 block">
-                  {item.title || "(제목 없음)"}
-                </span>
-              </div>
-              <div className="border border-[#111] rounded-lg px-3 py-2">
-                {item.content ? (
-                  <p className="text-[14px] text-[#333] line-clamp-3 whitespace-pre-wrap">
-                    {item.content}
-                  </p>
-                ) : (
-                  <p className="text-[13px] text-[#BBB] italic">(빈 팝업)</p>
-                )}
-              </div>
-            </div>
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
+    </div>
+  );
+}
 
-            <div className="flex flex-col items-center justify-center gap-2 shrink-0 border border-black rounded-lg p-2">
-              <div className="flex items-center justify-center gap-2">
-                <span
-                  className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${
-                    item.is_visible
-                      ? "bg-green-50 text-green-600"
-                      : "bg-[#F7F7F7] text-[#999]"
-                  }`}
-                >
-                  {item.is_visible ? "공개" : "비공개"}
-                </span>
-                <button
-                  onClick={() => handleToggleVisible(item)}
-                  className={`relative w-10 h-5.5 rounded-full transition-colors ${
-                    item.is_visible ? "bg-[#111]" : "bg-[#DDD]"
-                  }`}
-                  title={item.is_visible ? "비공개로 전환" : "공개로 전환"}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform ${
-                      item.is_visible ? "translate-x-4.5" : ""
-                    }`}
-                  />
-                </button>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => setEditing(item)}
-                  className="px-3 py-1.5 rounded-lg text-[12px] border border-[#DDD] text-[#333] hover:bg-[#F7F7F7]"
-                >
-                  수정
-                </button>
-                <button
-                  onClick={() => setDeleting(item.id)}
-                  className="px-3 py-1.5 rounded-lg text-[12px] border border-red-200 text-red-500 hover:bg-red-50"
-                >
-                  삭제
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+type CardProps = {
+  item: Announcement;
+  isNew?: boolean;
+  onSave: (item: Announcement) => void;
+  onDelete: () => void;
+  onCancel?: () => void;
+  onToggleVisible: () => void;
+  onDirtyChange: (dirty: boolean) => void;
+};
 
-        {loading && items.length === 0 && (
-          <div className="py-20 text-center text-[#999] text-[14px]">
-            로딩 중...
-          </div>
-        )}
+function AnnouncementCard({
+  item,
+  isNew = false,
+  onSave,
+  onDelete,
+  onCancel,
+  onToggleVisible,
+  onDirtyChange,
+}: CardProps) {
+  const [draft, setDraft] = useState<Announcement>(item);
+  const [activeField, setActiveField] = useState<"title" | "content" | null>(
+    null,
+  );
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
-        {!loading && items.length === 0 && (
-          <div className="bg-white border border-[#EBEBEB] rounded-2xl py-16 text-center">
-            <div className="w-16 h-16 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#CCC"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                <polyline points="14,2 14,8 20,8" />
-              </svg>
-            </div>
-            <p className="text-[15px] font-medium text-[#999]">
-              등록된 공지가 없습니다
-            </p>
-            <p className="mt-1 text-[13px] text-[#CCC]">
-              새 공지를 작성해보세요
-            </p>
-          </div>
-        )}
+  useEffect(() => {
+    setDraft(item);
+  }, [item]);
+
+  const isDirty =
+    draft.title !== item.title ||
+    draft.content !== item.content ||
+    draft.dismiss_duration !== item.dismiss_duration;
+
+  useEffect(() => {
+    onDirtyChange(isDirty);
+  }, [isDirty, onDirtyChange]);
+
+  const updateField = (field: "title" | "content", value: string) => {
+    setDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const wrapBold = () => {
+    const field = activeField;
+    if (!field) return;
+    const el = field === "title" ? titleRef.current : contentRef.current;
+    if (!el) return;
+    const { selectionStart: s, selectionEnd: e, value } = el;
+    const selected = value.slice(s, e);
+    let newValue: string;
+    let newStart: number;
+    let newEnd: number;
+    if (selected) {
+      newValue = value.slice(0, s) + `**${selected}**` + value.slice(e);
+      newStart = s;
+      newEnd = e + 4;
+    } else {
+      newValue = value.slice(0, s) + "****" + value.slice(s);
+      newStart = s + 2;
+      newEnd = s + 2;
+    }
+    flushSync(() => updateField(field, newValue));
+    el.focus();
+    el.setSelectionRange(newStart, newEnd);
+  };
+
+  const insertBullet = () => {
+    const field = activeField;
+    if (!field) return;
+    const el = field === "title" ? titleRef.current : contentRef.current;
+    if (!el) return;
+    const { selectionStart: s, selectionEnd: e, value } = el;
+    const lines = value.split("\n");
+    let charCount = 0;
+    let startLine = 0;
+    let endLine = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const lineEnd = charCount + lines[i].length;
+      if (charCount <= s && s <= lineEnd + 1) startLine = i;
+      if (charCount <= e && e <= lineEnd + 1) endLine = i;
+      charCount += lines[i].length + 1;
+    }
+    const newLines = lines.map((line, i) =>
+      i >= startLine && i <= endLine ? "• " + line : line,
+    );
+    const newValue = newLines.join("\n");
+    const added = (endLine - startLine + 1) * 2;
+    flushSync(() => updateField(field, newValue));
+    el.focus();
+    el.setSelectionRange(s + 2, e + added);
+  };
+
+  const canSave = isDirty && draft.content.trim().length > 0;
+
+  return (
+    <div
+      className={`bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-4 transition-colors ${
+        isDirty
+          ? "border-2 border-yellow-300"
+          : "border border-[#EBEBEB] hover:shadow-sm"
+      }`}
+    >
+      <div className="flex-1 space-y-2 min-w-0">
+        <textarea
+          ref={titleRef}
+          value={draft.title}
+          onChange={(e) => updateField("title", e.target.value)}
+          onFocus={() => setActiveField("title")}
+          rows={1}
+          placeholder="제목 (엔터키로 줄바꿈)"
+          aria-label="팝업 제목"
+          className="w-full border border-[#DDD] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
+        />
+        <textarea
+          ref={contentRef}
+          value={draft.content}
+          onChange={(e) => updateField("content", e.target.value)}
+          onFocus={() => setActiveField("content")}
+          rows={4}
+          placeholder="팝업 내용"
+          aria-label="팝업 내용"
+          className="w-full border border-[#DDD] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
+        />
       </div>
 
-      {toast && <Toast message={toast} onClose={() => setToast("")} />}
+      <div className="md:w-[160px] flex flex-col gap-2 shrink-0">
+        {!isNew && (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[12px] text-[#666]">
+              {item.is_visible ? "공개" : "비공개"}
+            </span>
+            <button
+              type="button"
+              onClick={onToggleVisible}
+              aria-label={item.is_visible ? "비공개로 전환" : "공개로 전환"}
+              className={`relative w-10 h-5 rounded-full transition-colors ${
+                item.is_visible ? "bg-[#111]" : "bg-[#DDD]"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                  item.is_visible ? "translate-x-5" : ""
+                }`}
+              />
+            </button>
+          </div>
+        )}
+
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              wrapBold();
+            }}
+            disabled={activeField === null}
+            className="flex-1 h-8 border border-[#DDD] rounded-md text-[13px] font-bold disabled:opacity-30 hover:border-[#111] transition-colors"
+            title="굵게"
+            aria-label="굵게"
+          >
+            B
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              insertBullet();
+            }}
+            disabled={activeField === null}
+            className="flex-1 h-8 border border-[#DDD] rounded-md text-[13px] disabled:opacity-30 hover:border-[#111] transition-colors"
+            title="글머리기호"
+            aria-label="글머리기호"
+          >
+            •
+          </button>
+        </div>
+
+        <select
+          value={draft.dismiss_duration || "none"}
+          onChange={(e) =>
+            setDraft((prev) => ({ ...prev, dismiss_duration: e.target.value }))
+          }
+          aria-label="팝업 닫기 설정"
+          className="w-full border border-[#DDD] rounded-md px-2 py-1.5 text-[11px] outline-none focus:border-[#111]"
+        >
+          {DISMISS_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+
+        {isDirty && (
+          <div className="text-[11px] text-yellow-700 font-medium">
+            ● 미저장
+          </div>
+        )}
+
+        <div className="flex gap-1 mt-auto">
+          <button
+            type="button"
+            onClick={() => onSave(draft)}
+            disabled={!canSave}
+            className="flex-1 h-8 bg-[#111] text-white rounded text-[12px] font-semibold hover:bg-[#333] disabled:opacity-30 transition-colors"
+          >
+            저장
+          </button>
+          {isNew ? (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 h-8 border border-[#111] text-[#666] rounded text-[12px] hover:bg-[#F7F7F7] transition-colors"
+            >
+              취소
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="flex-1 h-8 border border-red-200 text-red-500 rounded text-[12px] hover:bg-red-50 transition-colors"
+            >
+              삭제
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
