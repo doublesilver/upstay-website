@@ -124,3 +124,20 @@
 - B 클릭 = title + content 양쪽 전체 텍스트를 \*\* 페어로 감싸기 토글 (`toggleBoldAll`)
 - · 클릭 = 양쪽 끝에 "• " 추가 (`appendBulletAll`)
 - B 버튼은 양쪽 모두 bold 상태일 때 active 시각 표시
+
+## 2026-04-27 긴급 버그 수정 + 영역 분할 인프라 (TRACK A + B)
+
+### TRACK A — 버그 수정
+
+- **A1 (Zone 7)**: `app/admin/config/page.tsx` photo_guide 영역 toolbar — 포커스 추적 패턴으로 복원. photo_guide_title input에 포커스 시 B/· 활성화, 미포커스 시 비활성. B = `photo_guide_style` fontWeight 토글, · = `photo_guide_title`에 cursor 위치 기반 글머리기호 삽입.
+- **A2 (Zone 7)**: 안내 카테고리(1)~(5) ConfigSection — v3.6의 일괄 토글을 v3.5 패턴으로 복원. activeField state(`'title'|'desc'|null`) 추적. B 클릭 = activeField에 해당하는 `*_style` 컬럼만 fontWeight 토글, · 클릭 = activeField textarea/input에만 글머리기호 삽입. 헤더 toolbar는 1세트 유지 (대표님 요구).
+- **A3 (Zone 2)**: `app/remodeling/page.tsx` 사례 리스트 — 카드 사이 마진 `my-4 md:my-5` → `my-1 md:my-2`로 축소, "전체보기" 텍스트를 `border + rounded-full` 박스 형태로 변경, 호버 시 테두리/색상 전환.
+
+### TRACK B — 영역 분할 인프라
+
+- **B1**: `WORK_ZONES.md` 신규 — 7개 Zone 정의 + 의존 그래프 + 작업 진행 규칙 + 공용 모듈 명시
+- **B2**: `.github/PULL_REQUEST_TEMPLATE.md` 신규 — Zone 체크박스 + 검증 체크리스트 포함
+
+### 알려진 한계 / 후속 차수 결정 사항
+
+- **caption 필드 toolbar**: 지시서 A1/A2가 `photo_guide_caption` 및 카테고리 caption 필드도 toolbar 대상 요구했으나, caption 필드는 schema에 별도 `_style` JSON 컬럼이 없어 fontWeight 토글 불가능. 이번 차수는 **caption 제외**로 진행. 향후 caption*style 컬럼 추가 마이그레이션 (`lib/db/migrations/014*\*.sql`) 필요 여부 결정 필요.
