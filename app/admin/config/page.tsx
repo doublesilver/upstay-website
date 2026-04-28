@@ -262,7 +262,7 @@ export default function ConfigPage() {
       )}
 
       <div className={`space-y-10 ${loading ? "hidden" : ""}`}>
-        <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
+        <section className="bg-white border border-[#111] rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-[16px] font-bold text-[#111] flex-1">• 헤더</h2>
             <div className="flex items-center gap-1">
@@ -301,7 +301,7 @@ export default function ConfigPage() {
           />
         </section>
 
-        <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
+        <section className="bg-white border border-[#111] rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-6">
             <h2 className="text-[16px] font-bold text-[#111] flex-1">
               • 사진안내 카테고리
@@ -513,7 +513,7 @@ function ConfigSection({
   };
 
   return (
-    <section className="bg-white border border-[#EBEBEB] rounded-2xl p-6">
+    <section className="bg-white border border-[#111] rounded-2xl p-6">
       <div className="flex items-center gap-3 mb-6">
         {dragHandle}
         <h2 className="text-[16px] font-bold text-[#111] flex-1">• {title}</h2>
