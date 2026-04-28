@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RotateCcw, X } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 
 export interface EditableImage {
   id: number;
@@ -378,9 +378,9 @@ export function ImageEditModal({
             ref={closeBtnRef}
             type="button"
             onClick={onCancel}
-            className="w-8 h-8 rounded-full hover:bg-[#F7F7F7] flex items-center justify-center text-[#999] hover:text-[#111] transition-all"
+            className="bg-white border border-[#DDD] rounded-lg px-4 py-1.5 text-[14px] font-medium text-[#111] hover:bg-[#FAFAFA] hover:border-[#999] transition-colors"
           >
-            <X size={18} />
+            닫기
           </button>
         </div>
 
