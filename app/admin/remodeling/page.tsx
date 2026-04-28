@@ -210,8 +210,8 @@ function SortableThumb({
             className="w-full h-full object-cover pointer-events-none select-none"
           />
           {image.image_url_wm && (
-            <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[8px] px-1 py-0.5 rounded pointer-events-none">
-              WM
+            <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[9px] px-1.5 py-0.5 rounded pointer-events-none">
+              워터마크
             </span>
           )}
         </>
@@ -602,7 +602,7 @@ function SortableCase({
 
           <div className="flex items-start gap-3">
             <label className="text-[13px] font-medium text-[#333] shrink-0 pt-1.5">
-              내용
+              설명
             </label>
             <textarea
               value={item.title}
