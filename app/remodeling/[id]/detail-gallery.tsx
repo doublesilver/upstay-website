@@ -164,9 +164,9 @@ export function DetailGallery({
                 type="button"
                 onClick={() => setLightbox(null)}
                 aria-label="닫기"
-                className="text-[#111] text-xl leading-none px-2 py-1 hover:opacity-70 transition-opacity"
+                className="bg-[#F1F8E9] border border-[#DDD] text-[#111] text-[14px] font-medium px-4 py-1.5 rounded-lg hover:bg-[#E8F0DC] hover:border-[#999] transition-colors"
               >
-                ✕
+                닫기
               </button>
             </div>
 
