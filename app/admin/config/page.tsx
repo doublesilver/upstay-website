@@ -114,9 +114,12 @@ export default function ConfigPage() {
 
   const sloganRef = useRef<HTMLInputElement | null>(null);
   const photoGuideTitleRef = useRef<HTMLInputElement | null>(null);
+  const photoGuideCaptionRef = useRef<HTMLInputElement | null>(null);
 
   const [sloganActive, setSloganActive] = useState(false);
-  const [photoGuideActive, setPhotoGuideActive] = useState(false);
+  const [photoGuideField, setPhotoGuideField] = useState<
+    "title" | "caption" | null
+  >(null);
 
   const categorySensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -206,7 +209,34 @@ export default function ConfigPage() {
   };
 
   const sloganBold = getStyle("slogan_text_style").fontWeight === "bold";
-  const photoGuideBold = getStyle("photo_guide_style").fontWeight === "bold";
+  const photoGuideTitleBold =
+    getStyle("photo_guide_style").fontWeight === "bold";
+  const photoGuideCaptionBold =
+    getStyle("photo_guide_caption_style").fontWeight === "bold";
+  const photoGuideBoldActive =
+    photoGuideField === "title"
+      ? photoGuideTitleBold
+      : photoGuideField === "caption"
+        ? photoGuideCaptionBold
+        : false;
+  const handlePhotoGuideBold = () => {
+    if (photoGuideField === "title") toggleBoldFor("photo_guide_style");
+    else if (photoGuideField === "caption")
+      toggleBoldFor("photo_guide_caption_style");
+  };
+  const handlePhotoGuideBullet = () => {
+    if (photoGuideField === "title" && photoGuideTitleRef.current) {
+      insertBulletInto(
+        photoGuideTitleRef.current,
+        setText("photo_guide_title"),
+      );
+    } else if (photoGuideField === "caption" && photoGuideCaptionRef.current) {
+      insertBulletInto(
+        photoGuideCaptionRef.current,
+        setText("photo_guide_caption"),
+      );
+    }
+  };
 
   return (
     <div>
@@ -278,23 +308,17 @@ export default function ConfigPage() {
             </h2>
             <div className="flex items-center gap-1">
               <ToolbarButton
-                active={photoGuideActive && photoGuideBold}
-                disabled={!photoGuideActive}
-                onClick={() => toggleBoldFor("photo_guide_style")}
+                active={photoGuideBoldActive}
+                disabled={photoGuideField === null}
+                onClick={handlePhotoGuideBold}
                 title="굵게"
               >
                 <span className="font-bold">B</span>
               </ToolbarButton>
               <ToolbarButton
                 active={false}
-                disabled={!photoGuideActive}
-                onClick={() => {
-                  if (photoGuideTitleRef.current)
-                    insertBulletInto(
-                      photoGuideTitleRef.current,
-                      setText("photo_guide_title"),
-                    );
-                }}
+                disabled={photoGuideField === null}
+                onClick={handlePhotoGuideBullet}
                 title="글머리기호"
               >
                 •
@@ -308,8 +332,8 @@ export default function ConfigPage() {
                 type="text"
                 value={config.photo_guide_title}
                 onChange={set("photo_guide_title")}
-                onFocus={() => setPhotoGuideActive(true)}
-                onBlur={() => setPhotoGuideActive(false)}
+                onFocus={() => setPhotoGuideField("title")}
+                onBlur={() => setPhotoGuideField(null)}
                 aria-label="사진안내 제목"
                 className={inputCls}
                 style={styleToCss(getStyle("photo_guide_style"))}
@@ -317,11 +341,15 @@ export default function ConfigPage() {
             </div>
             <div>
               <input
+                ref={photoGuideCaptionRef}
                 type="text"
                 value={config.photo_guide_caption}
                 onChange={set("photo_guide_caption")}
+                onFocus={() => setPhotoGuideField("caption")}
+                onBlur={() => setPhotoGuideField(null)}
                 aria-label="사진안내 보조문구"
                 className={inputCls}
+                style={styleToCss(getStyle("photo_guide_caption_style"))}
               />
             </div>
           </div>
@@ -349,13 +377,16 @@ export default function ConfigPage() {
                   captionValue={config[`${key}_caption`] ?? ""}
                   titleStyle={getStyle(`${key}_title_style`)}
                   descStyle={getStyle(`${key}_desc_style`)}
+                  captionStyle={getStyle(`${key}_caption_style`)}
                   onTitleBold={() => toggleBoldFor(`${key}_title_style`)}
                   onDescBold={() => toggleBoldFor(`${key}_desc_style`)}
+                  onCaptionBold={() => toggleBoldFor(`${key}_caption_style`)}
                   onTitleChange={set(`${key}_title`)}
                   onDescChange={set(`${key}_desc`)}
                   onCaptionChange={set(`${key}_caption`)}
                   onTitleTextChange={setText(`${key}_title`)}
                   onDescTextChange={setText(`${key}_desc`)}
+                  onCaptionTextChange={setText(`${key}_caption`)}
                 />
               ))}
             </div>
@@ -377,13 +408,16 @@ type ConfigSectionProps = {
   captionValue: string;
   titleStyle: TextStyle;
   descStyle: TextStyle;
+  captionStyle: TextStyle;
   onTitleBold: () => void;
   onDescBold: () => void;
+  onCaptionBold: () => void;
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDescChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onCaptionChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onTitleTextChange: (newValue: string) => void;
   onDescTextChange: (newValue: string) => void;
+  onCaptionTextChange: (newValue: string) => void;
   dragHandle?: React.ReactNode;
 };
 
@@ -434,29 +468,38 @@ function ConfigSection({
   captionValue,
   titleStyle,
   descStyle,
+  captionStyle,
   onTitleBold,
   onDescBold,
+  onCaptionBold,
   onTitleChange,
   onDescChange,
   onCaptionChange,
   onTitleTextChange,
   onDescTextChange,
+  onCaptionTextChange,
   dragHandle,
 }: ConfigSectionProps) {
   const titleRef = useRef<HTMLInputElement | null>(null);
   const descRef = useRef<HTMLTextAreaElement | null>(null);
-  const [activeField, setActiveField] = useState<"title" | "desc" | null>(null);
+  const captionRef = useRef<HTMLInputElement | null>(null);
+  const [activeField, setActiveField] = useState<
+    "title" | "desc" | "caption" | null
+  >(null);
 
   const isBold =
     activeField === "title"
       ? titleStyle.fontWeight === "bold"
       : activeField === "desc"
         ? descStyle.fontWeight === "bold"
-        : false;
+        : activeField === "caption"
+          ? captionStyle.fontWeight === "bold"
+          : false;
 
   const handleBold = () => {
     if (activeField === "title") onTitleBold();
     else if (activeField === "desc") onDescBold();
+    else if (activeField === "caption") onCaptionBold();
   };
 
   const handleBullet = () => {
@@ -464,6 +507,8 @@ function ConfigSection({
       insertBulletInto(titleRef.current, onTitleTextChange);
     } else if (activeField === "desc" && descRef.current) {
       insertBulletInto(descRef.current, onDescTextChange);
+    } else if (activeField === "caption" && captionRef.current) {
+      insertBulletInto(captionRef.current, onCaptionTextChange);
     }
   };
 
@@ -521,10 +566,14 @@ function ConfigSection({
         </div>
         <div>
           <input
+            ref={captionRef}
             type="text"
             value={captionValue}
             onChange={onCaptionChange}
+            onFocus={() => setActiveField("caption")}
+            onBlur={() => setActiveField(null)}
             className={inputCls}
+            style={styleToCss(captionStyle)}
           />
         </div>
       </div>

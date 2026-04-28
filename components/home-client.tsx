@@ -86,6 +86,9 @@ export function HomeClient({
   const photoGuideStyle = styleToCss(
     parseStyle(initialConfig.photo_guide_style),
   );
+  const photoGuideCaptionStyle = styleToCss(
+    parseStyle(initialConfig.photo_guide_caption_style),
+  );
   const photoGuideTitle =
     initialConfig.photo_guide_title || "리모델링 사례보기";
   const photoGuideCaption =
@@ -108,7 +111,10 @@ export function HomeClient({
                   {photoGuideTitle} →
                 </h2>
               </Link>
-              <span className="text-[9px] md:text-[12px] text-[#888] font-medium shrink-0 mt-0 relative top-[4px]">
+              <span
+                className="text-[9px] md:text-[12px] text-[#888] font-medium shrink-0 mt-0 relative top-[4px]"
+                style={photoGuideCaptionStyle}
+              >
                 ( {photoGuideCaption} )
               </span>
             </div>

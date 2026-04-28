@@ -32,6 +32,12 @@ export const CONFIG_ENTRIES: ConfigEntry[] = [
     editable: true,
   },
   { key: "photo_guide_style", default: "{}", public: true, editable: true },
+  {
+    key: "photo_guide_caption_style",
+    default: "{}",
+    public: true,
+    editable: true,
+  },
   { key: "photo_guide_visible", default: "1", public: true, editable: true },
 
   {

@@ -18,15 +18,18 @@ function ServiceSection({
   caption,
   titleStyle,
   descStyle,
+  captionStyle,
 }: {
   title: string;
   description: string;
   caption?: string;
   titleStyle?: TextStyle;
   descStyle?: TextStyle;
+  captionStyle?: TextStyle;
 }) {
   const ts = titleStyle || {};
   const ds = descStyle || {};
+  const cs = captionStyle || {};
 
   return (
     <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl px-4 py-2.5 md:px-6 md:py-3.5">
@@ -38,7 +41,10 @@ function ServiceSection({
           {title}
         </h2>
         {caption && (
-          <span className="text-[11px] md:text-[13px] text-[#111] font-normal">
+          <span
+            className="text-[11px] md:text-[13px] text-[#111] font-normal"
+            style={styleToCss(cs)}
+          >
             {caption}
           </span>
         )}
@@ -80,6 +86,7 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
       caption: config?.service_remodeling_caption ?? "공사의 관리 모든 것",
       titleStyle: parseStyle(config?.service_remodeling_title_style),
       descStyle: parseStyle(config?.service_remodeling_desc_style),
+      captionStyle: parseStyle(config?.service_remodeling_caption_style),
     },
     service_building: {
       key: "service_building",
@@ -90,6 +97,7 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
         config?.service_building_caption ?? "보수, 유지, 하자보수 등 모든 것",
       titleStyle: parseStyle(config?.service_building_title_style),
       descStyle: parseStyle(config?.service_building_desc_style),
+      captionStyle: parseStyle(config?.service_building_caption_style),
     },
     service_rental: {
       key: "service_rental",
@@ -99,6 +107,7 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
       caption: config?.service_rental_caption ?? "임대차의 모든 업무",
       titleStyle: parseStyle(config?.service_rental_title_style),
       descStyle: parseStyle(config?.service_rental_desc_style),
+      captionStyle: parseStyle(config?.service_rental_caption_style),
     },
     service_category4: {
       key: "service_category4",
@@ -108,6 +117,7 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
       caption: config?.service_category4_caption ?? "",
       titleStyle: parseStyle(config?.service_category4_title_style),
       descStyle: parseStyle(config?.service_category4_desc_style),
+      captionStyle: parseStyle(config?.service_category4_caption_style),
     },
     service_category5: {
       key: "service_category5",
@@ -117,6 +127,7 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
       caption: config?.service_category5_caption ?? "",
       titleStyle: parseStyle(config?.service_category5_title_style),
       descStyle: parseStyle(config?.service_category5_desc_style),
+      captionStyle: parseStyle(config?.service_category5_caption_style),
     },
   };
 
@@ -146,6 +157,7 @@ export function ServiceSections({ config }: ServiceSectionsProps) {
           caption={section.caption}
           titleStyle={section.titleStyle}
           descStyle={section.descStyle}
+          captionStyle={section.captionStyle}
         />
       ))}
     </div>
