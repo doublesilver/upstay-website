@@ -197,24 +197,17 @@ function SortableThumb({
       } ${checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#111]"}`}
     >
       {image.image_url ? (
-        <>
-          <Image
-            src={image.image_url_wm || image.image_url}
-            alt=""
-            width={120}
-            height={90}
-            sizes="120px"
-            quality={70}
-            draggable={false}
-            loading={eager ? "eager" : "lazy"}
-            className="w-full h-full object-cover pointer-events-none select-none"
-          />
-          {image.image_url_wm && (
-            <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[9px] px-1.5 py-0.5 rounded pointer-events-none">
-              워터마크
-            </span>
-          )}
-        </>
+        <Image
+          src={image.image_url}
+          alt=""
+          width={120}
+          height={90}
+          sizes="120px"
+          quality={70}
+          draggable={false}
+          loading={eager ? "eager" : "lazy"}
+          className="w-full h-full object-cover pointer-events-none select-none"
+        />
       ) : (
         <div className="w-full h-full bg-[#F5F5F5] flex items-center justify-center text-[#CCC] pointer-events-none">
           <ImageOff size={20} />
@@ -313,7 +306,9 @@ function ImageSection({
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -739,7 +734,9 @@ export default function RemodelingAdminPage() {
     selectionSections.has(`${caseId}:${type}`);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
   );
 
   const flash = (message: string) => setToast(message);
