@@ -64,27 +64,27 @@ export function KakaoButton() {
           aria-label="카카오톡 친구추가"
         >
           <div
-            className="bg-[#F5F5E7] rounded-2xl p-5 max-w-[calc(100vw-2rem)] w-fit flex flex-col items-stretch"
+            className="bg-[#F5F5E7] rounded-2xl p-5 max-w-[calc(100vw-2rem)] w-[320px] flex flex-col items-stretch"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-[15px] font-medium text-[#111] text-center mb-4 whitespace-nowrap">
+            <h2 className="text-[18px] font-bold text-[#111] text-center mb-3 whitespace-nowrap">
               카카오톡 친구추가
             </h2>
 
             <button
               type="button"
               onClick={handleCopyId}
-              className="bg-white border border-[#DDD] rounded-lg py-2.5 px-2 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition whitespace-nowrap w-[calc(100%+8px)] -mx-1"
+              className="bg-white border border-[#DDD] rounded-lg py-2 px-3 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition whitespace-nowrap"
             >
               {copied ? "복사됨" : `ID : ${KAKAO_ID}`}
             </button>
 
-            <div className="h-px bg-[#DDD] my-3 w-[calc(100%+8px)] -mx-1" />
+            <div className="h-px bg-[#DDD] my-2" />
 
             <button
               type="button"
               onClick={() => setShowKakaoInfo(false)}
-              className="bg-[#111] text-white rounded-lg py-2.5 px-2 text-[14px] font-medium hover:bg-[#333] transition w-[calc(100%+8px)] -mx-1"
+              className="bg-[#111] text-white rounded-lg py-2 px-3 text-[14px] font-medium hover:bg-[#333] transition"
             >
               닫기
             </button>
