@@ -11,7 +11,7 @@ export default function RemodelingPage() {
 
   return (
     <Container className="pt-8 pb-12 md:pt-16 md:pb-16">
-      <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl px-3 md:px-4 py-2">
+      <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl px-3 md:px-4 py-1 flex flex-col gap-1">
         {cases.map((c, i) => {
           const befores = c.before_images?.length
             ? c.before_images
@@ -20,13 +20,13 @@ export default function RemodelingPage() {
             ? c.after_images
             : [c.after_image].filter(Boolean);
           return (
-            <div key={c.id}>
-              {i > 0 && <div className="h-px bg-[#E5E5E5] my-2" />}
+            <div key={c.id} className="flex flex-col gap-1">
+              {i > 0 && <div className="h-px bg-[#E5E5E5]" />}
               <Link
                 href={`/remodeling/${c.id}`}
                 aria-hidden="true"
                 tabIndex={-1}
-                className="group inline-flex items-center bg-white border border-[#ccc] rounded h-5 px-2 hover:border-[#999] transition-colors mb-2 leading-none"
+                className="group inline-flex self-start items-center bg-white border border-[#ccc] rounded h-5 px-2 hover:border-[#999] transition-colors leading-none"
               >
                 <span className="text-[11px] font-medium text-[#666] group-hover:text-[#111] transition-colors leading-none">
                   전체보기 →
