@@ -482,7 +482,7 @@ export function ImageEditModal({
             ref={closeBtnRef}
             type="button"
             onClick={onCancel}
-            className="bg-white border border-[#DDD] rounded-lg px-4 py-1.5 text-[14px] font-medium text-[#111] hover:bg-[#FAFAFA] hover:border-[#999] transition-colors"
+            className="bg-white border border-[#111] rounded-lg px-4 py-1.5 text-[14px] font-medium text-[#666] hover:bg-[#FAFAFA] hover:text-[#111] transition-colors"
           >
             닫기
           </button>
