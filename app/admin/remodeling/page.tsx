@@ -411,7 +411,6 @@ function SortableCase({
   onDelete,
   onTitleChange,
   onRegister,
-  isDirty,
   onBulkUpload,
   onBulkDeleteAll,
   onDeleteSelected,
@@ -440,7 +439,6 @@ function SortableCase({
   onDelete: (id: number) => void;
   onTitleChange: (id: number, title: string) => void;
   onRegister: (id: number) => void;
-  isDirty?: boolean;
   onBulkUpload: (
     caseId: number,
     type: "before" | "after",
@@ -606,13 +604,9 @@ function SortableCase({
             <button
               type="button"
               onClick={() => onRegister(item.id)}
-              className={`ml-auto rounded-lg px-4 py-1.5 text-[12px] font-semibold active:scale-[0.98] transition-all ${
-                isDirty
-                  ? "bg-yellow-500 text-white hover:bg-yellow-600 ring-2 ring-yellow-300"
-                  : "bg-[#111] text-white hover:bg-[#333]"
-              }`}
+              className="ml-auto rounded-lg px-4 py-1.5 text-[12px] font-semibold active:scale-[0.98] transition-all bg-[#111] text-white hover:bg-[#333]"
             >
-              {isDirty ? "● 저장" : "저장"}
+              저장
             </button>
           </>
         )}
@@ -1148,7 +1142,6 @@ export default function RemodelingAdminPage() {
                 onDelete={(id) => setDeleting(id)}
                 onTitleChange={handleTitleChange}
                 onRegister={handleRegister}
-                isDirty={dirtyCaseIds.has(item.id)}
                 onBulkUpload={handleBulkUpload}
                 onBulkDeleteAll={handleBulkDeleteAll}
                 onDeleteSelected={handleDeleteSelected}
