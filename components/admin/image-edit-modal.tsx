@@ -553,19 +553,9 @@ export function ImageEditModal({
               </div>
 
               <div className="border border-[#111] rounded-xl p-3">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-[11px] font-bold tracking-wider text-[#777]">
-                    워터마크 설정
-                  </p>
-                  <button
-                    type="button"
-                    onClick={applyOne}
-                    disabled={saving !== null}
-                    className="text-[11px] px-2 py-1 border border-[#111] rounded-md hover:bg-[#F7F7F7] disabled:opacity-40 transition-all"
-                  >
-                    저장
-                  </button>
-                </div>
+                <p className="text-[11px] font-bold tracking-wider text-[#777] mb-2">
+                  워터마크 설정
+                </p>
                 <div className="h-px bg-[#E5E5E5] mb-2" />
                 <Slider
                   label="투명도"

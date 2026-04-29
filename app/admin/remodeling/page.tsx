@@ -188,11 +188,6 @@ function ImageThumb({
             loading={eager ? "eager" : "lazy"}
             className="w-full h-full object-cover pointer-events-none select-none"
           />
-          {image.image_url_wm && (
-            <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[9px] px-1.5 py-0.5 rounded pointer-events-none">
-              워터마크
-            </span>
-          )}
         </>
       ) : (
         <div className="w-full h-full bg-[#F5F5F5] flex items-center justify-center text-[#CCC] pointer-events-none">
@@ -1269,7 +1264,6 @@ export default function RemodelingAdminPage() {
                 `${success}/${ids.length}장 적용됨${failMsg ? ` (실패: ${failMsg})` : ""}`,
               );
             }
-            setEditorSection(null);
           }}
           onError={(msg) => flash(msg)}
           onReorder={(oldIndex, newIndex) =>
