@@ -101,7 +101,7 @@ export function getAllCases(): RemodelingCase[] {
     )
     .all() as { id: number; title: string }[];
 
-  return buildCases(cases, 4);
+  return buildCases(cases, 4, { starredOnly: true });
 }
 
 export function getVisibleAnnouncements(): Announcement[] {
