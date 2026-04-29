@@ -207,6 +207,63 @@ export function DetailGallery({
   );
 }
 
+function LightboxThumbStrip({
+  images,
+  activeIndex,
+  label,
+  onSelect,
+}: {
+  images: string[];
+  activeIndex: number;
+  label: string;
+  onSelect: (index: number) => void;
+}) {
+  const stripRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const active = el.children[activeIndex] as HTMLElement | undefined;
+    if (!active) return;
+    const desired =
+      active.offsetLeft - (el.clientWidth - active.clientWidth) / 2;
+    const max = Math.max(0, el.scrollWidth - el.clientWidth);
+    const target = Math.min(max, Math.max(0, desired));
+    el.scrollTo({ left: target, behavior: "smooth" });
+  }, [activeIndex]);
+
+  return (
+    <div
+      ref={stripRef}
+      className="flex gap-1 overflow-x-auto w-full scrollbar-hide"
+    >
+      {images.map((url, i) => (
+        <button
+          key={`${url}-${i}`}
+          type="button"
+          onClick={() => onSelect(i)}
+          style={{ width: "calc((100% - 16px) / 5)" }}
+          className={`relative shrink-0 aspect-[4/3] rounded overflow-hidden border-2 transition-opacity ${
+            i === activeIndex
+              ? "border-[#111] opacity-100"
+              : "border-transparent opacity-60 hover:opacity-90"
+          }`}
+        >
+          <ProtectedImage
+            src={url}
+            alt={`${label} 썸네일 ${i + 1}`}
+            fill
+            sizes="20vw"
+            className="object-cover"
+            quality={50}
+            loading="lazy"
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function LightboxColumn({
   label,
   images,
@@ -295,31 +352,12 @@ function LightboxColumn({
       {images.length > 1 && (
         <>
           <div className="w-full h-px bg-[#E5E5E5]" />
-          <div className="flex gap-1 overflow-x-auto w-full">
-            {images.map((url, i) => (
-              <button
-                key={`${url}-${i}`}
-                type="button"
-                onClick={() => onSelect(i)}
-                style={{ width: "calc((100% - 16px) / 5)" }}
-                className={`relative shrink-0 aspect-[4/3] rounded overflow-hidden border-2 transition-opacity ${
-                  i === activeIndex
-                    ? "border-[#111] opacity-100"
-                    : "border-transparent opacity-60 hover:opacity-90"
-                }`}
-              >
-                <ProtectedImage
-                  src={url}
-                  alt={`${label} 썸네일 ${i + 1}`}
-                  fill
-                  sizes="20vw"
-                  className="object-cover"
-                  quality={50}
-                  loading="lazy"
-                />
-              </button>
-            ))}
-          </div>
+          <LightboxThumbStrip
+            images={images}
+            activeIndex={activeIndex}
+            label={label}
+            onSelect={onSelect}
+          />
         </>
       )}
 
