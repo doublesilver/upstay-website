@@ -435,7 +435,14 @@ function GallerySection({
           <div className="flex-1 min-h-0 min-w-0 self-stretch flex items-center justify-center">
             <div
               ref={containerRef}
-              onClick={onOpenLightbox}
+              onClick={() => {
+                if (
+                  typeof window !== "undefined" &&
+                  window.matchMedia("(min-width: 1024px)").matches
+                )
+                  return;
+                onOpenLightbox();
+              }}
               onMouseMove={(e) => {
                 const el = tooltipRef.current;
                 if (!el) return;
@@ -446,7 +453,7 @@ function GallerySection({
               onMouseLeave={() => {
                 if (tooltipRef.current) tooltipRef.current.style.opacity = "0";
               }}
-              className="relative cursor-pointer touch-pan-y select-none will-change-transform w-full max-h-full aspect-[4/3]"
+              className="relative cursor-pointer lg:cursor-default touch-pan-y select-none will-change-transform w-full max-h-full aspect-[4/3]"
             >
               <ProtectedImage
                 src={images[activeIndex]}
@@ -460,7 +467,7 @@ function GallerySection({
               <div
                 ref={tooltipRef}
                 aria-hidden="true"
-                className="hidden md:block absolute top-0 left-0 pointer-events-none bg-black/75 text-white text-[11px] font-medium px-2 py-1 rounded whitespace-nowrap z-10 opacity-0 transition-opacity"
+                className="hidden md:block lg:hidden absolute top-0 left-0 pointer-events-none bg-black/75 text-white text-[11px] font-medium px-2 py-1 rounded whitespace-nowrap z-10 opacity-0 transition-opacity"
               >
                 크게보기
               </div>
