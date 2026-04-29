@@ -74,17 +74,17 @@ export function KakaoButton() {
             <button
               type="button"
               onClick={handleCopyId}
-              className="bg-white border border-[#DDD] rounded-lg py-3 px-2 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition whitespace-nowrap w-[calc(100%+1px)] -mx-[0.5px]"
+              className="bg-white border border-[#DDD] rounded-lg py-2.5 px-2 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition whitespace-nowrap w-[calc(100%+8px)] -mx-1"
             >
               {copied ? "복사됨" : `ID : ${KAKAO_ID}`}
             </button>
 
-            <div className="h-px bg-[#DDD] my-3 w-[calc(100%+1px)] -mx-[0.5px]" />
+            <div className="h-px bg-[#DDD] my-3 w-[calc(100%+8px)] -mx-1" />
 
             <button
               type="button"
               onClick={() => setShowKakaoInfo(false)}
-              className="bg-[#111] text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-[#333] transition w-[calc(100%+1px)] -mx-[0.5px]"
+              className="bg-[#111] text-white rounded-lg py-2.5 px-2 text-[14px] font-medium hover:bg-[#333] transition w-[calc(100%+8px)] -mx-1"
             >
               닫기
             </button>
