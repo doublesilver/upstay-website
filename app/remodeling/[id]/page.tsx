@@ -34,7 +34,7 @@ export default async function RemodelingDetailPage({
 
   const images = db
     .prepare(
-      `SELECT type, slot_position, match_order, image_url
+      `SELECT type, slot_position, match_order, image_url, image_url_wm
        FROM case_images
        WHERE case_id = ? AND image_url <> ''
        ORDER BY type ASC,
@@ -48,15 +48,16 @@ export default async function RemodelingDetailPage({
     slot_position: number;
     match_order: number;
     image_url: string;
+    image_url_wm: string;
   }[];
 
   const beforeImages = images
     .filter((i) => i.type === "before")
-    .map((i) => i.image_url)
+    .map((i) => i.image_url_wm || i.image_url)
     .filter(Boolean);
   const afterImages = images
     .filter((i) => i.type === "after")
-    .map((i) => i.image_url)
+    .map((i) => i.image_url_wm || i.image_url)
     .filter(Boolean);
 
   if (beforeImages.length === 0 && afterImages.length === 0) notFound();

@@ -39,6 +39,7 @@ interface CaseImage {
   is_starred: number;
   slot_position: number;
   image_url: string;
+  image_url_wm: string;
 }
 
 interface RemodelingCase {
@@ -176,17 +177,24 @@ function ImageThumb({
       }`}
     >
       {image.image_url ? (
-        <Image
-          src={image.image_url}
-          alt=""
-          width={120}
-          height={90}
-          sizes="120px"
-          quality={70}
-          draggable={false}
-          loading={eager ? "eager" : "lazy"}
-          className="w-full h-full object-cover pointer-events-none select-none"
-        />
+        <>
+          <Image
+            src={image.image_url_wm || image.image_url}
+            alt=""
+            width={120}
+            height={90}
+            sizes="120px"
+            quality={70}
+            draggable={false}
+            loading={eager ? "eager" : "lazy"}
+            className="w-full h-full object-cover pointer-events-none select-none"
+          />
+          {image.image_url_wm && (
+            <span className="absolute bottom-1 left-1 bg-[#111]/70 text-white text-[9px] px-1.5 py-0.5 rounded pointer-events-none">
+              워터마크
+            </span>
+          )}
+        </>
       ) : (
         <div className="w-full h-full bg-[#F5F5F5] flex items-center justify-center text-[#CCC] pointer-events-none">
           <ImageOff size={20} />
@@ -1195,7 +1203,7 @@ export default function RemodelingAdminPage() {
           onApplyOne={async (id, blob) => {
             try {
               const url = await uploadFile(blob);
-              await saveImage({ id, image_url: url });
+              await saveImage({ id, image_url_wm: url });
               load();
               flash("변경사항이 적용되었습니다");
             } catch (error) {
@@ -1214,7 +1222,7 @@ export default function RemodelingAdminPage() {
                   continue;
                 }
                 const url = await uploadFile(blob);
-                await saveImage({ id, image_url: url });
+                await saveImage({ id, image_url_wm: url });
                 success += 1;
               } catch (error) {
                 if (!failMsg) failMsg = errMsg(error);

@@ -20,6 +20,7 @@ export function createTestDb(): Database.Database {
       match_order INTEGER NOT NULL DEFAULT 1,
       is_starred INTEGER NOT NULL DEFAULT 0,
       image_url TEXT NOT NULL DEFAULT '',
+      image_url_wm TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (case_id) REFERENCES remodeling_cases(id) ON DELETE CASCADE,
       UNIQUE(case_id, type, match_order)
