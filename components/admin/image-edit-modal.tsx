@@ -70,11 +70,18 @@ function SortableThumb({
     opacity: isDragging ? 0.4 : 1,
   };
   return (
-    <button
+    <div
       ref={setNodeRef}
-      type="button"
+      role="button"
+      tabIndex={0}
       style={style}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       {...attributes}
       {...listeners}
       className={`w-16 h-16 rounded-md overflow-hidden border-2 shrink-0 transition-all cursor-grab active:cursor-grabbing touch-none ${
@@ -88,7 +95,7 @@ function SortableThumb({
         draggable={false}
         className="w-full h-full object-cover pointer-events-none select-none"
       />
-    </button>
+    </div>
   );
 }
 
@@ -244,7 +251,9 @@ export function ImageEditModal({
   onReorder,
 }: Props) {
   const dndSensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
   );
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;

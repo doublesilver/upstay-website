@@ -502,9 +502,11 @@ function ThumbnailStrip({
     if (!el) return;
     const active = el.children[activeIndex] as HTMLElement | undefined;
     if (!active) return;
-    const target =
+    const desired =
       active.offsetLeft - (el.clientWidth - active.clientWidth) / 2;
-    el.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
+    const max = Math.max(0, el.scrollWidth - el.clientWidth);
+    const target = Math.min(max, Math.max(0, desired));
+    el.scrollTo({ left: target, behavior: "smooth" });
   }, [activeIndex]);
 
   return (
