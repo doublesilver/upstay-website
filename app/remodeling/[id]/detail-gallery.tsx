@@ -496,7 +496,7 @@ function GallerySection({
                 onPrev();
               }}
               aria-label="이전 사진"
-              className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+              className="w-24 h-6 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
             >
               &#9664;
             </button>
@@ -508,7 +508,7 @@ function GallerySection({
                 onNext();
               }}
               aria-label="다음 사진"
-              className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+              className="w-24 h-6 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
             >
               &#9654;
             </button>
