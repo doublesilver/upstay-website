@@ -38,6 +38,7 @@ interface Props {
   images: EditableImage[];
   initialImageId: number;
   sectionLabel: string;
+  storageKey: string;
   onApplyOne: (imageId: number, blob: Blob) => Promise<void> | void;
   onApplyAll: (
     imageIds: number[],
@@ -246,6 +247,7 @@ export function ImageEditModal({
   images,
   initialImageId,
   sectionLabel,
+  storageKey,
   onApplyOne,
   onApplyAll,
   onCancel,
@@ -269,9 +271,14 @@ export function ImageEditModal({
   const [settings, setSettings] = useState<EditSettings>(() => {
     if (typeof window === "undefined") return DEFAULT_SETTINGS;
     try {
-      const raw = localStorage.getItem("upstay-wm-settings");
-      if (!raw) return DEFAULT_SETTINGS;
-      const parsed = JSON.parse(raw) as Partial<EditSettings>;
+      const sectionRaw = localStorage.getItem(storageKey);
+      if (sectionRaw) {
+        const parsed = JSON.parse(sectionRaw) as Partial<EditSettings>;
+        return { ...DEFAULT_SETTINGS, ...parsed };
+      }
+      const wmRaw = localStorage.getItem("upstay-wm-settings");
+      if (!wmRaw) return DEFAULT_SETTINGS;
+      const parsed = JSON.parse(wmRaw) as Partial<EditSettings>;
       return {
         ...DEFAULT_SETTINGS,
         wmOpacity: parsed.wmOpacity ?? DEFAULT_SETTINGS.wmOpacity,
@@ -348,6 +355,7 @@ export function ImageEditModal({
     setSettings(DEFAULT_SETTINGS);
     posCalibratedRef.current = false;
     try {
+      localStorage.removeItem(storageKey);
       localStorage.removeItem("upstay-wm-settings");
     } catch {}
   };
@@ -394,6 +402,7 @@ export function ImageEditModal({
 
   const persistSettings = (s: EditSettings) => {
     try {
+      localStorage.setItem(storageKey, JSON.stringify(s));
       localStorage.setItem(
         "upstay-wm-settings",
         JSON.stringify({

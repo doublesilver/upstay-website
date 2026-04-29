@@ -1228,6 +1228,7 @@ export default function RemodelingAdminPage() {
           images={editorImages}
           initialImageId={editorSection.initialImageId ?? editorImages[0].id}
           sectionLabel={`${editorSection.type === "before" ? "BEFORE" : "AFTER"} ( ${editorImages.length}장 )`}
+          storageKey={`upstay-edit-${editorSection.caseId}-${editorSection.type}`}
           onApplyOne={async (id, blob) => {
             try {
               const url = await uploadFile(blob);
