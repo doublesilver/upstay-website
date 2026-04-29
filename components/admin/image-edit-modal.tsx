@@ -20,6 +20,7 @@ export interface EditableImage {
   id: number;
   image_url: string;
   image_url_wm?: string;
+  slot_position?: number;
 }
 
 export type WmAnchor = "tl" | "t" | "tr" | "l" | "c" | "r" | "bl" | "b" | "br";
@@ -449,6 +450,12 @@ export function ImageEditModal({
     setSaving(null);
   };
 
+  const starredImages = images
+    .filter((img) => (img.slot_position ?? 0) > 0)
+    .sort((a, b) => (a.slot_position ?? 0) - (b.slot_position ?? 0));
+  const nonStarredImages = images.filter(
+    (img) => (img.slot_position ?? 0) === 0,
+  );
   const imageFilter = `brightness(${settings.brightness}%) contrast(${settings.sharpness}%)`;
   const logoW =
     previewRef.current && logoImg
@@ -524,28 +531,56 @@ export function ImageEditModal({
             </div>
 
             <div className="border-t border-[#111] px-3 h-[80px] flex items-center bg-white">
-              <DndContext
-                sensors={dndSensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={images.map((image) => `edit-${image.id}`)}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  <div className="flex gap-1.5 overflow-x-auto w-full">
-                    {images.map((image) => (
-                      <SortableThumb
-                        key={image.id}
-                        image={image}
-                        active={image.id === currentId}
-                        onClick={() => setCurrentId(image.id)}
-                        filter={imageFilter}
-                      />
-                    ))}
+              <div className="flex gap-1.5 overflow-x-auto w-full items-center">
+                {starredImages.map((image) => (
+                  <div
+                    key={image.id}
+                    onClick={() => setCurrentId(image.id)}
+                    className={`relative w-16 h-16 rounded-md overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                      image.id === currentId
+                        ? "border-[#111]"
+                        : "border-yellow-400 hover:border-yellow-500"
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image.image_url}
+                      alt=""
+                      draggable={false}
+                      style={{ filter: imageFilter }}
+                      className="w-full h-full object-cover pointer-events-none select-none"
+                    />
+                    <span className="absolute top-0.5 left-0.5 text-yellow-400 text-[12px] font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] leading-none">
+                      ★{image.slot_position}
+                    </span>
                   </div>
-                </SortableContext>
-              </DndContext>
+                ))}
+                {starredImages.length > 0 && nonStarredImages.length > 0 && (
+                  <div className="w-px h-12 bg-[#DDD] shrink-0 mx-1" />
+                )}
+                <DndContext
+                  sensors={dndSensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={nonStarredImages.map((image) => `edit-${image.id}`)}
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    <div className="flex gap-1.5">
+                      {nonStarredImages.map((image) => (
+                        <SortableThumb
+                          key={image.id}
+                          image={image}
+                          active={image.id === currentId}
+                          onClick={() => setCurrentId(image.id)}
+                          filter={imageFilter}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              </div>
             </div>
           </div>
 
