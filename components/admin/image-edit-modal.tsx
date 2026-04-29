@@ -15,7 +15,6 @@ import {
   horizontalListSortingStrategy,
   useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 export interface EditableImage {
   id: number;
@@ -69,7 +68,7 @@ function SortableThumb({
     isDragging,
   } = useSortable({ id: `edit-${image.id}` });
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: transform ? `translate3d(${transform.x}px, 0px, 0)` : undefined,
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
