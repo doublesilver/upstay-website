@@ -194,8 +194,14 @@ function applyMigrations(database: Database.Database) {
       try {
         database.exec(sql);
       } catch (e) {
-        if (String(e).includes("duplicate column")) {
-          // ALTER ADD COLUMN 멱등 처리 — 기존 배포 DB에 이미 컬럼이 있으면 마이그레이션 기록만 남김
+        const msg = String(e);
+        if (
+          msg.includes("duplicate column") ||
+          msg.includes("no such column")
+        ) {
+          // ALTER ADD/DROP COLUMN 멱등 처리:
+          // - duplicate column: 기존 DB에 이미 컬럼 존재
+          // - no such column: 컬럼이 이미 없거나 fresh DB라 DROP 불필요
         } else {
           throw e;
         }
