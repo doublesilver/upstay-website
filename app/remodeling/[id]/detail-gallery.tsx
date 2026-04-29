@@ -96,7 +96,7 @@ export function DetailGallery({
   return (
     <div className="h-full min-h-0 flex flex-col gap-2 md:gap-3">
       {(beforeImages.length > 0 || afterImages.length > 0) && (
-        <div className="flex-1 min-h-0 lg:max-h-[480px] border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row lg:flex-row gap-2 md:gap-3">
+        <div className="flex-1 min-h-0 border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row lg:flex-row gap-2 md:gap-3">
           {beforeImages.length > 0 && (
             <GallerySection
               title="Before (전)"
@@ -425,7 +425,7 @@ function GallerySection({
                 onPrev();
               }}
               aria-label="이전 사진"
-              className="shrink-0 w-7 h-14 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+              className="lg:hidden shrink-0 w-7 h-14 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
             >
               &#9664;
             </button>
@@ -472,12 +472,39 @@ function GallerySection({
                 onNext();
               }}
               aria-label="다음 사진"
-              className="shrink-0 w-7 h-14 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+              className="lg:hidden shrink-0 w-7 h-14 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
             >
               &#9654;
             </button>
           )}
         </div>
+        {images.length > 1 && (
+          <div className="hidden lg:flex shrink-0 items-center justify-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrev();
+              }}
+              aria-label="이전 사진"
+              className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+            >
+              &#9664;
+            </button>
+            <div className="w-px h-5 bg-[#555]" />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              aria-label="다음 사진"
+              className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] flex items-center justify-center text-[#111] hover:bg-white transition-colors"
+            >
+              &#9654;
+            </button>
+          </div>
+        )}
         {images.length > 1 && (
           <div className="shrink-0 border-t border-gray-300 pt-1.5">
             <ThumbnailStrip

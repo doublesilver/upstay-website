@@ -63,7 +63,7 @@ export default async function RemodelingDetailPage({
   if (beforeImages.length === 0 && afterImages.length === 0) notFound();
 
   return (
-    <Container className="h-[calc(100vh-3.5rem)] supports-[height:100svh]:h-[calc(100svh-3.5rem)] md:h-[calc(100vh-5rem)] md:supports-[height:100svh]:h-[calc(100svh-5rem)] overflow-hidden py-2 md:py-3 flex flex-col">
+    <Container className="h-[calc(100vh-3.5rem)] supports-[height:100svh]:h-[calc(100svh-3.5rem)] md:h-[calc(100vh-5rem)] md:supports-[height:100svh]:h-[calc(100svh-5rem)] lg:max-w-[1600px] lg:px-6 overflow-hidden py-2 md:py-3 flex flex-col">
       <DetailGallery
         title={caseRow.title}
         beforeImages={beforeImages}
