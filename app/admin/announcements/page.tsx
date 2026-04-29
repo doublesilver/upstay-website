@@ -3,7 +3,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { Toast } from "@/components/admin/toast";
 import { apiFetch, getHeaders } from "@/lib/admin-api";
-import { parseStyle, styleToCss, type TextStyle } from "@/lib/text-style";
+import {
+  parseStyle,
+  styleToCss,
+  toggleFontWeight,
+  type TextStyle,
+} from "@/lib/text-style";
 
 interface Announcement {
   id: number;
@@ -305,14 +310,10 @@ function AnnouncementCard({
   const toggleBoldActive = () => {
     if (!activeField) return;
     const key = activeField === "title" ? "title_style" : "content_style";
-    setDraft((prev) => {
-      const cur = parseStyle(prev[key] as string);
-      const next = cur.fontWeight === "bold" ? undefined : "bold";
-      return {
-        ...prev,
-        [key]: JSON.stringify({ ...cur, fontWeight: next }),
-      };
-    });
+    setDraft((prev) => ({
+      ...prev,
+      [key]: toggleFontWeight(prev[key] as string),
+    }));
   };
 
   const appendBulletActive = () => {

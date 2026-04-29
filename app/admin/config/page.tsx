@@ -18,7 +18,12 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { Toast } from "@/components/admin/toast";
-import { parseStyle, styleToCss, type TextStyle } from "@/lib/text-style";
+import {
+  parseStyle,
+  styleToCss,
+  toggleFontWeight,
+  type TextStyle,
+} from "@/lib/text-style";
 import { apiFetch, getHeaders } from "@/lib/admin-api";
 import { DEFAULT_CONFIG, type ConfigRecord } from "@/lib/config-schema";
 
@@ -153,11 +158,10 @@ export default function ConfigPage() {
     parseStyle(config[key] || "{}");
 
   const toggleBoldFor = (key: keyof Config) => {
-    const cur = getStyle(key);
-    setStyle(key)({
-      ...cur,
-      fontWeight: cur.fontWeight === "bold" ? undefined : "bold",
-    });
+    setConfig((prev) => ({
+      ...prev,
+      [key]: toggleFontWeight((prev[key] as string) || "{}"),
+    }));
   };
 
   const toggleVisible = (key: keyof Config) => {

@@ -11,16 +11,15 @@ const WINDOW_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 function clientIp(req: NextRequest): string {
-  const real = req.headers.get("x-real-ip");
-  if (real) return real.trim();
+  // Railway/Cloudflare 프록시 환경 기준: 첫 번째 IP가 진짜 클라이언트
+  // 직접 노출이면 헤더 spoofing 가능하나 외주 단일 admin이라 수용 가능
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
-    const ips = forwarded
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    return ips[ips.length - 1] || "unknown";
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
   }
+  const real = req.headers.get("x-real-ip");
+  if (real) return real.trim();
   return "unknown";
 }
 

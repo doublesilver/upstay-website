@@ -191,17 +191,24 @@ function applyMigrations(database: Database.Database) {
 
     const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
     const tx = database.transaction(() => {
+      // 멱등 가드: ALTER ADD/DROP COLUMN 단독 마이그레이션만 가드 적용
+      // SQL 본문이 ALTER로 시작하는 단순 한 줄 문장일 때만 silent skip 허용
+      const trimmed = sql
+        .trim()
+        .split("\n")
+        .filter((l) => !l.startsWith("--") && l.trim().length > 0);
+      const isSimpleAlter =
+        trimmed.length === 1 &&
+        /^ALTER TABLE\s+\w+\s+(ADD|DROP)\s+COLUMN/i.test(trimmed[0]);
       try {
         database.exec(sql);
       } catch (e) {
         const msg = String(e);
         if (
-          msg.includes("duplicate column") ||
-          msg.includes("no such column")
+          isSimpleAlter &&
+          (msg.includes("duplicate column") || msg.includes("no such column"))
         ) {
-          // ALTER ADD/DROP COLUMN 멱등 처리:
-          // - duplicate column: 기존 DB에 이미 컬럼 존재
-          // - no such column: 컬럼이 이미 없거나 fresh DB라 DROP 불필요
+          // 단일 ALTER ADD/DROP COLUMN 멱등 처리만 silent skip
         } else {
           throw e;
         }

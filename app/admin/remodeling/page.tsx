@@ -30,7 +30,7 @@ import {
 import Image from "next/image";
 import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
-import { apiFetch, errMsg, getHeaders, getToken } from "@/lib/admin-api";
+import { apiFetch, errMsg, getHeaders } from "@/lib/admin-api";
 
 interface CaseImage {
   id: number;
@@ -63,7 +63,6 @@ async function uploadFiles(files: File[]) {
 
   const res = await apiFetch("/api/admin/upload", {
     method: "POST",
-    headers: { Authorization: `Bearer ${getToken()}` },
     body: formData,
   });
   const data = await res.json();
@@ -417,6 +416,7 @@ function SortableCase({
   onDelete,
   onTitleChange,
   onRegister,
+  isDirty,
   onBulkUpload,
   onBulkDeleteAll,
   onDeleteSelected,
@@ -445,6 +445,7 @@ function SortableCase({
   onDelete: (id: number) => void;
   onTitleChange: (id: number, title: string) => void;
   onRegister: (id: number) => void;
+  isDirty?: boolean;
   onBulkUpload: (
     caseId: number,
     type: "before" | "after",
@@ -610,9 +611,13 @@ function SortableCase({
             <button
               type="button"
               onClick={() => onRegister(item.id)}
-              className="ml-auto bg-[#111] text-white rounded-lg px-4 py-1.5 text-[12px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all"
+              className={`ml-auto rounded-lg px-4 py-1.5 text-[12px] font-semibold active:scale-[0.98] transition-all ${
+                isDirty
+                  ? "bg-yellow-500 text-white hover:bg-yellow-600 ring-2 ring-yellow-300"
+                  : "bg-[#111] text-white hover:bg-[#333]"
+              }`}
             >
-              저장
+              {isDirty ? "● 저장" : "저장"}
             </button>
           </>
         )}
@@ -677,19 +682,40 @@ export default function RemodelingAdminPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { delay: 200, tolerance: 5 },
+      activationConstraint: { distance: 8 },
     }),
   );
 
   const flash = (message: string) => setToast(message);
 
+  const originalTitlesRef = useRef<Map<number, string>>(new Map());
+
   const load = useCallback(() => {
     apiFetch("/api/admin/remodeling", { headers: getHeaders() })
       .then((r) => r.json())
-      .then(setCases)
+      .then((rows: RemodelingCase[]) => {
+        setCases(rows);
+        originalTitlesRef.current = new Map(rows.map((c) => [c.id, c.title]));
+      })
       .catch((error) => flash(`불러오기에 실패했습니다: ${errMsg(error)}`))
       .finally(() => setLoading(false));
   }, []);
+
+  const dirtyCaseIds = new Set(
+    cases
+      .filter((c) => originalTitlesRef.current.get(c.id) !== c.title)
+      .map((c) => c.id),
+  );
+
+  useEffect(() => {
+    if (dirtyCaseIds.size === 0) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirtyCaseIds.size]);
 
   useEffect(load, [load]);
 
@@ -849,6 +875,12 @@ export default function RemodelingAdminPage() {
           }),
         ),
       );
+      // dirty 해제: 저장된 항목들의 originalTitlesRef 갱신
+      targets.forEach((item) => {
+        originalTitlesRef.current.set(item.id, item.title);
+      });
+      // 강제 re-render로 dirtyCaseIds 갱신
+      setCases((prev) => [...prev]);
       flash("저장되었습니다");
     } catch (error) {
       flash(`저장에 실패했습니다: ${errMsg(error)}`);
@@ -1121,6 +1153,7 @@ export default function RemodelingAdminPage() {
                 onDelete={(id) => setDeleting(id)}
                 onTitleChange={handleTitleChange}
                 onRegister={handleRegister}
+                isDirty={dirtyCaseIds.has(item.id)}
                 onBulkUpload={handleBulkUpload}
                 onBulkDeleteAll={handleBulkDeleteAll}
                 onDeleteSelected={handleDeleteSelected}

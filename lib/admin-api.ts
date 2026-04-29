@@ -1,7 +1,3 @@
-export function getToken() {
-  return "";
-}
-
 export function getHeaders() {
   return {
     "Content-Type": "application/json",

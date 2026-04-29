@@ -17,6 +17,12 @@ export function parseStyle(json?: string): TextStyle {
 const SAFE_FONT_SIZE = /^\d{1,3}(px|rem|em|%)$/;
 const SAFE_FONT_WEIGHT = /^(\d{3}|normal|bold|bolder|lighter)$/;
 
+export function toggleFontWeight(styleJson: string): string {
+  const cur = parseStyle(styleJson);
+  const next = cur.fontWeight === "bold" ? undefined : "bold";
+  return JSON.stringify({ ...cur, fontWeight: next });
+}
+
 export function styleToCss(style: TextStyle): CSSProperties {
   const css: CSSProperties = {};
   if (style.fontSize && SAFE_FONT_SIZE.test(style.fontSize)) {
