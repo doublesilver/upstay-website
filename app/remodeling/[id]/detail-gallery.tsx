@@ -132,17 +132,17 @@ export function DetailGallery({
       )}
 
       <div className="shrink-0 border border-[#111] rounded-lg flex max-h-[20svh] overflow-hidden">
-        <div className="shrink-0 flex flex-col items-center justify-center bg-white px-3 py-2 min-w-[40px]">
-          <span className="text-[13px] font-medium text-[#555] leading-[1.2]">
+        <div className="shrink-0 flex flex-col lg:flex-row items-center justify-center bg-white px-3 py-2 min-w-[40px] lg:min-w-[64px] lg:gap-1">
+          <span className="text-[13px] font-bold text-[#555] leading-[1.2]">
             설
           </span>
-          <span className="text-[13px] font-medium text-[#555] leading-[1.2]">
+          <span className="text-[13px] font-bold text-[#555] leading-[1.2]">
             명
           </span>
         </div>
         <div className="w-px bg-[#DDD] my-2 shrink-0" />
         <div className="flex-1 min-w-0 px-3 py-2 overflow-y-auto">
-          <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.7] whitespace-pre-wrap">
+          <p className="text-[13px] md:text-[14px] font-bold text-[#111] leading-[1.7] whitespace-pre-wrap">
             {title || "-"}
           </p>
         </div>
