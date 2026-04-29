@@ -305,7 +305,21 @@ function LightboxColumn({
             &#9664;
           </button>
         )}
-        <div className="relative w-full lg:flex-1 aspect-[4/3] overflow-hidden rounded">
+        <div
+          className="relative w-full lg:flex-1 aspect-[4/3] overflow-hidden rounded touch-pan-y"
+          onTouchStart={(e) => {
+            (e.currentTarget as HTMLDivElement).dataset.startX = String(
+              e.touches[0].clientX,
+            );
+          }}
+          onTouchEnd={(e) => {
+            const start = Number(
+              (e.currentTarget as HTMLDivElement).dataset.startX || 0,
+            );
+            const diff = start - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) (diff > 0 ? onNext : onPrev)();
+          }}
+        >
           <ProtectedImage
             src={images[activeIndex]}
             alt={`${label} ${activeIndex + 1}`}
@@ -330,12 +344,12 @@ function LightboxColumn({
       </div>
 
       {images.length > 1 && (
-        <div className="flex items-center justify-center gap-2 lg:hidden">
+        <div className="flex items-center justify-center gap-4 lg:hidden">
           <button
             type="button"
             onClick={onPrev}
             aria-label="이전 사진"
-            className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+            className="w-[72px] h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
           >
             &#9664;
           </button>
@@ -344,7 +358,7 @@ function LightboxColumn({
             type="button"
             onClick={onNext}
             aria-label="다음 사진"
-            className="w-12 h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
+            className="w-[72px] h-8 rounded bg-[#F1F8E9] border border-[#111] shrink-0 flex items-center justify-center text-[#111] shadow transition-colors hover:bg-[#E8F0DC]"
           >
             &#9654;
           </button>
