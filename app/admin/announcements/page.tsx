@@ -274,6 +274,9 @@ function AnnouncementCard({
   onDirtyChange,
 }: CardProps) {
   const [draft, setDraft] = useState<Announcement>(item);
+  const [activeField, setActiveField] = useState<"title" | "content" | null>(
+    null,
+  );
 
   useEffect(() => {
     setDraft(item);
@@ -296,55 +299,54 @@ function AnnouncementCard({
 
   const titleStyle: TextStyle = parseStyle(draft.title_style);
   const contentStyle: TextStyle = parseStyle(draft.content_style);
-  const titleBold = titleStyle.fontWeight === "bold";
-  const contentBold = contentStyle.fontWeight === "bold";
-  const allBold = titleBold && contentBold;
+  const activeStyle = activeField === "title" ? titleStyle : contentStyle;
+  const activeBold = activeStyle.fontWeight === "bold";
 
-  const toggleBoldAll = () => {
+  const toggleBoldActive = () => {
+    if (!activeField) return;
+    const key = activeField === "title" ? "title_style" : "content_style";
     setDraft((prev) => {
-      const t = parseStyle(prev.title_style);
-      const c = parseStyle(prev.content_style);
-      const isAll = t.fontWeight === "bold" && c.fontWeight === "bold";
-      const next = isAll ? undefined : "bold";
+      const cur = parseStyle(prev[key] as string);
+      const next = cur.fontWeight === "bold" ? undefined : "bold";
       return {
         ...prev,
-        title_style: JSON.stringify({ ...t, fontWeight: next }),
-        content_style: JSON.stringify({ ...c, fontWeight: next }),
+        [key]: JSON.stringify({ ...cur, fontWeight: next }),
       };
     });
   };
 
-  const appendBulletAll = () => {
+  const appendBulletActive = () => {
+    if (!activeField) return;
     setDraft((prev) => {
-      const lines = prev.content.split("\n");
+      const text = prev[activeField];
+      const lines = text.split("\n");
       const nonEmpty = lines.filter((l) => l.length > 0);
+      let updated: string;
       if (nonEmpty.length === 0) {
-        return { ...prev, content: "• " };
+        updated = "• ";
+      } else {
+        const allBulleted = nonEmpty.every((l) => l.startsWith("• "));
+        updated = lines
+          .map((l) => {
+            if (l.length === 0) return l;
+            if (allBulleted) return l.startsWith("• ") ? l.slice(2) : l;
+            return l.startsWith("• ") ? l : "• " + l;
+          })
+          .join("\n");
       }
-      const allBulleted = nonEmpty.every((l) => l.startsWith("• "));
-      const next = lines
-        .map((l) => {
-          if (l.length === 0) return l;
-          if (allBulleted) return l.startsWith("• ") ? l.slice(2) : l;
-          return l.startsWith("• ") ? l : "• " + l;
-        })
-        .join("\n");
-      return { ...prev, content: next };
+      return { ...prev, [activeField]: updated };
     });
   };
 
   const canSave = isDirty && draft.content.trim().length > 0;
 
   return (
-    <div
-      className={`bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-4 transition-colors border border-[#111] ${
-        isDirty ? "ring-2 ring-yellow-300" : "hover:shadow-sm"
-      }`}
-    >
+    <div className="bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-4 transition-colors border border-[#111] hover:shadow-sm">
       <div className="flex-1 space-y-2 min-w-0">
         <textarea
           value={draft.title}
           onChange={(e) => updateField("title", e.target.value)}
+          onFocus={() => setActiveField("title")}
           rows={1}
           placeholder="제목 (엔터키로 줄바꿈)"
           aria-label="팝업 제목"
@@ -354,6 +356,7 @@ function AnnouncementCard({
         <textarea
           value={draft.content}
           onChange={(e) => updateField("content", e.target.value)}
+          onFocus={() => setActiveField("content")}
           rows={4}
           placeholder="팝업 내용"
           aria-label="팝업 내용"
@@ -388,9 +391,11 @@ function AnnouncementCard({
         <div className="flex gap-1">
           <button
             type="button"
-            onClick={toggleBoldAll}
-            className={`flex-1 h-8 rounded-md text-[13px] font-bold border transition-colors ${
-              allBold
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={toggleBoldActive}
+            disabled={!activeField}
+            className={`flex-1 h-8 rounded-md text-[13px] font-bold border transition-colors disabled:opacity-30 disabled:hover:border-[#DDD] ${
+              activeField && activeBold
                 ? "bg-[#111] text-white border-[#111]"
                 : "bg-white border-[#DDD] hover:border-[#111]"
             }`}
@@ -401,8 +406,10 @@ function AnnouncementCard({
           </button>
           <button
             type="button"
-            onClick={appendBulletAll}
-            className="flex-1 h-8 border border-[#DDD] rounded-md text-[13px] bg-white hover:border-[#111] transition-colors"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={appendBulletActive}
+            disabled={!activeField}
+            className="flex-1 h-8 border border-[#DDD] rounded-md text-[13px] bg-white hover:border-[#111] transition-colors disabled:opacity-30 disabled:hover:border-[#DDD]"
             title="글머리기호"
             aria-label="글머리기호"
           >
@@ -424,12 +431,6 @@ function AnnouncementCard({
             </option>
           ))}
         </select>
-
-        {isDirty && (
-          <div className="text-[11px] text-yellow-700 font-medium">
-            ● 미저장
-          </div>
-        )}
 
         <div className="h-px bg-[#DDD] my-1" />
 
