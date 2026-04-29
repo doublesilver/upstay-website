@@ -64,7 +64,7 @@ export function KakaoButton() {
           aria-label="카카오톡 친구추가"
         >
           <div
-            className="bg-[#F5F5E7] rounded-2xl p-5 max-w-[calc(100vw-2rem)] w-[320px] flex flex-col items-stretch"
+            className="bg-[#F5F5E7] rounded-2xl p-5 max-w-[calc(100vw-2rem)] w-[236px] flex flex-col items-stretch"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-[18px] font-bold text-[#111] text-center mb-3 whitespace-nowrap">
