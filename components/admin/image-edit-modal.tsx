@@ -72,8 +72,6 @@ function SortableThumb({
   return (
     <div
       ref={setNodeRef}
-      role="button"
-      tabIndex={0}
       style={style}
       onClick={onClick}
       onKeyDown={(e) => {
