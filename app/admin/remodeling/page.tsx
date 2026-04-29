@@ -1242,20 +1242,28 @@ export default function RemodelingAdminPage() {
             flash(`${ids.length}장 처리 중..`);
             let success = 0;
             let failMsg = "";
-            for (const id of ids) {
-              try {
-                const blob = await getBlob(id);
-                if (!blob) {
-                  if (!failMsg) failMsg = "이미지 합성 실패 (CORS 차단 가능성)";
-                  continue;
+            const concurrency = 3;
+            const queue = [...ids];
+            const workers = Array.from({ length: concurrency }, async () => {
+              while (queue.length > 0) {
+                const id = queue.shift();
+                if (id === undefined) break;
+                try {
+                  const blob = await getBlob(id);
+                  if (!blob) {
+                    if (!failMsg)
+                      failMsg = "이미지 합성 실패 (CORS 차단 가능성)";
+                    continue;
+                  }
+                  const url = await uploadFile(blob);
+                  await saveImage({ id, image_url_wm: url });
+                  success += 1;
+                } catch (error) {
+                  if (!failMsg) failMsg = errMsg(error);
                 }
-                const url = await uploadFile(blob);
-                await saveImage({ id, image_url_wm: url });
-                success += 1;
-              } catch (error) {
-                if (!failMsg) failMsg = errMsg(error);
               }
-            }
+            });
+            await Promise.all(workers);
             load();
             if (success === ids.length) {
               flash(`${success}장 전체 적용이 완료되었습니다`);

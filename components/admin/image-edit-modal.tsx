@@ -52,10 +52,12 @@ function SortableThumb({
   image,
   active,
   onClick,
+  filter,
 }: {
   image: EditableImage;
   active: boolean;
   onClick: () => void;
+  filter: string;
 }) {
   const {
     attributes,
@@ -89,9 +91,10 @@ function SortableThumb({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={image.image_url_wm || image.image_url}
+        src={image.image_url}
         alt=""
         draggable={false}
+        style={{ filter }}
         className="w-full h-full object-cover pointer-events-none select-none"
       />
     </div>
@@ -529,6 +532,7 @@ export function ImageEditModal({
                         image={image}
                         active={image.id === currentId}
                         onClick={() => setCurrentId(image.id)}
+                        filter={imageFilter}
                       />
                     ))}
                   </div>
