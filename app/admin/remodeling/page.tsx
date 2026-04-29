@@ -54,6 +54,20 @@ interface RemodelingCase {
 function getImagesByType(images: CaseImage[], type: "before" | "after") {
   return images
     .filter((img) => img.type === type)
+    .sort((a, b) => {
+      const aSlot = a.slot_position ?? 0;
+      const bSlot = b.slot_position ?? 0;
+      const aGroup = aSlot > 0 ? 0 : 1;
+      const bGroup = bSlot > 0 ? 0 : 1;
+      if (aGroup !== bGroup) return aGroup - bGroup;
+      if (aGroup === 0) return aSlot - bSlot;
+      return a.id - b.id;
+    });
+}
+
+function getImagesForEdit(images: CaseImage[], type: "before" | "after") {
+  return images
+    .filter((img) => img.type === type)
     .sort((a, b) => a.match_order - b.match_order || a.id - b.id);
 }
 
@@ -1053,7 +1067,7 @@ export default function RemodelingAdminPage() {
     const caseData = cases.find((item) => item.id === caseId);
     if (!caseData) return;
 
-    const images = getImagesByType(caseData.images, type);
+    const images = getImagesForEdit(caseData.images, type);
     const reorderedImages = arrayMove(images, oldIndex, newIndex);
 
     setCases((prev) =>
@@ -1090,7 +1104,7 @@ export default function RemodelingAdminPage() {
   };
 
   const editorImages = editorSection
-    ? getImagesByType(
+    ? getImagesForEdit(
         cases.find((item) => item.id === editorSection.caseId)?.images ?? [],
         editorSection.type,
       )
