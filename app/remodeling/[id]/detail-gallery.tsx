@@ -96,7 +96,7 @@ export function DetailGallery({
   return (
     <div className="h-full min-h-0 flex flex-col gap-2 md:gap-3">
       {(beforeImages.length > 0 || afterImages.length > 0) && (
-        <div className="flex-1 min-h-0 border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row lg:flex-row gap-2 md:gap-3">
+        <div className="flex-1 min-h-0 lg:max-h-[480px] border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row lg:flex-row gap-2 md:gap-3">
           {beforeImages.length > 0 && (
             <GallerySection
               title="Before (전)"
