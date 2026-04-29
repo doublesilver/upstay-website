@@ -34,7 +34,7 @@ export default async function RemodelingDetailPage({
 
   const images = db
     .prepare(
-      `SELECT type, slot_position, match_order, image_url, image_url_wm
+      `SELECT type, slot_position, match_order, image_url
        FROM case_images
        WHERE case_id = ? AND image_url <> ''
        ORDER BY type ASC,
@@ -48,7 +48,6 @@ export default async function RemodelingDetailPage({
     slot_position: number;
     match_order: number;
     image_url: string;
-    image_url_wm: string;
   }[];
 
   const beforeImages = images

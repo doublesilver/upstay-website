@@ -20,7 +20,6 @@ import { CSS } from "@dnd-kit/utilities";
 export interface EditableImage {
   id: number;
   image_url: string;
-  image_url_wm?: string;
 }
 
 export type WmAnchor = "tl" | "t" | "tr" | "l" | "c" | "r" | "bl" | "b" | "br";
@@ -84,7 +83,7 @@ function SortableThumb({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={image.image_url_wm || image.image_url}
+        src={image.image_url}
         alt=""
         draggable={false}
         className="w-full h-full object-cover pointer-events-none select-none"

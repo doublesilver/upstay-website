@@ -49,13 +49,6 @@ export const imageSlotSchema = z.object({
     .string()
     .regex(/^(\/api\/uploads\/[\w.-]+|https?:\/\/.+)$/, "잘못된 image_url 형식")
     .optional(),
-  image_url_wm: z
-    .string()
-    .regex(
-      /^(\/api\/uploads\/[\w.-]+|https?:\/\/.+)$/,
-      "잘못된 image_url_wm 형식",
-    )
-    .optional(),
 });
 
 export const configUpdateSchema = z.record(z.string(), z.unknown());

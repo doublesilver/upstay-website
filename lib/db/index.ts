@@ -43,7 +43,6 @@ function initSchema(database: Database.Database) {
       type TEXT NOT NULL CHECK(type IN ('before', 'after')),
       match_order INTEGER NOT NULL DEFAULT 1,
       image_url TEXT NOT NULL DEFAULT '',
-      image_url_wm TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (case_id) REFERENCES remodeling_cases(id) ON DELETE CASCADE,
       UNIQUE(case_id, type, match_order)

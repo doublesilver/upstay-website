@@ -162,7 +162,7 @@ export async function PUT(req: NextRequest) {
     return Response.json({ ok: true });
   }
 
-  const allowed = ["image_url", "image_url_wm", "match_order", "is_starred"];
+  const allowed = ["image_url", "match_order", "is_starred"];
   const sets: string[] = [];
   const vals: unknown[] = [];
 
@@ -242,12 +242,8 @@ export async function DELETE(req: NextRequest) {
 
   const db = getDb();
   const row = db
-    .prepare(
-      "SELECT case_id, image_url, image_url_wm FROM case_images WHERE id = ?",
-    )
-    .get(id) as
-    | { case_id: number; image_url: string; image_url_wm: string }
-    | undefined;
+    .prepare("SELECT case_id, image_url FROM case_images WHERE id = ?")
+    .get(id) as { case_id: number; image_url: string } | undefined;
 
   if (!row) return Response.json({ error: "not found" }, { status: 404 });
   if (row.case_id !== case_id) {
@@ -256,7 +252,7 @@ export async function DELETE(req: NextRequest) {
 
   db.prepare("DELETE FROM case_images WHERE id = ?").run(id);
 
-  for (const url of [row.image_url, row.image_url_wm]) {
+  for (const url of [row.image_url]) {
     if (!url || !url.startsWith("/api/uploads/")) continue;
     const filename = url.replace("/api/uploads/", "");
     const resolved = path.resolve(UPLOAD_DIR, filename);

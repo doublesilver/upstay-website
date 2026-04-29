@@ -40,7 +40,6 @@ interface CaseImage {
   is_starred: number;
   slot_position: number;
   image_url: string;
-  image_url_wm: string;
 }
 
 interface RemodelingCase {
@@ -153,7 +152,7 @@ function SlotStars({
   );
 }
 
-function SortableThumb({
+function ImageThumb({
   image,
   checked,
   selectionMode,
@@ -170,20 +169,8 @@ function SortableThumb({
   onToggleCheck: () => void;
   onAssignSlot: (slot: number) => void;
 }) {
-  const { setNodeRef, transform, transition, isDragging } = useSortable({
-    id: `img-${image.id}`,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
-
   return (
     <div
-      ref={setNodeRef}
-      style={style}
       onClick={selectionMode ? onToggleCheck : onOpenImage}
       className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all cursor-pointer ${
         checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#111]"
@@ -260,7 +247,6 @@ function ImageSection({
   onToggleSelectionMode,
   onCancelSelectionMode,
   onAssignSlot,
-  onReorder,
 }: {
   caseId: number;
   type: "before" | "after";
@@ -290,32 +276,8 @@ function ImageSection({
     type: "before" | "after",
     slot: number,
   ) => void;
-  onReorder: (
-    caseId: number,
-    type: "before" | "after",
-    oldIndex: number,
-    newIndex: number,
-  ) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { delay: 200, tolerance: 5 },
-    }),
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const ids = images.map((img) => `img-${img.id}`);
-    const oldIndex = ids.indexOf(active.id as string);
-    const newIndex = ids.indexOf(over.id as string);
-    if (oldIndex !== -1 && newIndex !== -1) {
-      onReorder(caseId, type, oldIndex, newIndex);
-    }
-  };
-
   const label = type === "before" ? "BEFORE" : "AFTER";
 
   return (
@@ -413,33 +375,22 @@ function ImageSection({
             클릭하여 {label} 이미지를 업로드해 주세요
           </button>
         ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={images.map((img) => `img-${img.id}`)}
-              strategy={horizontalListSortingStrategy}
-            >
-              <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
-                {images.map((image, i) => (
-                  <SortableThumb
-                    key={image.id}
-                    image={image}
-                    checked={checkedIds.has(image.id)}
-                    selectionMode={selectionMode}
-                    eager={i < 8}
-                    onOpenImage={() => onOpenImage(caseId, type, image.id)}
-                    onToggleCheck={() => onToggleCheck(image.id)}
-                    onAssignSlot={(slot) =>
-                      onAssignSlot(caseId, image.id, type, slot)
-                    }
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+          <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
+            {images.map((image, i) => (
+              <ImageThumb
+                key={image.id}
+                image={image}
+                checked={checkedIds.has(image.id)}
+                selectionMode={selectionMode}
+                eager={i < 8}
+                onOpenImage={() => onOpenImage(caseId, type, image.id)}
+                onToggleCheck={() => onToggleCheck(image.id)}
+                onAssignSlot={(slot) =>
+                  onAssignSlot(caseId, image.id, type, slot)
+                }
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -465,7 +416,6 @@ function SortableCase({
   onToggleSelectionMode,
   onCancelSelectionMode,
   onAssignSlot,
-  onReorderImages,
   onToggleCollapse,
 }: {
   item: RemodelingCase;
@@ -502,12 +452,6 @@ function SortableCase({
     imageId: number,
     type: "before" | "after",
     slot: number,
-  ) => void;
-  onReorderImages: (
-    caseId: number,
-    type: "before" | "after",
-    oldIndex: number,
-    newIndex: number,
   ) => void;
   onToggleCollapse: () => void;
 }) {
@@ -559,7 +503,6 @@ function SortableCase({
               onCancelSelectionMode(item.id, "before")
             }
             onAssignSlot={onAssignSlot}
-            onReorder={onReorderImages}
           />
           <div className="border-t border-[#111]" />
           <ImageSection
@@ -584,7 +527,6 @@ function SortableCase({
               onCancelSelectionMode(item.id, "after")
             }
             onAssignSlot={onAssignSlot}
-            onReorder={onReorderImages}
           />
           <div className="border-t border-[#111]" />
 
@@ -1178,7 +1120,6 @@ export default function RemodelingAdminPage() {
                 onToggleSelectionMode={toggleSelectionMode}
                 onCancelSelectionMode={cancelSelectionMode}
                 onAssignSlot={handleAssignSlot}
-                onReorderImages={handleReorderImages}
                 collapsed={collapsedCases.has(item.id)}
                 onToggleCollapse={() => toggleCollapse(item.id)}
               />
@@ -1255,7 +1196,7 @@ export default function RemodelingAdminPage() {
           onApplyOne={async (id, blob) => {
             try {
               const url = await uploadFile(blob);
-              await saveImage({ id, image_url_wm: url });
+              await saveImage({ id, image_url: url });
               load();
               flash("변경사항이 적용되었습니다");
             } catch (error) {
@@ -1270,12 +1211,11 @@ export default function RemodelingAdminPage() {
               try {
                 const blob = await getBlob(id);
                 if (!blob) {
-                  if (!failMsg)
-                    failMsg = "워터마크 합성 실패 (CORS 차단 가능성)";
+                  if (!failMsg) failMsg = "이미지 합성 실패 (CORS 차단 가능성)";
                   continue;
                 }
                 const url = await uploadFile(blob);
-                await saveImage({ id, image_url_wm: url });
+                await saveImage({ id, image_url: url });
                 success += 1;
               } catch (error) {
                 if (!failMsg) failMsg = errMsg(error);

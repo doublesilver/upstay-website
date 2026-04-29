@@ -96,13 +96,11 @@ export async function DELETE(req: NextRequest) {
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
   const db = getDb();
   const images = db
-    .prepare(
-      "SELECT image_url, image_url_wm FROM case_images WHERE case_id = ?",
-    )
-    .all(id) as { image_url: string; image_url_wm: string }[];
+    .prepare("SELECT image_url FROM case_images WHERE case_id = ?")
+    .all(id) as { image_url: string }[];
   db.prepare("DELETE FROM remodeling_cases WHERE id=?").run(id);
   for (const img of images) {
-    for (const url of [img.image_url, img.image_url_wm]) {
+    for (const url of [img.image_url]) {
       if (!url || !url.startsWith("/api/uploads/")) continue;
       const filename = url.replace("/api/uploads/", "");
       const resolved = path.resolve(UPLOAD_DIR_RESOLVED, filename);

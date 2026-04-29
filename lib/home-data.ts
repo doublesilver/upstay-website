@@ -39,7 +39,7 @@ function buildCases(
 
   const allImages = db
     .prepare(
-      `SELECT case_id, type, slot_position, image_url, image_url_wm
+      `SELECT case_id, type, slot_position, image_url
        FROM case_images
        WHERE ${where}
        ORDER BY ${orderBy}`,
@@ -49,7 +49,6 @@ function buildCases(
     type: "before" | "after";
     slot_position: number;
     image_url: string;
-    image_url_wm: string;
   }[];
 
   const imageMap = new Map<number, typeof allImages>();
