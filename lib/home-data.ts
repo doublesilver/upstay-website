@@ -35,7 +35,7 @@ function buildCases(
     : `case_id IN (${placeholders}) AND image_url <> ''`;
   const orderBy = options.starredOnly
     ? `slot_position ASC, id ASC`
-    : `CASE WHEN slot_position > 0 THEN 0 ELSE 1 END ASC, slot_position ASC, id ASC`;
+    : `CASE WHEN slot_position > 0 THEN 0 ELSE 1 END ASC, slot_position ASC, match_order ASC, id ASC`;
 
   const allImages = db
     .prepare(
