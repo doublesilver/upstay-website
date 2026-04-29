@@ -54,15 +54,7 @@ interface RemodelingCase {
 function getImagesByType(images: CaseImage[], type: "before" | "after") {
   return images
     .filter((img) => img.type === type)
-    .sort((a, b) => {
-      const aSlot = a.slot_position ?? 0;
-      const bSlot = b.slot_position ?? 0;
-      const aGroup = aSlot > 0 ? 0 : 1;
-      const bGroup = bSlot > 0 ? 0 : 1;
-      if (aGroup !== bGroup) return aGroup - bGroup;
-      if (aGroup === 0) return aSlot - bSlot;
-      return a.match_order - b.match_order || a.id - b.id;
-    });
+    .sort((a, b) => a.match_order - b.match_order || a.id - b.id);
 }
 
 async function uploadFiles(files: File[]) {
