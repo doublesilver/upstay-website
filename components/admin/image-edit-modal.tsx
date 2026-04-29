@@ -269,7 +269,13 @@ export function ImageEditModal({
       const raw = localStorage.getItem("upstay-wm-settings");
       if (!raw) return DEFAULT_SETTINGS;
       const parsed = JSON.parse(raw) as Partial<EditSettings>;
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      return {
+        ...DEFAULT_SETTINGS,
+        wmOpacity: parsed.wmOpacity ?? DEFAULT_SETTINGS.wmOpacity,
+        wmScale: parsed.wmScale ?? DEFAULT_SETTINGS.wmScale,
+        wmPos: parsed.wmPos ?? DEFAULT_SETTINGS.wmPos,
+        wmAnchor: parsed.wmAnchor ?? DEFAULT_SETTINGS.wmAnchor,
+      };
     } catch {
       return DEFAULT_SETTINGS;
     }
@@ -385,7 +391,15 @@ export function ImageEditModal({
 
   const persistSettings = (s: EditSettings) => {
     try {
-      localStorage.setItem("upstay-wm-settings", JSON.stringify(s));
+      localStorage.setItem(
+        "upstay-wm-settings",
+        JSON.stringify({
+          wmOpacity: s.wmOpacity,
+          wmScale: s.wmScale,
+          wmPos: s.wmPos,
+          wmAnchor: s.wmAnchor,
+        }),
+      );
     } catch {}
   };
 
