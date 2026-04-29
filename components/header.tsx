@@ -4,10 +4,18 @@ import { Container } from "@/components/container";
 import { KakaoButton } from "@/components/kakao-button";
 import { navItems, PHONE_URL, SLOGAN } from "@/lib/site";
 
-export function Header({ config }: { config?: Record<string, string> }) {
+export function Header({
+  config,
+  wide,
+}: {
+  config?: Record<string, string>;
+  wide?: boolean;
+}) {
   return (
     <header className="sticky top-0 z-40 bg-[#F1F8E9] border-b border-[#111]">
-      <Container className="h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4">
+      <Container
+        className={`h-14 md:h-20 flex items-center justify-between gap-3 md:gap-4${wide ? " lg:max-w-[1600px] lg:px-6" : ""}`}
+      >
         {config?.header_logo_visible === "1" ? (
           <Link href="/" className="shrink-0 block">
             <Image

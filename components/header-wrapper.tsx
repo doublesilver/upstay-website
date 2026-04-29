@@ -10,5 +10,6 @@ export function HeaderWrapper({
 }) {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
-  return <Header config={initialConfig} />;
+  const wide = /^\/remodeling\/[^/]+$/.test(pathname);
+  return <Header config={initialConfig} wide={wide} />;
 }
