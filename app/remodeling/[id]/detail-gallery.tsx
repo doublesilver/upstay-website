@@ -131,6 +131,8 @@ export function DetailGallery({
         </div>
       )}
 
+      <div className="shrink-0 h-px bg-[#DDD]" />
+
       <div className="shrink-0 border border-[#111] rounded-lg flex max-h-[20svh] overflow-hidden">
         <div className="shrink-0 flex flex-col lg:flex-row items-center justify-center bg-white px-3 py-2 min-w-[40px] lg:min-w-[64px] lg:gap-1">
           <span className="text-[13px] font-bold text-[#555] leading-[1.2]">
@@ -415,8 +417,8 @@ function GallerySection({
       <p className="shrink-0 text-[11px] tracking-wider text-[#111] font-medium">
         {title}
       </p>
-      <div className="flex-1 min-h-0 flex flex-col gap-1.5 bg-white rounded-xl p-2 md:p-2.5 border border-[#111]">
-        <div className="flex-1 min-h-0 flex items-center gap-2">
+      <div className="flex-1 min-h-0 flex flex-col gap-1.5 lg:justify-center bg-white rounded-xl p-2 md:p-2.5 border border-[#111]">
+        <div className="flex-1 min-h-0 lg:flex-none flex items-center gap-2">
           {images.length > 1 && (
             <button
               type="button"
@@ -479,7 +481,7 @@ function GallerySection({
           )}
         </div>
         {images.length > 1 && (
-          <div className="hidden lg:flex shrink-0 items-center justify-center gap-2 pt-1">
+          <div className="hidden lg:flex shrink-0 items-center justify-center gap-2 py-2">
             <button
               type="button"
               onClick={(e) => {
