@@ -11,7 +11,7 @@ export default function RemodelingPage() {
 
   return (
     <Container className="pt-8 pb-12 md:pt-16 md:pb-16">
-      <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl px-3 md:px-4 py-2 md:py-3">
+      <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl px-3 md:px-4 py-1">
         {cases.map((c, i) => {
           const befores = c.before_images?.length
             ? c.before_images
