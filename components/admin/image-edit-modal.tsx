@@ -295,6 +295,27 @@ export function ImageEditModal({
   const previewRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const initialSettingsRef = useRef<string>(JSON.stringify(settings));
+  const isDirty = JSON.stringify(settings) !== initialSettingsRef.current;
+
+  const guardedClose = () => {
+    if (saving !== null) {
+      if (
+        !window.confirm(
+          "적용이 진행 중입니다. 닫으시겠습니까?\n(백그라운드에서 계속 진행됩니다)",
+        )
+      )
+        return;
+    } else if (isDirty) {
+      if (
+        !window.confirm(
+          "변경사항이 적용되지 않았습니다. 저장하지 않고 닫으시겠습니까?",
+        )
+      )
+        return;
+    }
+    onCancel();
+  };
 
   const current = useMemo(
     () => images.find((image) => image.id === currentId) ?? images[0],
@@ -344,12 +365,12 @@ export function ImageEditModal({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onCancel();
+      if (event.key === "Escape") guardedClose();
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onCancel]);
+  });
 
   const reset = () => {
     setSettings(DEFAULT_SETTINGS);
@@ -413,6 +434,7 @@ export function ImageEditModal({
         }),
       );
     } catch {}
+    initialSettingsRef.current = JSON.stringify(s);
   };
 
   const applyOne = async () => {
@@ -433,6 +455,12 @@ export function ImageEditModal({
   };
 
   const applyAll = async () => {
+    if (
+      !window.confirm(
+        `${images.length}장 모두에 현재 설정을 적용합니다.\n기존 워터마크 적용본은 덮어쓰기됩니다. 계속하시겠습니까?`,
+      )
+    )
+      return;
     setSaving("all");
     await onApplyAll(
       images.map((image) => image.id),
@@ -460,7 +488,7 @@ export function ImageEditModal({
   return (
     <div
       className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={onCancel}
+      onClick={guardedClose}
     >
       <div
         role="dialog"
@@ -482,7 +510,7 @@ export function ImageEditModal({
           <button
             ref={closeBtnRef}
             type="button"
-            onClick={onCancel}
+            onClick={guardedClose}
             className="bg-white border border-[#DDD] rounded-lg px-4 py-1.5 text-[14px] font-medium text-[#111] hover:bg-[#FAFAFA] hover:border-[#999] transition-colors"
           >
             닫기
