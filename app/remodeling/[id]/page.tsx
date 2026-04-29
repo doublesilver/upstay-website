@@ -3,7 +3,7 @@ import { DetailGallery } from "./detail-gallery";
 import { getDb } from "@/lib/db";
 import { notFound } from "next/navigation";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   try {
