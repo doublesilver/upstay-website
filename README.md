@@ -79,11 +79,11 @@ flowchart TB
     end
 
     subgraph Railway["🚂 Railway Container"]
-        subgraph App["Next.js 15 (Standalone)"]
-            MW[middleware.ts<br/>JWT verify edge]
-            Public[Public Routes<br/>/ /remodeling /[id]]
-            AdminRoute[Admin Routes<br/>/admin/*]
-            API[API Routes<br/>/api/*]
+        subgraph App["Next.js 15 Standalone"]
+            MW["middleware.ts<br/>JWT verify edge"]
+            Public["Public Routes<br/>/ /remodeling /id"]
+            AdminRoute["Admin Routes<br/>/admin/*"]
+            API["API Routes<br/>/api/*"]
         end
 
         subgraph Volume["📦 /app/data Volume"]
@@ -128,20 +128,20 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    subgraph Public["👀 공개 페이지 (Zone 1-4)"]
+    subgraph Public["👀 공개 페이지 Zone 1-4"]
         direction TB
-        Z1[Zone 1: 메인 /<br/>home-client.tsx]
-        Z2[Zone 2: 사례 리스트<br/>/remodeling]
-        Z3[Zone 3: 사례 상세<br/>/remodeling/[id]]
-        Z4[Zone 4: 라이트박스<br/>detail-gallery 내]
+        Z1["Zone 1: 메인 /<br/>home-client.tsx"]
+        Z2["Zone 2: 사례 리스트<br/>/remodeling"]
+        Z3["Zone 3: 사례 상세<br/>/remodeling/id"]
+        Z4["Zone 4: 라이트박스<br/>detail-gallery 내"]
         Z1 --> Z2 --> Z3 --> Z4
     end
 
-    subgraph AdminP["🔐 관리자 페이지 (Zone 5-7)"]
+    subgraph AdminP["🔐 관리자 페이지 Zone 5-7"]
         direction TB
-        Z5[Zone 5: 사진등록<br/>/admin/remodeling]
-        Z6[Zone 6: 팝업창<br/>/admin/announcements]
-        Z7[Zone 7: 메인창<br/>/admin/config]
+        Z5["Zone 5: 사진등록<br/>/admin/remodeling"]
+        Z6["Zone 6: 팝업창<br/>/admin/announcements"]
+        Z7["Zone 7: 메인창<br/>/admin/config"]
     end
 
     Z7 -.->|config| Z1
@@ -188,7 +188,7 @@ sequenceDiagram
     N->>M: JWT verify
     M-->>N: ✅ 인증
     N->>DB: UPDATE site_config
-    N->>N: invalidatePublicCache()<br/>revalidatePath('/', '/remodeling', '/[id]')
+    N->>N: invalidatePublicCache 호출<br/>revalidatePath / /remodeling /id
     N-->>A: 200 OK
 
     Note over U,DB: 사용자 조회 흐름
@@ -212,12 +212,12 @@ flowchart TD
     Slot -->|Yes| Star[⭐ 별표 이미지<br/>메인 4장 노출]
     Slot -->|No| Order[📋 일반 이미지<br/>match_order로 정렬]
 
-    Star --> Main["메인 / (slot_position 순)"]
-    Star --> List["리스트 /remodeling (sort_order 순)"]
-    Star --> Detail["상세 /[id] (slot_position 우선)"]
+    Star --> Main["메인 / slot_position 순"]
+    Star --> List["리스트 /remodeling sort_order 순"]
+    Star --> Detail["상세 /id slot_position 우선"]
 
     Order --> List
-    Order --> Detail2["상세 /[id] (match_order 순)"]
+    Order --> Detail2["상세 /id match_order 순"]
 
     style Star fill:#ffe082
     style Order fill:#e1f5fe
@@ -300,25 +300,25 @@ erDiagram
 ```mermaid
 flowchart LR
     subgraph Frontend["Frontend"]
-        NextJS[Next.js 15<br/>App Router]
-        React[React 19]
-        TS[TypeScript 5]
-        TW[Tailwind 4]
-        DnD[@dnd-kit]
+        NextJS["Next.js 15<br/>App Router"]
+        React["React 19"]
+        TS["TypeScript 5"]
+        TW["Tailwind 4"]
+        DnD["dnd-kit"]
     end
 
     subgraph Backend["Backend"]
-        Sqlite[better-sqlite3]
-        Sharp[sharp<br/>이미지 변환]
-        Jose[jose<br/>JWT]
-        Zod[zod<br/>입력 검증]
+        Sqlite["better-sqlite3"]
+        Sharp["sharp<br/>이미지 변환"]
+        Jose["jose<br/>JWT"]
+        Zod["zod<br/>입력 검증"]
     end
 
     subgraph DevOps["DevOps"]
-        Vitest[vitest<br/>단위 테스트]
-        ESLint[ESLint]
-        Docker[Docker]
-        Railway2[Railway<br/>volume mount]
+        Vitest["vitest<br/>단위 테스트"]
+        ESLint["ESLint"]
+        Docker["Docker"]
+        Railway2["Railway<br/>volume mount"]
     end
 
     Frontend --> Backend
@@ -485,13 +485,13 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ```mermaid
 flowchart LR
-    Dev[💻 로컬 개발] -->|git push main| GH[GitHub]
-    GH -->|webhook| RW[Railway]
-    RW -->|Dockerfile| Build[Build container]
-    Build -->|standalone| Container[Run container]
-    Container -->|/app/data mount| Volume[(Volume<br/>upstay.db<br/>+ uploads)]
-    Container -->|3000 port| LB[Load Balancer]
-    LB -->|HTTPS| User[👤 User]
+    Dev["💻 로컬 개발"] -->|git push main| GH["GitHub"]
+    GH -->|webhook| RW["Railway"]
+    RW -->|Dockerfile| Build["Build container"]
+    Build -->|standalone| Container["Run container"]
+    Container -->|/app/data mount| Volume[("Volume<br/>upstay.db<br/>+ uploads")]
+    Container -->|3000 port| LB["Load Balancer"]
+    LB -->|HTTPS| User["👤 User"]
 ```
 
 ### 배포 체크리스트
@@ -520,17 +520,17 @@ railway redeploy -y
 
 ```mermaid
 flowchart TD
-    Req[🌐 요청] --> CSP[CSP Header<br/>X-Frame-Options DENY]
-    CSP --> MW[middleware.ts]
-    MW -->|/admin/* /api/admin/*| JWT{JWT 검증}
-    JWT -->|fail| R401[401 Unauthorized]
-    JWT -->|pass| Route[Route Handler]
-    Route -->|/api/auth| RL{Rate Limit<br/>5분 5회}
-    RL -->|over| R429[429 Too Many]
-    RL -->|ok| Verify{verifyCredentials<br/>timing-safe}
+    Req["🌐 요청"] --> CSP["CSP Header<br/>X-Frame-Options DENY"]
+    CSP --> MW["middleware.ts"]
+    MW -->|admin paths| JWT{"JWT 검증"}
+    JWT -->|fail| R401["401 Unauthorized"]
+    JWT -->|pass| Route["Route Handler"]
+    Route -->|/api/auth| RL{"Rate Limit<br/>5분 5회"}
+    RL -->|over| R429["429 Too Many"]
+    RL -->|ok| Verify{"verifyCredentials<br/>timing-safe"}
     Verify -->|fail| R401
-    Verify -->|pass| Token[JWT 8h 발급<br/>httpOnly+sameSite]
-    Token -.->|cookie| User
+    Verify -->|pass| Token["JWT 8h 발급<br/>httpOnly+sameSite"]
+    Token -.->|cookie| User["User"]
 ```
 
 ### 적용 항목
@@ -557,20 +557,20 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Boot[앱 부팅] --> InitSchema[initSchema<br/>CREATE TABLE IF NOT EXISTS]
-    InitSchema --> ApplyMig[applyMigrations]
-    ApplyMig --> Read[lib/db/migrations/<br/>001~016 SQL 정렬 읽기]
-    Read --> Loop{각 파일}
-    Loop -->|이미 적용| Skip[skip]
-    Loop -->|미적용| Tx[BEGIN TRANSACTION]
-    Tx --> Exec{exec SQL}
-    Exec -->|success| Mark[INSERT schema_migrations]
+    Boot["앱 부팅"] --> InitSchema["initSchema<br/>CREATE TABLE IF NOT EXISTS"]
+    InitSchema --> ApplyMig["applyMigrations"]
+    ApplyMig --> Read["lib/db/migrations/<br/>001~016 SQL 정렬 읽기"]
+    Read --> Loop{"각 파일"}
+    Loop -->|이미 적용| Skip["skip"]
+    Loop -->|미적용| Tx["BEGIN TRANSACTION"]
+    Tx --> Exec{"exec SQL"}
+    Exec -->|success| Mark["INSERT schema_migrations"]
     Exec -->|duplicate column| Mark
     Exec -->|no such column| Mark
-    Exec -->|other error| Throw[❌ throw]
-    Mark --> Commit[COMMIT]
+    Exec -->|other error| Throw["❌ throw"]
+    Mark --> Commit["COMMIT"]
     Commit --> Loop
-    Loop -->|done| Ready[Ready]
+    Loop -->|done| Ready["Ready"]
 
     style Skip fill:#e8f5e9
     style Mark fill:#fff3e0
@@ -705,14 +705,14 @@ public/watermark.svg  # (현재 미사용 — v3.10에서 워터마크 시스템
 
 ```mermaid
 flowchart LR
-    PR[새 PR] --> Check[Zone 체크박스 표시]
-    Check --> One{한 번에<br/>1 Zone만?}
-    One -->|✅ Yes| Zone[Zone 작업]
-    One -->|❌ No| Split[PR 분할]
-    Zone --> Test[빌드 + 타입체크 + 린트]
-    Test --> Verify[수동 검증<br/>PC + 모바일]
-    Verify --> Commit[작업 단위 한글 커밋]
-    Commit --> MainMerge[main fast-forward]
+    PR["새 PR"] --> Check["Zone 체크박스 표시"]
+    Check --> One{"한 번에<br/>1 Zone만?"}
+    One -->|✅ Yes| Zone["Zone 작업"]
+    One -->|❌ No| Split["PR 분할"]
+    Zone --> Test["빌드 + 타입체크 + 린트"]
+    Test --> Verify["수동 검증<br/>PC + 모바일"]
+    Verify --> Commit["작업 단위 한글 커밋"]
+    Commit --> MainMerge["main fast-forward"]
     Split --> Zone
 ```
 
