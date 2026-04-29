@@ -488,7 +488,7 @@ function GallerySection({
           )}
         </div>
         {images.length > 1 && (
-          <div className="hidden lg:flex shrink-0 items-center justify-center gap-16 py-2">
+          <div className="hidden lg:flex shrink-0 items-center justify-center gap-8 py-2">
             <button
               type="button"
               onClick={(e) => {
