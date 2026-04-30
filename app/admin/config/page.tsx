@@ -117,13 +117,6 @@ export default function ConfigPage() {
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const photoGuideTitleRef = useRef<HTMLInputElement | null>(null);
-  const photoGuideCaptionRef = useRef<HTMLInputElement | null>(null);
-
-  const [photoGuideField, setPhotoGuideField] = useState<
-    "title" | "caption" | null
-  >(null);
-
   const categorySensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -210,35 +203,6 @@ export default function ConfigPage() {
     }));
   };
 
-  const photoGuideTitleBold =
-    getStyle("photo_guide_style").fontWeight === "bold";
-  const photoGuideCaptionBold =
-    getStyle("photo_guide_caption_style").fontWeight === "bold";
-  const photoGuideBoldActive =
-    photoGuideField === "title"
-      ? photoGuideTitleBold
-      : photoGuideField === "caption"
-        ? photoGuideCaptionBold
-        : false;
-  const handlePhotoGuideBold = () => {
-    if (photoGuideField === "title") toggleBoldFor("photo_guide_style");
-    else if (photoGuideField === "caption")
-      toggleBoldFor("photo_guide_caption_style");
-  };
-  const handlePhotoGuideBullet = () => {
-    if (photoGuideField === "title" && photoGuideTitleRef.current) {
-      insertBulletInto(
-        photoGuideTitleRef.current,
-        setText("photo_guide_title"),
-      );
-    } else if (photoGuideField === "caption" && photoGuideCaptionRef.current) {
-      insertBulletInto(
-        photoGuideCaptionRef.current,
-        setText("photo_guide_caption"),
-      );
-    }
-  };
-
   return (
     <div>
       <div className="flex items-start justify-between mb-8">
@@ -263,60 +227,6 @@ export default function ConfigPage() {
       )}
 
       <div className={`space-y-10 ${loading ? "hidden" : ""}`}>
-        <section className="bg-white border border-[#111] rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-[16px] font-bold text-[#111] flex-1">
-              • 사진안내 카테고리
-            </h2>
-            <div className="flex items-center gap-1">
-              <ToolbarButton
-                active={photoGuideBoldActive}
-                disabled={photoGuideField === null}
-                onClick={handlePhotoGuideBold}
-                title="굵게"
-              >
-                <span className="font-bold">B</span>
-              </ToolbarButton>
-              <ToolbarButton
-                active={false}
-                disabled={photoGuideField === null}
-                onClick={handlePhotoGuideBullet}
-                title="글머리기호"
-              >
-                •
-              </ToolbarButton>
-            </div>
-          </div>
-          <div className="space-y-5">
-            <div>
-              <input
-                ref={photoGuideTitleRef}
-                type="text"
-                value={config.photo_guide_title}
-                onChange={set("photo_guide_title")}
-                onFocus={() => setPhotoGuideField("title")}
-                onBlur={() => setPhotoGuideField(null)}
-                aria-label="사진안내 제목"
-                className={inputCls}
-                style={styleToCss(getStyle("photo_guide_style"))}
-              />
-            </div>
-            <div>
-              <input
-                ref={photoGuideCaptionRef}
-                type="text"
-                value={config.photo_guide_caption}
-                onChange={set("photo_guide_caption")}
-                onFocus={() => setPhotoGuideField("caption")}
-                onBlur={() => setPhotoGuideField(null)}
-                aria-label="사진안내 보조문구"
-                className={inputCls}
-                style={styleToCss(getStyle("photo_guide_caption_style"))}
-              />
-            </div>
-          </div>
-        </section>
-
         <DndContext
           sensors={categorySensors}
           collisionDetection={closestCenter}
