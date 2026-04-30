@@ -301,12 +301,10 @@ export function ImageEditModal({
   }, [initialImageId]);
 
   const posCalibratedRef = useRef(false);
-  const isInitialIdRef = useRef(true);
+  const lastLoadedIdRef = useRef(initialImageId);
   useEffect(() => {
-    if (isInitialIdRef.current) {
-      isInitialIdRef.current = false;
-      return;
-    }
+    if (lastLoadedIdRef.current === currentId) return;
+    lastLoadedIdRef.current = currentId;
     setSettings(loadSettingsForImage(currentId));
     posCalibratedRef.current = false;
   }, [currentId]);
@@ -354,7 +352,7 @@ export function ImageEditModal({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  });
+  }, [onCancel]);
 
   const reset = () => {
     setSettings(DEFAULT_SETTINGS);
