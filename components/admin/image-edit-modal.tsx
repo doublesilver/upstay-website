@@ -560,7 +560,7 @@ export function ImageEditModal({
                 <Slider
                   label="선명도"
                   value={settings.sharpness}
-                  min={50}
+                  min={0}
                   max={200}
                   onChange={(value) =>
                     setSettings((prev) => ({ ...prev, sharpness: value }))
@@ -570,8 +570,8 @@ export function ImageEditModal({
                 <Slider
                   label="밝기"
                   value={settings.brightness}
-                  min={50}
-                  max={150}
+                  min={0}
+                  max={200}
                   onChange={(value) =>
                     setSettings((prev) => ({ ...prev, brightness: value }))
                   }
@@ -588,7 +588,7 @@ export function ImageEditModal({
                   label="투명도"
                   value={settings.wmOpacity}
                   min={0}
-                  max={100}
+                  max={200}
                   onChange={(value) =>
                     setSettings((prev) => ({ ...prev, wmOpacity: value }))
                   }
@@ -597,8 +597,8 @@ export function ImageEditModal({
                 <Slider
                   label="크기"
                   value={settings.wmScale}
-                  min={5}
-                  max={80}
+                  min={0}
+                  max={200}
                   onChange={(value) =>
                     setSettings((prev) => {
                       const aspect = logoImg
