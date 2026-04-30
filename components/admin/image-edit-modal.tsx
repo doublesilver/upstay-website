@@ -38,7 +38,6 @@ interface Props {
   images: EditableImage[];
   initialImageId: number;
   sectionLabel: string;
-  storageKey: string;
   onApplyOne: (imageId: number, blob: Blob) => Promise<void> | void;
   onApplyAll: (
     imageIds: number[],
@@ -243,11 +242,26 @@ async function renderToBlob(
   );
 }
 
+function imageSettingsKey(imageId: number) {
+  return `upstay-edit-img-${imageId}`;
+}
+
+function loadSettingsForImage(imageId: number): EditSettings {
+  if (typeof window === "undefined") return DEFAULT_SETTINGS;
+  try {
+    const raw = localStorage.getItem(imageSettingsKey(imageId));
+    if (!raw) return DEFAULT_SETTINGS;
+    const parsed = JSON.parse(raw) as Partial<EditSettings>;
+    return { ...DEFAULT_SETTINGS, ...parsed };
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
 export function ImageEditModal({
   images,
   initialImageId,
   sectionLabel,
-  storageKey,
   onApplyOne,
   onApplyAll,
   onCancel,
@@ -268,7 +282,9 @@ export function ImageEditModal({
     onReorder(oldIndex, newIndex);
   };
   const [currentId, setCurrentId] = useState(initialImageId);
-  const [settings, setSettings] = useState<EditSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<EditSettings>(() =>
+    loadSettingsForImage(initialImageId),
+  );
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -291,7 +307,7 @@ export function ImageEditModal({
       isInitialIdRef.current = false;
       return;
     }
-    setSettings(DEFAULT_SETTINGS);
+    setSettings(loadSettingsForImage(currentId));
     posCalibratedRef.current = false;
   }, [currentId]);
 
@@ -343,10 +359,11 @@ export function ImageEditModal({
   const reset = () => {
     setSettings(DEFAULT_SETTINGS);
     posCalibratedRef.current = false;
-    try {
-      localStorage.removeItem(storageKey);
-      localStorage.removeItem("upstay-wm-settings");
-    } catch {}
+    if (current) {
+      try {
+        localStorage.removeItem(imageSettingsKey(current.id));
+      } catch {}
+    }
   };
 
   const onWmPointerDown = (e: React.PointerEvent) => {
@@ -389,25 +406,28 @@ export function ImageEditModal({
     document.addEventListener("pointerup", up);
   };
 
-  const persistSettings = (s: EditSettings) => {
+  const persistSettingsForImage = (imageId: number, s: EditSettings) => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify(s));
-      localStorage.setItem(
-        "upstay-wm-settings",
-        JSON.stringify({
-          wmOpacity: s.wmOpacity,
-          wmScale: s.wmScale,
-          wmPos: s.wmPos,
-          wmAnchor: s.wmAnchor,
-        }),
-      );
+      localStorage.setItem(imageSettingsKey(imageId), JSON.stringify(s));
     } catch {}
+  };
+
+  const ensureLogo = async (): Promise<HTMLImageElement | null> => {
+    if (logoImg) return logoImg;
+    try {
+      const img = await loadImage("/watermark.png");
+      setLogoImg(img);
+      return img;
+    } catch {
+      return null;
+    }
   };
 
   const applyOne = async () => {
     if (!current) return;
     setSaving("one");
-    const blob = await renderToBlob(current.image_url, logoImg, settings);
+    const logo = settings.wmOpacity > 0 ? await ensureLogo() : logoImg;
+    const blob = await renderToBlob(current.image_url, logo, settings);
     if (blob === null) {
       const msg =
         "워터마크 합성 실패: 이미지 로드 차단(CORS)일 수 있습니다. 새로고침 후 다시 시도해주세요.";
@@ -417,25 +437,24 @@ export function ImageEditModal({
       return;
     }
     await onApplyOne(current.id, blob);
-    persistSettings(settings);
+    persistSettingsForImage(current.id, settings);
     setSaving(null);
   };
 
   const applyAll = async () => {
     setSaving("all");
-    await onApplyAll(
-      images.map((image) => image.id),
-      async (id) => {
-        const image = images.find((item) => item.id === id);
-        if (!image) return null;
-        const blob = await renderToBlob(image.image_url, logoImg, settings);
-        if (blob === null) {
-          console.warn(`이미지 합성 실패 (id=${id}): CORS 차단 가능성`);
-        }
-        return blob;
-      },
-    );
-    persistSettings(settings);
+    const logo = settings.wmOpacity > 0 ? await ensureLogo() : logoImg;
+    const ids = images.map((image) => image.id);
+    await onApplyAll(ids, async (id) => {
+      const image = images.find((item) => item.id === id);
+      if (!image) return null;
+      const blob = await renderToBlob(image.image_url, logo, settings);
+      if (blob === null) {
+        console.warn(`이미지 합성 실패 (id=${id}): CORS 차단 가능성`);
+      }
+      return blob;
+    });
+    ids.forEach((id) => persistSettingsForImage(id, settings));
     setSaving(null);
   };
 
