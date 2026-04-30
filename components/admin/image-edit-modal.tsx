@@ -95,7 +95,7 @@ function SortableThumb({
         src={image.image_url}
         alt=""
         draggable={false}
-        style={{ filter }}
+        style={{ filter: active ? filter : undefined }}
         className="w-full h-full object-cover pointer-events-none select-none"
       />
     </div>
