@@ -268,28 +268,7 @@ export function ImageEditModal({
     onReorder(oldIndex, newIndex);
   };
   const [currentId, setCurrentId] = useState(initialImageId);
-  const [settings, setSettings] = useState<EditSettings>(() => {
-    if (typeof window === "undefined") return DEFAULT_SETTINGS;
-    try {
-      const sectionRaw = localStorage.getItem(storageKey);
-      if (sectionRaw) {
-        const parsed = JSON.parse(sectionRaw) as Partial<EditSettings>;
-        return { ...DEFAULT_SETTINGS, ...parsed };
-      }
-      const wmRaw = localStorage.getItem("upstay-wm-settings");
-      if (!wmRaw) return DEFAULT_SETTINGS;
-      const parsed = JSON.parse(wmRaw) as Partial<EditSettings>;
-      return {
-        ...DEFAULT_SETTINGS,
-        wmOpacity: parsed.wmOpacity ?? DEFAULT_SETTINGS.wmOpacity,
-        wmScale: parsed.wmScale ?? DEFAULT_SETTINGS.wmScale,
-        wmPos: parsed.wmPos ?? DEFAULT_SETTINGS.wmPos,
-        wmAnchor: parsed.wmAnchor ?? DEFAULT_SETTINGS.wmAnchor,
-      };
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
-  });
+  const [settings, setSettings] = useState<EditSettings>(DEFAULT_SETTINGS);
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
