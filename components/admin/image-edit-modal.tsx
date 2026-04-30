@@ -305,6 +305,17 @@ export function ImageEditModal({
     setCurrentId(initialImageId);
   }, [initialImageId]);
 
+  const posCalibratedRef = useRef(false);
+  const isInitialIdRef = useRef(true);
+  useEffect(() => {
+    if (isInitialIdRef.current) {
+      isInitialIdRef.current = false;
+      return;
+    }
+    setSettings(DEFAULT_SETTINGS);
+    posCalibratedRef.current = false;
+  }, [currentId]);
+
   useEffect(() => {
     loadImage("/watermark.png")
       .then(setLogoImg)
@@ -315,7 +326,6 @@ export function ImageEditModal({
     closeBtnRef.current?.focus();
   }, []);
 
-  const posCalibratedRef = useRef(false);
   useEffect(() => {
     if (posCalibratedRef.current) return;
     if (!logoImg || !previewRef.current) return;
