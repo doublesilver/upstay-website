@@ -117,11 +117,9 @@ export default function ConfigPage() {
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const sloganRef = useRef<HTMLInputElement | null>(null);
   const photoGuideTitleRef = useRef<HTMLInputElement | null>(null);
   const photoGuideCaptionRef = useRef<HTMLInputElement | null>(null);
 
-  const [sloganActive, setSloganActive] = useState(false);
   const [photoGuideField, setPhotoGuideField] = useState<
     "title" | "caption" | null
   >(null);
@@ -212,7 +210,6 @@ export default function ConfigPage() {
     }));
   };
 
-  const sloganBold = getStyle("slogan_text_style").fontWeight === "bold";
   const photoGuideTitleBold =
     getStyle("photo_guide_style").fontWeight === "bold";
   const photoGuideCaptionBold =
@@ -266,45 +263,6 @@ export default function ConfigPage() {
       )}
 
       <div className={`space-y-10 ${loading ? "hidden" : ""}`}>
-        <section className="bg-white border border-[#111] rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-[16px] font-bold text-[#111] flex-1">• 헤더</h2>
-            <div className="flex items-center gap-1">
-              <ToolbarButton
-                active={sloganActive && sloganBold}
-                disabled={!sloganActive}
-                onClick={() => toggleBoldFor("slogan_text_style")}
-                title="굵게"
-              >
-                <span className="font-bold">B</span>
-              </ToolbarButton>
-              <ToolbarButton
-                active={false}
-                disabled={!sloganActive}
-                onClick={() => {
-                  if (sloganRef.current)
-                    insertBulletInto(sloganRef.current, setText("slogan_text"));
-                }}
-                title="글머리기호"
-              >
-                •
-              </ToolbarButton>
-            </div>
-          </div>
-          <input
-            ref={sloganRef}
-            type="text"
-            value={config.slogan_text}
-            onChange={set("slogan_text")}
-            onFocus={() => setSloganActive(true)}
-            onBlur={() => setSloganActive(false)}
-            aria-label="헤더 슬로건"
-            placeholder="헤더 슬로건"
-            className={inputCls}
-            style={styleToCss(getStyle("slogan_text_style"))}
-          />
-        </section>
-
         <section className="bg-white border border-[#111] rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-6">
             <h2 className="text-[16px] font-bold text-[#111] flex-1">
