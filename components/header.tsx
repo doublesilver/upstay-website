@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { KakaoButton } from "@/components/kakao-button";
-import { navItems, PHONE_URL } from "@/lib/site";
+import { navItems, PHONE_URL, SLOGAN } from "@/lib/site";
 
 export function Header({
   config,
@@ -39,7 +39,7 @@ export function Header({
           </Link>
         )}
 
-        {/* 네비게이션 (가운데) */}
+        {/* 네비게이션 + 슬로건 (가운데) */}
         <div className="flex-1 min-w-0 text-center">
           <nav
             aria-label="주요 메뉴"
@@ -61,6 +61,9 @@ export function Header({
               </span>
             ))}
           </nav>
+          <p className="mt-0 text-[11.5px] md:text-[13px] text-[#9CA3AF] tracking-tight [@media(max-width:380px)]:hidden">
+            {config?.slogan_text || SLOGAN}
+          </p>
         </div>
 
         {/* 전화 + 카카오 아이콘 — 모바일: 네모, 데스크탑: 원형 */}

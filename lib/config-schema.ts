@@ -12,6 +12,14 @@ export const CONFIG_ENTRIES: ConfigEntry[] = [
   { key: "header_logo_offset_x", default: "0", public: true, editable: true },
 
   {
+    key: "slogan_text",
+    default: "공간의 가치를 업스테이가 높여드립니다",
+    public: true,
+    editable: true,
+  },
+  { key: "slogan_text_style", default: "{}", public: true, editable: true },
+
+  {
     key: "photo_guide_title",
     default: "리모델링 사례보기",
     public: true,

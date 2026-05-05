@@ -94,7 +94,7 @@ function SortableThumb({
         src={image.image_url}
         alt=""
         draggable={false}
-        style={{ filter: active ? filter : undefined }}
+        style={{ filter }}
         className="w-full h-full object-cover pointer-events-none select-none"
       />
     </div>
@@ -301,13 +301,6 @@ export function ImageEditModal({
   }, [initialImageId]);
 
   const posCalibratedRef = useRef(false);
-  const lastLoadedIdRef = useRef(initialImageId);
-  useEffect(() => {
-    if (lastLoadedIdRef.current === currentId) return;
-    lastLoadedIdRef.current = currentId;
-    setSettings(loadSettingsForImage(currentId));
-    posCalibratedRef.current = false;
-  }, [currentId]);
 
   useEffect(() => {
     loadImage("/watermark.png")
