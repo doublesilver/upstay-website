@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
 import { invalidatePublicCache } from "@/lib/cache";
 import { announcementSchema } from "@/lib/admin-schemas";
+
+const idDelSchema = z.object({ id: z.number().int().positive() });
 
 export async function GET(req: NextRequest) {
   if (!(await verifyToken(req))) return unauthorized();
@@ -86,8 +89,15 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   if (!(await verifyToken(req))) return unauthorized();
-  const { id } = await req.json();
-  if (!id) return Response.json({ error: "id required" }, { status: 400 });
+  const body = await req.json();
+  const parsed = idDelSchema.safeParse(body);
+  if (!parsed.success) {
+    return Response.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 },
+    );
+  }
+  const { id } = parsed.data;
   const db = getDb();
   db.prepare("DELETE FROM announcements WHERE id=?").run(id);
   invalidatePublicCache();
