@@ -747,7 +747,7 @@ export function ImageEditModal({
                 disabled={saving !== null}
                 className="min-w-[72px] border border-[#111] rounded-lg px-4 py-2 text-[12px] text-[#333] hover:bg-[#F7F7F7] disabled:opacity-40 transition-all"
               >
-                {saving === "one" ? "적용 중.." : "적용"}
+                {saving === "one" ? "적용 중.." : "개별적용"}
               </button>
               <button
                 ref={lastBtnRef}
@@ -756,7 +756,7 @@ export function ImageEditModal({
                 disabled={saving !== null || images.length === 0}
                 className="min-w-[72px] bg-[#111] text-white rounded-lg px-4 py-2 text-[12px] font-semibold hover:bg-[#333] disabled:opacity-40 transition-all"
               >
-                {saving === "all" ? "적용 중.." : "전체 적용"}
+                {saving === "all" ? "적용 중.." : "전체적용"}
               </button>
             </div>
           </div>
