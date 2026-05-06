@@ -18,6 +18,17 @@ export function getDb(): Database.Database {
     db.pragma("journal_mode = WAL");
     db.pragma("foreign_keys = ON");
     initSchema(db);
+
+    process.once("SIGTERM", () => {
+      try {
+        db!.close();
+      } catch {}
+    });
+    process.once("SIGINT", () => {
+      try {
+        db!.close();
+      } catch {}
+    });
   }
   return db;
 }

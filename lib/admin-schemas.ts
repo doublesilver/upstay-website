@@ -32,7 +32,7 @@ export const caseUpdateSchema = z.object({
 
 export const imagePostSchema = z.object({
   case_id: z.number().int(),
-  type: z.string(),
+  type: z.enum(["before", "after"]),
   image_url: z
     .string()
     .regex(/^(\/api\/uploads\/[\w.-]+|https?:\/\/.+)$/, "잘못된 image_url 형식")

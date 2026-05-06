@@ -1,14 +1,53 @@
 import { NextRequest } from "next/server";
-import { stat, mkdir, readFile, writeFile } from "fs/promises";
+import {
+  stat,
+  mkdir,
+  readFile,
+  writeFile,
+  realpath,
+  readdir,
+  unlink,
+} from "fs/promises";
 import { createReadStream, existsSync } from "fs";
 import { Readable } from "stream";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
-import { UPLOAD_DIR, DATA_DIR } from "@/lib/paths";
+import { UPLOAD_DIR, DATA_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
 
 const CACHE_DIR = path.join(DATA_DIR, "cache");
-const UPLOAD_DIR_RESOLVED = path.resolve(UPLOAD_DIR);
+const CACHE_MAX_BYTES = 500 * 1024 * 1024;
+const CACHE_MAX_FILES = 5000;
+
+async function cleanupCache(dir: string, maxBytes: number, maxFiles: number) {
+  let entries: { file: string; mtime: number; size: number }[];
+  try {
+    const names = await readdir(dir);
+    entries = await Promise.all(
+      names.map(async (name) => {
+        const file = path.join(dir, name);
+        const s = await stat(file);
+        return { file, mtime: s.mtimeMs, size: s.size };
+      }),
+    );
+  } catch {
+    return;
+  }
+
+  entries.sort((a, b) => a.mtime - b.mtime);
+
+  let totalBytes = entries.reduce((sum, e) => sum + e.size, 0);
+  let totalFiles = entries.length;
+
+  for (const entry of entries) {
+    if (totalBytes <= maxBytes && totalFiles <= maxFiles) break;
+    try {
+      await unlink(entry.file);
+      totalBytes -= entry.size;
+      totalFiles -= 1;
+    } catch {}
+  }
+}
 
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -37,14 +76,25 @@ export async function GET(
   }
   const filePath = path.resolve(UPLOAD_DIR, filename);
 
-  if (
-    !filePath.startsWith(UPLOAD_DIR_RESOLVED + path.sep) ||
-    !existsSync(filePath)
-  ) {
+  if (!filePath.startsWith(UPLOAD_DIR_RESOLVED + path.sep)) {
     return new Response("Not found", { status: 404 });
   }
 
-  const fileStat = await stat(filePath);
+  let resolvedPath: string;
+  try {
+    resolvedPath = await realpath(filePath);
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") {
+      return new Response("Not found", { status: 404 });
+    }
+    throw e;
+  }
+
+  if (!resolvedPath.startsWith(UPLOAD_DIR_RESOLVED + path.sep)) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  const fileStat = await stat(resolvedPath);
   if (!fileStat.isFile()) {
     return new Response("Not found", { status: 404 });
   }
@@ -65,7 +115,7 @@ export async function GET(
 
       const cacheKey = crypto
         .createHash("sha1")
-        .update(`${filePath}:${fileStat.mtimeMs}:${targetFormat}`)
+        .update(`${resolvedPath}:${fileStat.mtimeMs}:${targetFormat}`)
         .digest("hex");
       const cachePath = path.join(CACHE_DIR, `${cacheKey}.${targetFormat}`);
 
@@ -73,11 +123,23 @@ export async function GET(
       if (existsSync(cachePath)) {
         buffer = await readFile(cachePath);
       } else {
+        const sharpOpts = {
+          limitInputPixels: 24_000_000,
+          failOn: "truncated" as const,
+        };
         buffer =
           targetFormat === "avif"
-            ? await sharp(filePath).avif({ quality: 80 }).toBuffer()
-            : await sharp(filePath).webp({ quality: 80 }).toBuffer();
+            ? await sharp(resolvedPath, sharpOpts)
+                .avif({ quality: 80 })
+                .toBuffer()
+            : await sharp(resolvedPath, sharpOpts)
+                .webp({ quality: 80 })
+                .toBuffer();
         await writeFile(cachePath, buffer);
+        if (Math.random() < 0.01)
+          cleanupCache(CACHE_DIR, CACHE_MAX_BYTES, CACHE_MAX_FILES).catch(
+            () => {},
+          );
       }
 
       return new Response(new Uint8Array(buffer), {
@@ -94,7 +156,7 @@ export async function GET(
   }
 
   const contentType = MIME[ext] ?? "application/octet-stream";
-  const nodeStream = createReadStream(filePath);
+  const nodeStream = createReadStream(resolvedPath);
   const webStream = Readable.toWeb(nodeStream) as ReadableStream;
 
   return new Response(webStream, {

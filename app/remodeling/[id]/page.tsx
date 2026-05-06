@@ -3,8 +3,6 @@ import { DetailGallery } from "./detail-gallery";
 import { getDb } from "@/lib/db";
 import { notFound } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
 export async function generateStaticParams() {
   try {
     const db = getDb();

@@ -34,12 +34,18 @@ async function optimize(buffer: Buffer, ext: string): Promise<Buffer> {
   if (normalizedExt === "gif") {
     return buffer;
   }
-  let pipeline = sharp(buffer, { animated: false }).rotate().resize({
-    width: MAX_DIMENSION,
-    height: MAX_DIMENSION,
-    fit: "inside",
-    withoutEnlargement: true,
-  });
+  let pipeline = sharp(buffer, {
+    animated: false,
+    limitInputPixels: 24_000_000,
+    failOn: "truncated",
+  })
+    .rotate()
+    .resize({
+      width: MAX_DIMENSION,
+      height: MAX_DIMENSION,
+      fit: "inside",
+      withoutEnlargement: true,
+    });
   if (normalizedExt === "png") {
     pipeline = pipeline.png({ compressionLevel: 9, adaptiveFiltering: true });
   } else if (normalizedExt === "webp") {

@@ -262,7 +262,7 @@ export default function AnnouncementsAdminPage() {
 type CardProps = {
   item: Announcement;
   isNew?: boolean;
-  onSave: (item: Announcement) => void;
+  onSave: (item: Announcement) => Promise<void>;
   onDelete: () => void;
   onCancel?: () => void;
   onToggleVisible: () => void;
@@ -282,6 +282,7 @@ function AnnouncementCard({
   const [activeField, setActiveField] = useState<"title" | "content" | null>(
     null,
   );
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setDraft(item);
@@ -438,8 +439,16 @@ function AnnouncementCard({
         <div className="flex gap-1 mt-auto">
           <button
             type="button"
-            onClick={() => onSave(draft)}
-            disabled={!canSave}
+            onClick={async () => {
+              if (saving) return;
+              setSaving(true);
+              try {
+                await onSave(draft);
+              } finally {
+                setSaving(false);
+              }
+            }}
+            disabled={!canSave || saving}
             className="flex-1 h-8 bg-[#111] text-white rounded text-[12px] font-semibold hover:bg-[#333] disabled:opacity-30 transition-colors"
           >
             저장

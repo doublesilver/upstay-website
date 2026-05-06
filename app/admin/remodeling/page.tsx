@@ -408,6 +408,7 @@ function SortableCase({
   item,
   collapsed,
   uploading,
+  saving,
   getChecked,
   isSelectionMode,
   onOpenEdit,
@@ -428,6 +429,7 @@ function SortableCase({
   item: RemodelingCase;
   collapsed: boolean;
   uploading?: boolean;
+  saving?: boolean;
   getChecked: (type: "before" | "after") => Set<number>;
   isSelectionMode: (type: "before" | "after") => boolean;
   onOpenEdit: (caseId: number, type: "before" | "after") => void;
@@ -610,7 +612,8 @@ function SortableCase({
             <button
               type="button"
               onClick={() => onRegister(item.id)}
-              className="ml-auto rounded-lg px-4 py-1.5 text-[12px] font-semibold active:scale-[0.98] transition-all bg-[#111] text-white hover:bg-[#333]"
+              disabled={saving}
+              className="ml-auto rounded-lg px-4 py-1.5 text-[12px] font-semibold active:scale-[0.98] transition-all bg-[#111] text-white hover:bg-[#333] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               저장
             </button>
@@ -624,6 +627,7 @@ function SortableCase({
 export default function RemodelingAdminPage() {
   const [cases, setCases] = useState<RemodelingCase[]>([]);
   const [toast, setToast] = useState("");
+  const [savingCaseIds, setSavingCaseIds] = useState<Set<number>>(new Set());
   const [deleting, setDeleting] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -848,8 +852,11 @@ export default function RemodelingAdminPage() {
   };
 
   const handleRegister = async (id: number) => {
+    if (savingCaseIds.has(id)) return;
     const current = cases.find((item) => item.id === id);
     if (!current) return;
+
+    setSavingCaseIds((prev) => new Set(prev).add(id));
 
     const targets = cases.filter(
       (item) =>
@@ -870,15 +877,19 @@ export default function RemodelingAdminPage() {
           }),
         ),
       );
-      // dirty 해제: 저장된 항목들의 originalTitlesRef 갱신
       targets.forEach((item) => {
         originalTitlesRef.current.set(item.id, item.title);
       });
-      // 강제 re-render로 dirtyCaseIds 갱신
       setCases((prev) => [...prev]);
       flash("저장되었습니다");
     } catch (error) {
       flash(`저장에 실패했습니다: ${errMsg(error)}`);
+    } finally {
+      setSavingCaseIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -1133,6 +1144,7 @@ export default function RemodelingAdminPage() {
                 key={item.id}
                 item={item}
                 uploading={uploading}
+                saving={savingCaseIds.has(item.id)}
                 getChecked={(type) =>
                   checkedMap.get(sectionKey(item.id, type)) ?? new Set()
                 }
