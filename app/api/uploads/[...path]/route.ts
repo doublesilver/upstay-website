@@ -1,14 +1,13 @@
 import { NextRequest } from "next/server";
-import { stat, mkdir, readFile, writeFile } from "fs/promises";
+import { stat, mkdir, readFile, writeFile, realpath } from "fs/promises";
 import { createReadStream, existsSync } from "fs";
 import { Readable } from "stream";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
-import { UPLOAD_DIR, DATA_DIR } from "@/lib/paths";
+import { UPLOAD_DIR, DATA_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
 
 const CACHE_DIR = path.join(DATA_DIR, "cache");
-const UPLOAD_DIR_RESOLVED = path.resolve(UPLOAD_DIR);
 
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -37,14 +36,25 @@ export async function GET(
   }
   const filePath = path.resolve(UPLOAD_DIR, filename);
 
-  if (
-    !filePath.startsWith(UPLOAD_DIR_RESOLVED + path.sep) ||
-    !existsSync(filePath)
-  ) {
+  if (!filePath.startsWith(UPLOAD_DIR_RESOLVED + path.sep)) {
     return new Response("Not found", { status: 404 });
   }
 
-  const fileStat = await stat(filePath);
+  let resolvedPath: string;
+  try {
+    resolvedPath = await realpath(filePath);
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") {
+      return new Response("Not found", { status: 404 });
+    }
+    throw e;
+  }
+
+  if (!resolvedPath.startsWith(UPLOAD_DIR_RESOLVED + path.sep)) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  const fileStat = await stat(resolvedPath);
   if (!fileStat.isFile()) {
     return new Response("Not found", { status: 404 });
   }
@@ -65,7 +75,7 @@ export async function GET(
 
       const cacheKey = crypto
         .createHash("sha1")
-        .update(`${filePath}:${fileStat.mtimeMs}:${targetFormat}`)
+        .update(`${resolvedPath}:${fileStat.mtimeMs}:${targetFormat}`)
         .digest("hex");
       const cachePath = path.join(CACHE_DIR, `${cacheKey}.${targetFormat}`);
 
@@ -73,10 +83,18 @@ export async function GET(
       if (existsSync(cachePath)) {
         buffer = await readFile(cachePath);
       } else {
+        const sharpOpts = {
+          limitInputPixels: 24_000_000,
+          failOn: "truncated" as const,
+        };
         buffer =
           targetFormat === "avif"
-            ? await sharp(filePath).avif({ quality: 80 }).toBuffer()
-            : await sharp(filePath).webp({ quality: 80 }).toBuffer();
+            ? await sharp(resolvedPath, sharpOpts)
+                .avif({ quality: 80 })
+                .toBuffer()
+            : await sharp(resolvedPath, sharpOpts)
+                .webp({ quality: 80 })
+                .toBuffer();
         await writeFile(cachePath, buffer);
       }
 
@@ -94,7 +112,7 @@ export async function GET(
   }
 
   const contentType = MIME[ext] ?? "application/octet-stream";
-  const nodeStream = createReadStream(filePath);
+  const nodeStream = createReadStream(resolvedPath);
   const webStream = Readable.toWeb(nodeStream) as ReadableStream;
 
   return new Response(webStream, {

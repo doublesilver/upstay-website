@@ -20,8 +20,20 @@ async function verifyJwtEdge(token: string): Promise<boolean> {
   }
 }
 
+const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  if (MUTATION_METHODS.has(req.method) && !pathname.startsWith("/api/auth")) {
+    const origin = req.headers.get("origin");
+    if (origin) {
+      const allowed = process.env.PUBLIC_ORIGIN ?? req.nextUrl.origin;
+      if (origin !== allowed) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+  }
 
   if (pathname.startsWith("/api/admin/")) {
     const token = req.cookies.get(AUTH_COOKIE)?.value;
