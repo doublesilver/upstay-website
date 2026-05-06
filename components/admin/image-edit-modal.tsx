@@ -594,7 +594,7 @@ export function ImageEditModal({
                         image={image}
                         active={image.id === currentId}
                         onClick={() => setCurrentId(image.id)}
-                        filter={imageFilter}
+                        filter={image.id === currentId ? imageFilter : ""}
                       />
                     ))}
                   </div>
