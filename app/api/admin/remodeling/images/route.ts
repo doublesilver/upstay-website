@@ -258,7 +258,7 @@ export async function DELETE(req: NextRequest) {
 
   for (const url of [row.image_url, row.image_url_wm]) {
     if (!url || !url.startsWith("/api/uploads/")) continue;
-    const filename = url.replace("/api/uploads/", "");
+    const filename = path.basename(new URL(url, "http://x").pathname);
     const resolved = path.resolve(UPLOAD_DIR, filename);
     if (
       !resolved.startsWith(UPLOAD_DIR_RESOLVED + path.sep) &&

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import {
   DndContext,
@@ -289,6 +290,7 @@ export function ImageEditModal({
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const lastBtnRef = useRef<HTMLButtonElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const current = useMemo(
@@ -311,6 +313,14 @@ export function ImageEditModal({
     loadImage("/watermark.png")
       .then(setLogoImg)
       .catch(() => setLogoImg(null));
+  }, []);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, []);
 
   useEffect(() => {
@@ -377,6 +387,9 @@ export function ImageEditModal({
 
     setIsDragging(true);
 
+    const ac = new AbortController();
+    const { signal } = ac;
+
     const move = (ev: PointerEvent) => {
       const dx = ev.clientX - startClientX;
       const dy = ev.clientY - startClientY;
@@ -394,12 +407,11 @@ export function ImageEditModal({
 
     const up = () => {
       setIsDragging(false);
-      document.removeEventListener("pointermove", move);
-      document.removeEventListener("pointerup", up);
+      ac.abort();
     };
 
-    document.addEventListener("pointermove", move);
-    document.addEventListener("pointerup", up);
+    document.addEventListener("pointermove", move, { signal });
+    document.addEventListener("pointerup", up, { signal });
   };
 
   const persistSettingsForImage = (imageId: number, s: EditSettings) => {
@@ -466,6 +478,30 @@ export function ImageEditModal({
     }
   };
 
+  const handleTabTrap = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab") return;
+    const container = e.currentTarget;
+    const focusable = Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => !el.hasAttribute("disabled"));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
+
   const imageFilter = `brightness(${settings.brightness}%) contrast(${settings.sharpness}%)`;
   const logoW =
     previewRef.current && logoImg
@@ -483,6 +519,7 @@ export function ImageEditModal({
         aria-modal="true"
         aria-labelledby="image-edit-title"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleTabTrap}
         className="bg-white rounded-2xl w-full max-w-[1100px] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
       >
         <div className="flex items-center justify-between px-6 py-3 border-b border-black">
@@ -713,6 +750,7 @@ export function ImageEditModal({
                 {saving === "one" ? "적용 중.." : "적용"}
               </button>
               <button
+                ref={lastBtnRef}
                 type="button"
                 onClick={applyAll}
                 disabled={saving !== null || images.length === 0}
@@ -764,6 +802,7 @@ function Slider({
           type="range"
           min={min}
           max={max}
+          step={1}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="flex-1 accent-[#111]"

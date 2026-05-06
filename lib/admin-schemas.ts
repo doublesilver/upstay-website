@@ -1,4 +1,23 @@
 import { z } from "zod";
+import sanitizeHtml from "sanitize-html";
+
+const sanitizeOptions: sanitizeHtml.IOptions = {
+  allowedTags: [
+    "p",
+    "br",
+    "strong",
+    "em",
+    "u",
+    "a",
+    "ul",
+    "ol",
+    "li",
+    "h2",
+    "h3",
+  ],
+  allowedAttributes: { a: ["href", "target"] },
+  allowedSchemes: ["http", "https"],
+};
 
 export const announcementSchema = z.object({
   id: z.number().int().optional(),
@@ -6,10 +25,7 @@ export const announcementSchema = z.object({
   content: z
     .string()
     .max(2000)
-    .refine(
-      (v) => !/<script|<iframe|javascript:|on\w+\s*=/i.test(v),
-      "스크립트 또는 위험 태그를 포함할 수 없습니다",
-    )
+    .transform((v) => sanitizeHtml(v, sanitizeOptions))
     .default(""),
   is_visible: z.number().int().min(0).max(1),
   dismiss_duration: z.enum(["none", "day", "week", "forever"]).default("none"),

@@ -3,9 +3,18 @@ import { jwtVerify } from "jose";
 
 const AUTH_COOKIE = "upstay_admin_token";
 
+let secretWarned = false;
 function getSecretBytes(): Uint8Array | null {
   const v = process.env.JWT_SECRET;
-  if (!v || v.length < 32) return null;
+  if (!v || v.length < 32) {
+    if (!secretWarned) {
+      console.error(
+        "[middleware] JWT_SECRET missing or shorter than 32 bytes — all admin requests will fail",
+      );
+      secretWarned = true;
+    }
+    return null;
+  }
   return new TextEncoder().encode(v);
 }
 
@@ -28,8 +37,12 @@ export async function middleware(req: NextRequest) {
   if (MUTATION_METHODS.has(req.method) && !pathname.startsWith("/api/auth")) {
     const origin = req.headers.get("origin");
     if (origin) {
-      const allowed = process.env.PUBLIC_ORIGIN ?? req.nextUrl.origin;
-      if (origin !== allowed) {
+      const raw = process.env.PUBLIC_ORIGIN ?? req.nextUrl.origin;
+      const allowed = raw
+        .split(",")
+        .map((o) => o.trim())
+        .filter(Boolean);
+      if (!allowed.includes(origin)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 // TODO: DndContext, SortableContext 등 dnd-kit을 next/dynamic으로 지연 로드하면
 //       관리자 초기 번들 크기를 줄일 수 있음. 현재는 직접 import 유지.
 import {
@@ -52,12 +52,6 @@ interface RemodelingCase {
 }
 
 function getImagesByType(images: CaseImage[], type: "before" | "after") {
-  return images
-    .filter((img) => img.type === type)
-    .sort((a, b) => a.match_order - b.match_order || a.id - b.id);
-}
-
-function getImagesForEdit(images: CaseImage[], type: "before" | "after") {
   return images
     .filter((img) => img.type === type)
     .sort((a, b) => a.match_order - b.match_order || a.id - b.id);
@@ -700,21 +694,22 @@ export default function RemodelingAdminPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const dirtyCaseIds = new Set(
-    cases
-      .filter((c) => originalTitlesRef.current.get(c.id) !== c.title)
-      .map((c) => c.id),
+  const dirtyCount = useMemo(
+    () =>
+      cases.filter((c) => originalTitlesRef.current.get(c.id) !== c.title)
+        .length,
+    [cases],
   );
 
   useEffect(() => {
-    if (dirtyCaseIds.size === 0) return;
+    if (dirtyCount === 0) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [dirtyCaseIds.size]);
+  }, [dirtyCount]);
 
   useEffect(load, [load]);
 
@@ -828,9 +823,10 @@ export default function RemodelingAdminPage() {
     }
   };
 
-  const handleToggleMain = (id: number, value: number) => {
-    setCases((prev) =>
-      prev.map((item) => {
+  const handleToggleMain = async (id: number, value: number) => {
+    const prev = cases;
+    setCases((current) =>
+      current.map((item) => {
         if (
           value >= 1 &&
           value <= 3 &&
@@ -843,6 +839,12 @@ export default function RemodelingAdminPage() {
         return item;
       }),
     );
+    try {
+      await saveCase({ id, show_on_main: value });
+    } catch (error) {
+      setCases(prev);
+      flash(`메인 설정 변경에 실패했습니다: ${errMsg(error)}`);
+    }
   };
 
   const handleTitleChange = (id: number, title: string) => {
@@ -1070,7 +1072,7 @@ export default function RemodelingAdminPage() {
     const caseData = cases.find((item) => item.id === caseId);
     if (!caseData) return;
 
-    const images = getImagesForEdit(caseData.images, type);
+    const images = getImagesByType(caseData.images, type);
     const reorderedImages = arrayMove(images, oldIndex, newIndex);
 
     setCases((prev) =>
@@ -1107,7 +1109,7 @@ export default function RemodelingAdminPage() {
   };
 
   const editorImages = editorSection
-    ? getImagesForEdit(
+    ? getImagesByType(
         cases.find((item) => item.id === editorSection.caseId)?.images ?? [],
         editorSection.type,
       )
