@@ -36,7 +36,8 @@ export async function POST(req: NextRequest) {
   try {
     tx(items);
   } catch (e) {
-    return Response.json({ error: (e as Error).message }, { status: 500 });
+    console.error("[images/reorder]", e);
+    return Response.json({ error: "서버 오류" }, { status: 500 });
   }
   invalidatePublicCache();
   return Response.json({ ok: true });
