@@ -1,5 +1,6 @@
 "use client";
 
+// 우클릭/드래그 억제용 — DevTools/스크린샷 우회 가능, 보안 아님
 import Image, { type ImageProps } from "next/image";
 
 export function ProtectedImage(props: ImageProps) {

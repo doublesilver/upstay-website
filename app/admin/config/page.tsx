@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -121,7 +121,7 @@ export default function ConfigPage() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
-  useEffect(() => {
+  const load = () =>
     apiFetch("/api/admin/config", {
       headers: getHeaders(),
     })
@@ -129,6 +129,9 @@ export default function ConfigPage() {
       .then((data) => setConfig((prev) => ({ ...prev, ...data })))
       .catch(() => setToast("불러오기에 실패했습니다"))
       .finally(() => setLoading(false));
+
+  useEffect(() => {
+    load();
   }, []);
 
   const set =
@@ -170,7 +173,13 @@ export default function ConfigPage() {
         headers: getHeaders(),
         body: JSON.stringify(config),
       });
-      setToast(res.ok ? "저장되었습니다" : "저장에 실패했습니다");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setToast(`저장 실패: ${err.error || res.status}`);
+        return;
+      }
+      setToast("저장되었습니다");
+      await load();
     } catch {
       setToast("저장에 실패했습니다");
     } finally {
@@ -178,13 +187,13 @@ export default function ConfigPage() {
     }
   };
 
-  const categoryOrder = (() => {
+  const categoryOrder = useMemo(() => {
     try {
       const parsed = JSON.parse(config.service_categories_order || "[]");
       if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[];
     } catch {}
     return DEFAULT_CATEGORY_ORDER;
-  })();
+  }, [config.service_categories_order]);
 
   const categoryItems = categoryOrder.filter((k) =>
     DEFAULT_CATEGORY_ORDER.includes(k),

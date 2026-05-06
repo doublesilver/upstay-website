@@ -78,6 +78,7 @@ export default function AdminLayout({
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const isLoginPage = pathname === "/admin";
 
@@ -122,6 +123,7 @@ export default function AdminLayout({
   };
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10000);
     try {
@@ -129,9 +131,14 @@ export default function AdminLayout({
         method: "DELETE",
         signal: controller.signal,
       });
-    } catch {}
-    clearTimeout(timer);
-    window.location.href = "/admin";
+      clearTimeout(timer);
+      window.location.href = "/admin";
+    } catch {
+      clearTimeout(timer);
+      setError("로그아웃 실패: 다시 시도해주세요");
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   if (isLoginPage) {
@@ -280,7 +287,8 @@ export default function AdminLayout({
           </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#888] hover:bg-[#FAFAFA] hover:text-red-500 transition-all w-full"
+            disabled={loggingOut}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#888] hover:bg-[#FAFAFA] hover:text-red-500 transition-all w-full disabled:opacity-50"
           >
             <svg
               width="18"
