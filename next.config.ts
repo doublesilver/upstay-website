@@ -4,9 +4,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
   reactStrictMode: true,
-  experimental: {
-    middlewareClientMaxBodySize: "100mb",
-  },
+  experimental: {},
   allowedDevOrigins: [
     "100.120.53.20",
     "leeeunseokui-macbookair",
@@ -71,7 +69,7 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               process.env.NODE_ENV === "production"
-                ? "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com"
+                ? "script-src 'self' 'strict-dynamic' https://static.cloudflareinsights.com"
                 : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
               "font-src 'self' https://cdn.jsdelivr.net",
