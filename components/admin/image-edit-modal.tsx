@@ -341,7 +341,7 @@ export function ImageEditModal({
         : prev,
     );
     posCalibratedRef.current = true;
-  }, [logoImg, settings.wmAnchor, settings.wmScale, settings.wmPos]);
+  }, [logoImg, settings.wmAnchor, settings.wmScale, currentId]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -420,38 +420,50 @@ export function ImageEditModal({
   };
 
   const applyOne = async () => {
-    if (!current) return;
+    const target = current;
+    const snap = settings;
+    if (!target) return;
     setSaving("one");
-    const logo = settings.wmOpacity > 0 ? await ensureLogo() : logoImg;
-    const blob = await renderToBlob(current.image_url, logo, settings);
-    if (blob === null) {
-      const msg =
-        "워터마크 합성 실패: 이미지 로드 차단(CORS)일 수 있습니다. 새로고침 후 다시 시도해주세요.";
-      if (onError) onError(msg);
-      else alert(msg);
+    try {
+      const logo = snap.wmOpacity > 0 ? await ensureLogo() : logoImg;
+      const blob = await renderToBlob(target.image_url, logo, snap);
+      if (blob === null) {
+        const msg =
+          "워터마크 합성 실패: 이미지 로드 차단(CORS)일 수 있습니다. 새로고침 후 다시 시도해주세요.";
+        if (onError) onError(msg);
+        else alert(msg);
+        return;
+      }
+      await onApplyOne(target.id, blob);
+      persistSettingsForImage(target.id, snap);
+    } catch (e) {
+      if (onError) onError(String(e));
+    } finally {
       setSaving(null);
-      return;
     }
-    await onApplyOne(current.id, blob);
-    persistSettingsForImage(current.id, settings);
-    setSaving(null);
   };
 
   const applyAll = async () => {
+    const snap = settings;
     setSaving("all");
-    const logo = settings.wmOpacity > 0 ? await ensureLogo() : logoImg;
-    const ids = images.map((image) => image.id);
-    await onApplyAll(ids, async (id) => {
-      const image = images.find((item) => item.id === id);
-      if (!image) return null;
-      const blob = await renderToBlob(image.image_url, logo, settings);
-      if (blob === null) {
-        console.warn(`이미지 합성 실패 (id=${id}): CORS 차단 가능성`);
-      }
-      return blob;
-    });
-    ids.forEach((id) => persistSettingsForImage(id, settings));
-    setSaving(null);
+    try {
+      const logo = snap.wmOpacity > 0 ? await ensureLogo() : logoImg;
+      const ids = images.map((image) => image.id);
+      await onApplyAll(ids, async (id) => {
+        const image = images.find((item) => item.id === id);
+        if (!image) return null;
+        const blob = await renderToBlob(image.image_url, logo, snap);
+        if (blob === null) {
+          console.warn(`이미지 합성 실패 (id=${id}): CORS 차단 가능성`);
+        }
+        return blob;
+      });
+      ids.forEach((id) => persistSettingsForImage(id, snap));
+    } catch (e) {
+      if (onError) onError(String(e));
+    } finally {
+      setSaving(null);
+    }
   };
 
   const imageFilter = `brightness(${settings.brightness}%) contrast(${settings.sharpness}%)`;
