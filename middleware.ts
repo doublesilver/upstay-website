@@ -36,8 +36,8 @@ export async function middleware(req: NextRequest) {
 
   if (MUTATION_METHODS.has(req.method) && !pathname.startsWith("/api/auth")) {
     const origin = req.headers.get("origin");
-    if (origin) {
-      const raw = process.env.PUBLIC_ORIGIN ?? req.nextUrl.origin;
+    if (origin && origin !== req.nextUrl.origin) {
+      const raw = process.env.PUBLIC_ORIGIN ?? "";
       const allowed = raw
         .split(",")
         .map((o) => o.trim())
