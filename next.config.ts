@@ -69,7 +69,7 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               process.env.NODE_ENV === "production"
-                ? "script-src 'self' 'strict-dynamic' https://static.cloudflareinsights.com"
+                ? "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com"
                 : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
               "font-src 'self' https://cdn.jsdelivr.net",
