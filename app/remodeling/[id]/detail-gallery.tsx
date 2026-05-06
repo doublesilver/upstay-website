@@ -2,6 +2,7 @@
 
 import { ProtectedImage } from "@/components/protected-image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { blurDataURL } from "@/lib/shimmer";
 
 export function DetailGallery({
@@ -77,21 +78,57 @@ export function DetailGallery({
 
   const lightboxMove = lightbox === "before" ? moveBefore : moveAfter;
 
+  const lightboxCloseBtnRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     if (lightbox === null) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightbox(null);
-      if (e.key === "ArrowLeft") lightboxMove(-1);
-      if (e.key === "ArrowRight") lightboxMove(1);
-    };
-    window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
     };
-  }, [lightbox, lightboxMove]);
+  }, [lightbox]);
+
+  const lightboxMoveRef = useRef(lightboxMove);
+  useEffect(() => {
+    lightboxMoveRef.current = lightboxMove;
+  });
+
+  useEffect(() => {
+    if (lightbox === null) return;
+    lightboxCloseBtnRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "ArrowLeft") lightboxMoveRef.current(-1);
+      if (e.key === "ArrowRight") lightboxMoveRef.current(1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
+
+  const handleLightboxTabTrap = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab") return;
+    const container = e.currentTarget;
+    const focusable = Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => !el.hasAttribute("disabled"));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
 
   return (
     <div className="h-full min-h-0 flex flex-col gap-2 md:gap-3">
@@ -157,6 +194,7 @@ export function DetailGallery({
           aria-label="사진 크게 보기"
           className="fixed inset-0 z-50 bg-[#F1F8E9] flex flex-col items-center justify-center p-2"
           onClick={() => setLightbox(null)}
+          onKeyDown={handleLightboxTabTrap}
         >
           <div
             className="flex flex-col gap-2 max-w-[94vw] w-full lg:max-w-[1400px]"
@@ -164,6 +202,7 @@ export function DetailGallery({
           >
             <div className="flex items-center justify-end w-full px-1">
               <button
+                ref={lightboxCloseBtnRef}
                 type="button"
                 onClick={() => setLightbox(null)}
                 aria-label="닫기"
