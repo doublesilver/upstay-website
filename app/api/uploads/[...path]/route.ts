@@ -1,5 +1,13 @@
 import { NextRequest } from "next/server";
-import { stat, mkdir, readFile, writeFile, realpath } from "fs/promises";
+import {
+  stat,
+  mkdir,
+  readFile,
+  writeFile,
+  realpath,
+  readdir,
+  unlink,
+} from "fs/promises";
 import { createReadStream, existsSync } from "fs";
 import { Readable } from "stream";
 import path from "path";
@@ -8,6 +16,38 @@ import sharp from "sharp";
 import { UPLOAD_DIR, DATA_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
 
 const CACHE_DIR = path.join(DATA_DIR, "cache");
+const CACHE_MAX_BYTES = 500 * 1024 * 1024;
+const CACHE_MAX_FILES = 5000;
+
+async function cleanupCache(dir: string, maxBytes: number, maxFiles: number) {
+  let entries: { file: string; mtime: number; size: number }[];
+  try {
+    const names = await readdir(dir);
+    entries = await Promise.all(
+      names.map(async (name) => {
+        const file = path.join(dir, name);
+        const s = await stat(file);
+        return { file, mtime: s.mtimeMs, size: s.size };
+      }),
+    );
+  } catch {
+    return;
+  }
+
+  entries.sort((a, b) => a.mtime - b.mtime);
+
+  let totalBytes = entries.reduce((sum, e) => sum + e.size, 0);
+  let totalFiles = entries.length;
+
+  for (const entry of entries) {
+    if (totalBytes <= maxBytes && totalFiles <= maxFiles) break;
+    try {
+      await unlink(entry.file);
+      totalBytes -= entry.size;
+      totalFiles -= 1;
+    } catch {}
+  }
+}
 
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -96,6 +136,10 @@ export async function GET(
                 .webp({ quality: 80 })
                 .toBuffer();
         await writeFile(cachePath, buffer);
+        if (Math.random() < 0.01)
+          cleanupCache(CACHE_DIR, CACHE_MAX_BYTES, CACHE_MAX_FILES).catch(
+            () => {},
+          );
       }
 
       return new Response(new Uint8Array(buffer), {
