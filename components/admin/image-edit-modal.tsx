@@ -303,6 +303,11 @@ export function ImageEditModal({
   const posCalibratedRef = useRef(false);
 
   useEffect(() => {
+    setSettings(loadSettingsForImage(currentId));
+    posCalibratedRef.current = false;
+  }, [currentId]);
+
+  useEffect(() => {
     loadImage("/watermark.png")
       .then(setLogoImg)
       .catch(() => setLogoImg(null));
