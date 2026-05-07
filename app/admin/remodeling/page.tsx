@@ -540,7 +540,7 @@ function SortableCase({
             <textarea
               value={item.title}
               onChange={(e) => onTitleChange(item.id, e.target.value)}
-              placeholder="설명을 입력해 주세요 (엔터키로 줄바꿈)"
+              placeholder="설명을 입력해 주세요"
               rows={1}
               className="flex-1 text-[14px] text-[#111] outline-none border border-[#111] rounded-lg px-3 py-2 focus:border-[#999] transition-all placeholder:text-[#111]/70 resize-y"
             />
