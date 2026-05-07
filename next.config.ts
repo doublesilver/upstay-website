@@ -4,7 +4,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
   reactStrictMode: true,
-  experimental: {},
+  experimental: {
+    middlewareClientMaxBodySize: "100mb",
+  },
   allowedDevOrigins: [
     "100.120.53.20",
     "leeeunseokui-macbookair",
