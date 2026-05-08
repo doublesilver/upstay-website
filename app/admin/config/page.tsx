@@ -445,7 +445,7 @@ function ConfigSection({
             style={styleToCss(descStyle)}
           />
         </div>
-        <div>
+        <div style={{ marginTop: "19px" }}>
           <input
             ref={captionRef}
             type="text"
