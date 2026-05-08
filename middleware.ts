@@ -71,6 +71,12 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  if (pathname.startsWith("/admin")) {
+    const res = NextResponse.next();
+    res.headers.set("Cache-Control", "no-store, must-revalidate");
+    return res;
+  }
+
   return NextResponse.next();
 }
 
