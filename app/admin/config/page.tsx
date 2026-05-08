@@ -394,8 +394,8 @@ function ConfigSection({
   };
 
   return (
-    <section className="bg-white border border-[#111] rounded-2xl px-6 py-5">
-      <div className="flex items-center gap-3 mb-5">
+    <section className="bg-white border border-[#111] rounded-2xl px-6 pt-4 pb-5">
+      <div className="flex items-center gap-3 mb-4">
         {dragHandle}
         <h2 className="text-[16px] font-bold text-[#111] flex-1">• {title}</h2>
         <div className="flex items-center gap-1">
