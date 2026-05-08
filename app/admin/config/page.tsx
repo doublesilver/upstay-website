@@ -368,6 +368,13 @@ function ConfigSection({
     "title" | "desc" | "caption" | null
   >(null);
 
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [descValue]);
+
   const isBold =
     activeField === "title"
       ? titleStyle.fontWeight === "bold"
@@ -440,8 +447,8 @@ function ConfigSection({
             onChange={onDescChange}
             onFocus={() => setActiveField("desc")}
             onBlur={() => setActiveField(null)}
-            rows={2}
-            className={`${inputCls}`}
+            rows={1}
+            className={`${inputCls} resize-none overflow-hidden`}
             style={styleToCss(descStyle)}
           />
         </div>
