@@ -344,7 +344,7 @@ function AnnouncementCard({
 
   return (
     <div className="bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-4 transition-colors border border-[#111] hover:shadow-sm">
-      <div className="flex-1 space-y-2 min-w-0">
+      <div className="flex-1 flex flex-col gap-2 min-w-0">
         <textarea
           value={draft.title}
           onChange={(e) => updateField("title", e.target.value)}
@@ -362,7 +362,7 @@ function AnnouncementCard({
           rows={4}
           placeholder="팝업 내용"
           aria-label="팝업 내용"
-          className="w-full border border-[#111] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
+          className="w-full flex-1 border border-[#111] rounded-lg px-3 py-2 text-[14px] outline-none focus:border-[#111] transition-colors resize-y"
           style={styleToCss(contentStyle)}
         />
       </div>
