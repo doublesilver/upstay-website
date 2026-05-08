@@ -440,7 +440,7 @@ function ConfigSection({
             onChange={onDescChange}
             onFocus={() => setActiveField("desc")}
             onBlur={() => setActiveField(null)}
-            rows={3}
+            rows={2}
             className={`${inputCls}`}
             style={styleToCss(descStyle)}
           />
