@@ -286,6 +286,9 @@ export function ImageEditModal({
   const [settings, setSettings] = useState<EditSettings>(() =>
     loadSettingsForImage(initialImageId),
   );
+  // 화면에 마지막으로 표시된 값을 기억해두는 draft.
+  // 사진 전환 시 그 사진의 저장된 슬롯이 없으면 이 draft를 그대로 미리보기로 따라가게 함.
+  const draftSettingsRef = useRef<EditSettings>(settings);
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -305,7 +308,25 @@ export function ImageEditModal({
   const posCalibratedRef = useRef(false);
 
   useEffect(() => {
-    setSettings(loadSettingsForImage(currentId));
+    draftSettingsRef.current = settings;
+  }, [settings]);
+
+  // 사진 전환 시: 저장된 슬롯이 있으면 그 값, 없으면 직전 사진에서 보던 draft 값으로
+  // 미리보기 → 미적용 상태의 보정값이 다른 사진으로도 따라간다.
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      posCalibratedRef.current = false;
+      return;
+    }
+    let next: EditSettings = draftSettingsRef.current;
+    try {
+      const raw = localStorage.getItem(imageSettingsKey(currentId));
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<EditSettings>;
+        next = { ...DEFAULT_SETTINGS, ...parsed };
+      }
+    } catch {}
+    setSettings(next);
     posCalibratedRef.current = false;
   }, [currentId]);
 
