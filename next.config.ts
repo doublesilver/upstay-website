@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
   reactStrictMode: true,
+  expireTime: 60,
   experimental: {
     middlewareClientMaxBodySize: "100mb",
   },
