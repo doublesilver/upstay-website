@@ -4,6 +4,8 @@ import { Container } from "@/components/container";
 import { getAllCases } from "@/lib/home-data";
 import { blurDataURL } from "@/lib/shimmer";
 
+export const revalidate = 60;
+
 export default function RemodelingPage() {
   const cases = getAllCases();
 
