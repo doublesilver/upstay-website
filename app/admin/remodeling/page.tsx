@@ -792,12 +792,16 @@ export default function RemodelingAdminPage() {
 
   const handleAdd = async () => {
     try {
+      const topSortOrder =
+        cases.length > 0
+          ? Math.min(...cases.map((c) => c.sort_order)) - 1
+          : 1;
       await apiFetch("/api/admin/remodeling", {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
           title: "",
-          sort_order: cases.length + 1,
+          sort_order: topSortOrder,
           show_on_main: 0,
         }),
       });
@@ -1295,6 +1299,22 @@ export default function RemodelingAdminPage() {
               newIndex,
             )
           }
+          onDeleteImage={async (imageId) => {
+            try {
+              await apiFetch("/api/admin/remodeling/images", {
+                method: "DELETE",
+                headers: getHeaders(),
+                body: JSON.stringify({
+                  id: imageId,
+                  case_id: editorSection.caseId,
+                }),
+              });
+              load();
+              flash("사진이 삭제되었습니다");
+            } catch (error) {
+              flash(`삭제 실패: ${errMsg(error)}`);
+            }
+          }}
           onCancel={() => setEditorSection(null)}
         />
       )}

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, X } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -47,6 +47,7 @@ interface Props {
   onCancel: () => void;
   onError?: (message: string) => void;
   onReorder?: (oldIndex: number, newIndex: number) => void;
+  onDeleteImage?: (imageId: number) => void | Promise<void>;
 }
 
 function SortableThumb({
@@ -54,11 +55,13 @@ function SortableThumb({
   active,
   onClick,
   filter,
+  onDelete,
 }: {
   image: EditableImage;
   active: boolean;
   onClick: () => void;
   filter: string;
+  onDelete?: () => void;
 }) {
   const {
     attributes,
@@ -86,7 +89,7 @@ function SortableThumb({
       }}
       {...attributes}
       {...listeners}
-      className={`w-16 h-16 rounded-md overflow-hidden border-2 shrink-0 transition-all cursor-grab active:cursor-grabbing touch-none ${
+      className={`relative w-16 h-16 rounded-md overflow-hidden border-2 shrink-0 transition-all cursor-grab active:cursor-grabbing touch-none ${
         active ? "border-[#111]" : "border-transparent hover:border-[#DDD]"
       }`}
     >
@@ -98,6 +101,20 @@ function SortableThumb({
         style={{ filter }}
         className="w-full h-full object-cover pointer-events-none select-none"
       />
+      {onDelete && (
+        <button
+          type="button"
+          aria-label="사진 삭제"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow z-10 cursor-pointer"
+        >
+          <X size={10} strokeWidth={3} />
+        </button>
+      )}
     </div>
   );
 }
@@ -268,6 +285,7 @@ export function ImageEditModal({
   onCancel,
   onError,
   onReorder,
+  onDeleteImage,
 }: Props) {
   const dndSensors = useSensors(
     useSensor(PointerSensor, {
@@ -616,6 +634,11 @@ export function ImageEditModal({
                         active={image.id === currentId}
                         onClick={() => setCurrentId(image.id)}
                         filter={image.id === currentId ? imageFilter : ""}
+                        onDelete={
+                          onDeleteImage
+                            ? () => onDeleteImage(image.id)
+                            : undefined
+                        }
                       />
                     ))}
                   </div>
