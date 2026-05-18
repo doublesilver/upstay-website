@@ -72,6 +72,8 @@ export const imageSlotSchema = z.object({
       "잘못된 image_url_wm 형식",
     )
     .optional(),
+  // 사진 편집 슬라이더 보정값을 JSON 문자열로 저장. 길이 상한은 안전 마진.
+  edit_settings: z.string().max(2000).optional(),
 });
 
 export const configUpdateSchema = z.record(z.string(), z.unknown());

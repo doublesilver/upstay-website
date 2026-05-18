@@ -22,6 +22,8 @@ export interface EditableImage {
   image_url: string;
   image_url_wm?: string;
   slot_position?: number;
+  // DB에 저장된 보정값 JSON 문자열. 없으면 localStorage → DEFAULT 순으로 폴백.
+  edit_settings?: string | null;
 }
 
 export type WmAnchor = "tl" | "t" | "tr" | "l" | "c" | "r" | "bl" | "b" | "br";
@@ -39,10 +41,15 @@ interface Props {
   images: EditableImage[];
   initialImageId: number;
   sectionLabel: string;
-  onApplyOne: (imageId: number, blob: Blob) => Promise<void> | void;
+  onApplyOne: (
+    imageId: number,
+    blob: Blob,
+    settings: EditSettings,
+  ) => Promise<void> | void;
   onApplyAll: (
     imageIds: number[],
     getBlob: (imageId: number) => Promise<Blob | null>,
+    settings: EditSettings,
   ) => Promise<void> | void;
   onCancel: () => void;
   onError?: (message: string) => void;
@@ -264,16 +271,29 @@ function imageSettingsKey(imageId: number) {
   return `upstay-edit-img-${imageId}`;
 }
 
-function loadSettingsForImage(imageId: number): EditSettings {
-  if (typeof window === "undefined") return DEFAULT_SETTINGS;
+function parseSettings(raw: string | null | undefined): EditSettings | null {
+  if (!raw) return null;
   try {
-    const raw = localStorage.getItem(imageSettingsKey(imageId));
-    if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<EditSettings>;
     return { ...DEFAULT_SETTINGS, ...parsed };
   } catch {
-    return DEFAULT_SETTINGS;
+    return null;
   }
+}
+
+// 우선순위: DB(image.edit_settings) → localStorage(미저장 draft) → DEFAULT
+// 클라이언트가 다른 디바이스/브라우저에서 열어도 보정값이 그대로 보이도록 DB가 우선.
+function loadSettingsForImage(
+  image: EditableImage | undefined,
+): EditSettings {
+  const fromDb = parseSettings(image?.edit_settings);
+  if (fromDb) return fromDb;
+  if (typeof window === "undefined") return DEFAULT_SETTINGS;
+  if (!image) return DEFAULT_SETTINGS;
+  const fromLocal = parseSettings(
+    localStorage.getItem(imageSettingsKey(image.id)),
+  );
+  return fromLocal ?? DEFAULT_SETTINGS;
 }
 
 export function ImageEditModal({
@@ -302,7 +322,7 @@ export function ImageEditModal({
   };
   const [currentId, setCurrentId] = useState(initialImageId);
   const [settings, setSettings] = useState<EditSettings>(() =>
-    loadSettingsForImage(initialImageId),
+    loadSettingsForImage(images.find((img) => img.id === initialImageId)),
   );
   // 화면에 마지막으로 표시된 값을 기억해두는 draft.
   // 사진 전환 시 그 사진의 저장된 슬롯이 없으면 이 draft를 그대로 미리보기로 따라가게 함.
@@ -329,24 +349,23 @@ export function ImageEditModal({
     draftSettingsRef.current = settings;
   }, [settings]);
 
-  // 사진 전환 시: 저장된 슬롯이 있으면 그 값, 없으면 직전 사진에서 보던 draft 값으로
-  // 미리보기 → 미적용 상태의 보정값이 다른 사진으로도 따라간다.
+  // 사진 전환 시: DB 저장값 > localStorage > 직전 사진의 draft 순으로 우선
+  // 미적용 상태의 보정값이 다른 사진으로도 따라가도록 draft fallback 유지.
   useEffect(() => {
     if (typeof window === "undefined") {
       posCalibratedRef.current = false;
       return;
     }
-    let next: EditSettings = draftSettingsRef.current;
-    try {
-      const raw = localStorage.getItem(imageSettingsKey(currentId));
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<EditSettings>;
-        next = { ...DEFAULT_SETTINGS, ...parsed };
-      }
-    } catch {}
+    const img = images.find((image) => image.id === currentId);
+    const fromDb = parseSettings(img?.edit_settings);
+    const fromLocal = parseSettings(
+      localStorage.getItem(imageSettingsKey(currentId)),
+    );
+    const next: EditSettings =
+      fromDb ?? fromLocal ?? draftSettingsRef.current;
     setSettings(next);
     posCalibratedRef.current = false;
-  }, [currentId]);
+  }, [currentId, images]);
 
   useEffect(() => {
     loadImage("/watermark.png")
@@ -485,7 +504,7 @@ export function ImageEditModal({
         else alert(msg);
         return;
       }
-      await onApplyOne(target.id, blob);
+      await onApplyOne(target.id, blob, snap);
       persistSettingsForImage(target.id, snap);
     } catch (e) {
       if (onError) onError(String(e));
@@ -500,15 +519,19 @@ export function ImageEditModal({
     try {
       const logo = snap.wmOpacity > 0 ? await ensureLogo() : logoImg;
       const ids = images.map((image) => image.id);
-      await onApplyAll(ids, async (id) => {
-        const image = images.find((item) => item.id === id);
-        if (!image) return null;
-        const blob = await renderToBlob(image.image_url, logo, snap);
-        if (blob === null) {
-          console.warn(`이미지 합성 실패 (id=${id}): CORS 차단 가능성`);
-        }
-        return blob;
-      });
+      await onApplyAll(
+        ids,
+        async (id) => {
+          const image = images.find((item) => item.id === id);
+          if (!image) return null;
+          const blob = await renderToBlob(image.image_url, logo, snap);
+          if (blob === null) {
+            console.warn(`이미지 합성 실패 (id=${id}): CORS 차단 가능성`);
+          }
+          return blob;
+        },
+        snap,
+      );
       ids.forEach((id) => persistSettingsForImage(id, snap));
     } catch (e) {
       if (onError) onError(String(e));

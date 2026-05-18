@@ -40,6 +40,7 @@ interface CaseImage {
   slot_position: number;
   image_url: string;
   image_url_wm: string;
+  edit_settings: string | null;
 }
 
 interface RemodelingCase {
@@ -1301,22 +1302,27 @@ export default function RemodelingAdminPage() {
           images={editorImages}
           initialImageId={editorSection.initialImageId ?? editorImages[0].id}
           sectionLabel={`${editorSection.type === "before" ? "BEFORE" : "AFTER"} ( ${editorImages.length}장 )`}
-          onApplyOne={async (id, blob) => {
+          onApplyOne={async (id, blob, settings) => {
             try {
               const url = await uploadFile(blob);
-              await saveImage({ id, image_url_wm: url });
+              await saveImage({
+                id,
+                image_url_wm: url,
+                edit_settings: JSON.stringify(settings),
+              });
               load();
               flash("변경사항이 적용되었습니다");
             } catch (error) {
               flash(`적용 실패: ${errMsg(error)}`);
             }
           }}
-          onApplyAll={async (ids, getBlob) => {
+          onApplyAll={async (ids, getBlob, settings) => {
             flash(`${ids.length}장 처리 중..`);
             let success = 0;
             let failMsg = "";
             const concurrency = 3;
             const queue = [...ids];
+            const settingsJson = JSON.stringify(settings);
             const workers = Array.from({ length: concurrency }, async () => {
               while (queue.length > 0) {
                 const id = queue.shift();
@@ -1329,7 +1335,11 @@ export default function RemodelingAdminPage() {
                     continue;
                   }
                   const url = await uploadFile(blob);
-                  await saveImage({ id, image_url_wm: url });
+                  await saveImage({
+                    id,
+                    image_url_wm: url,
+                    edit_settings: settingsJson,
+                  });
                   success += 1;
                 } catch (error) {
                   if (!failMsg) failMsg = errMsg(error);
