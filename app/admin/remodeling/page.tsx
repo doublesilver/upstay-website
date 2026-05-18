@@ -34,6 +34,11 @@ import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
 import { useFocusTrap } from "@/components/use-focus-trap";
 import { apiFetch, errMsg, getHeaders } from "@/lib/admin-api";
+import {
+  getMainSlotConflicts,
+  nextTopSortOrder,
+  sortCases,
+} from "@/lib/case-sorting";
 
 interface CaseImage {
   id: number;
@@ -735,40 +740,22 @@ export default function RemodelingAdminPage() {
     [cases],
   );
 
-  // 박스를 3단계 영역으로 정렬:
-  //   1) 새박스(is_draft=1) — 최상단. 박스 추가 직후 임시 상태.
-  //   2) 메인1/2/3(show_on_main 1-3) — 그 아래에 1→2→3 슬롯 순서로 고정.
-  //   3) 그 외 — 하단에 sort_order 순.
-  // "저장" 또는 "메인1/2/3" 클릭 시 새박스 상태가 종료되며 해당 영역으로 이동.
-  // useMemo로 영역별 배열까지 같이 만들어 렌더에서 헤더·구분선을 끼워 넣는다.
+  // 박스를 3단계 영역으로 정렬: drafts → mainSlots → others.
+  // 정렬 규칙은 lib/case-sorting.ts 의 sortCases 함수 doc 참고.
+  // 영역별 배열도 함께 만들어 렌더에서 헤더·구분선을 끼워 넣는다 (PR #14).
   const { sortedCases, draftCases, mainCases, otherCases } = useMemo(() => {
-    const drafts: RemodelingCase[] = [];
-    const mainSlots: (RemodelingCase | undefined)[] = [
-      undefined,
-      undefined,
-      undefined,
-    ];
-    const others: RemodelingCase[] = [];
-    for (const c of cases) {
-      if (c.is_draft === 1) {
-        drafts.push(c);
-      } else if (c.show_on_main >= 1 && c.show_on_main <= 3) {
-        mainSlots[c.show_on_main - 1] = c;
-      } else {
-        others.push(c);
-      }
-    }
-    const main = mainSlots.filter(
-      (c): c is RemodelingCase => c !== undefined,
+    const all = sortCases(cases);
+    const drafts = all.filter((c) => c.is_draft === 1);
+    const mains = all.filter(
+      (c) => c.is_draft !== 1 && c.show_on_main >= 1 && c.show_on_main <= 3,
     );
-    const sortByOrder = (a: RemodelingCase, b: RemodelingCase) =>
-      a.sort_order - b.sort_order || a.id - b.id;
-    drafts.sort(sortByOrder);
-    others.sort(sortByOrder);
+    const others = all.filter(
+      (c) => c.is_draft !== 1 && !(c.show_on_main >= 1 && c.show_on_main <= 3),
+    );
     return {
-      sortedCases: [...drafts, ...main, ...others],
+      sortedCases: all,
       draftCases: drafts,
-      mainCases: main,
+      mainCases: mains,
       otherCases: others,
     };
   }, [cases]);
@@ -881,14 +868,8 @@ export default function RemodelingAdminPage() {
 
   const handleAdd = async () => {
     try {
-      // 모든 박스 중 sort_order 최소-1을 부여한다. 그래야 새박스가
-      //   ① 새박스 영역 안에서 가장 위 (최근 추가가 위)
-      //   ② "저장" 후 그 외 영역으로 이동해도 그 외 영역의 가장 위(메인 바로 아래)
-      // 두 위치 모두 만족한다. 메인 영역은 sort_order를 무시하므로 영향 없음.
-      const topSortOrder =
-        cases.length > 0
-          ? Math.min(...cases.map((c) => c.sort_order)) - 1
-          : 0;
+      // sort_order 계산: 모든 박스 중 최소-1 (lib/case-sorting.ts 의 nextTopSortOrder).
+      const topSortOrder = nextTopSortOrder(cases);
       await apiFetch("/api/admin/remodeling", {
         method: "POST",
         headers: getHeaders(),
@@ -923,12 +904,8 @@ export default function RemodelingAdminPage() {
 
   const handleToggleMain = async (id: number, value: number) => {
     const prev = cases;
-    // 같은 메인 슬롯(1/2/3)을 이미 점유 중이던 다른 박스 — DB의 partial UNIQUE index
-    // (idx_show_on_main_slot: show_on_main>0) 때문에 새 박스 저장 전에 먼저 0으로 비워야 한다.
-    const conflicts =
-      value >= 1 && value <= 3
-        ? prev.filter((c) => c.show_on_main === value && c.id !== id)
-        : [];
+    // 같은 메인 슬롯(1/2/3)을 점유 중이라 0으로 비워야 할 박스들 — lib/case-sorting.ts 참고.
+    const conflicts = getMainSlotConflicts(prev, id, value);
     // 메인 지정(value >= 1)은 "저장" 액션으로 간주 → 새박스 상태도 함께 종료.
     const promoteFromDraft = value >= 1 && value <= 3;
 

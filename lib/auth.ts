@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 export const AUTH_COOKIE = "upstay_admin_token";
 const MAX_AGE_SECONDS = 60 * 60 * 8;
 
+// 테스트에서 동일한 시크릿으로 JWT를 서명하기 위해 export.
+// 운영 코드는 process.env.JWT_SECRET을 직접 읽지 않고 getSecretBytes()를 통한다.
+export const JWT_SECRET = process.env.JWT_SECRET ?? "";
+
 function getAdminId(): string {
   const v = process.env.ADMIN_ID;
   if (!v) throw new Error("ADMIN_ID 환경변수가 설정되지 않았습니다");
