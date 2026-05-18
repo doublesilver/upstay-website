@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Toast } from "@/components/admin/toast";
+import { useFocusTrap } from "@/components/use-focus-trap";
 import { apiFetch, getHeaders } from "@/lib/admin-api";
 import {
   parseStyle,
@@ -46,6 +47,8 @@ export default function AnnouncementsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [creatingNew, setCreatingNew] = useState(false);
   const [dirtyMap, setDirtyMap] = useState<Record<number, boolean>>({});
+  const deleteCancelBtnRef = useRef<HTMLButtonElement>(null);
+  const handleDeleteTabTrap = useFocusTrap<HTMLDivElement>();
 
   const load = useCallback(() => {
     apiFetch("/api/admin/announcements", { headers: getHeaders() })
@@ -70,6 +73,8 @@ export default function AnnouncementsAdminPage() {
 
   useEffect(() => {
     if (deleting === null) return;
+    // 다이얼로그 열리면 "취소" 버튼으로 포커스 — Enter 실수로 삭제되는 사고 방지.
+    deleteCancelBtnRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setDeleting(null);
     };
@@ -184,7 +189,7 @@ export default function AnnouncementsAdminPage() {
         ))}
 
         {loading && items.length === 0 && !creatingNew && (
-          <div className="py-20 text-center text-[#999] text-[14px]">
+          <div className="py-20 text-center text-[#666] text-[14px]">
             로딩 중...
           </div>
         )}
@@ -226,6 +231,7 @@ export default function AnnouncementsAdminPage() {
             aria-modal="true"
             aria-labelledby="announcement-delete-title"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleDeleteTabTrap}
             className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
           >
             <div className="px-6 py-8 text-center">
@@ -238,12 +244,15 @@ export default function AnnouncementsAdminPage() {
             </div>
             <div className="px-6 py-4 border-t border-[#EBEBEB] flex gap-3">
               <button
+                ref={deleteCancelBtnRef}
+                type="button"
                 onClick={() => setDeleting(null)}
                 className="flex-1 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
               >
                 취소
               </button>
               <button
+                type="button"
                 onClick={() => handleDelete(deleting)}
                 className="flex-1 bg-red-500 text-white py-2.5 rounded-xl text-[14px] font-semibold hover:bg-red-600 transition-all"
               >

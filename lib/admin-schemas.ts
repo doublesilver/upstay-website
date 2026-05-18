@@ -79,4 +79,24 @@ export const imageSlotSchema = z.object({
   edit_settings: z.string().max(2000).optional(),
 });
 
+// DELETE /api/admin/remodeling/images 요청 스키마.
+// 단일 id(기존) 와 ids 배열(신규, bulk) 둘 다 허용해 후방 호환을 유지함.
+// superRefine으로 둘 중 정확히 하나만 존재하도록 강제.
+export const imageDeleteSchema = z
+  .object({
+    id: z.number().int().positive().optional(),
+    ids: z.array(z.number().int().positive()).min(1).max(500).optional(),
+    case_id: z.number().int().positive(),
+  })
+  .superRefine((val, ctx) => {
+    const hasId = typeof val.id === "number";
+    const hasIds = Array.isArray(val.ids);
+    if (hasId === hasIds) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "id 또는 ids 중 정확히 하나가 필요합니다",
+      });
+    }
+  });
+
 export const configUpdateSchema = z.record(z.string(), z.unknown());

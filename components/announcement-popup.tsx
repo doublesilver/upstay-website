@@ -3,6 +3,7 @@
 import type { Announcement } from "@/lib/home-data";
 import type { RefObject } from "react";
 import { parseStyle, styleToCss } from "@/lib/text-style";
+import { useFocusTrap } from "@/components/use-focus-trap";
 
 export function AnnouncementPopup({
   announcements,
@@ -13,6 +14,8 @@ export function AnnouncementPopup({
   closeBtnRef: RefObject<HTMLButtonElement | null>;
   onClose: () => void;
 }) {
+  const handleTabTrap = useFocusTrap<HTMLDivElement>();
+
   const handleClose = () => {
     const durations = announcements.map((a) => a.dismiss_duration || "none");
     let duration = "none";
@@ -47,6 +50,7 @@ export function AnnouncementPopup({
         aria-modal="true"
         aria-labelledby="popup-dialog-title"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleTabTrap}
         className="bg-[#F1F8E9] rounded-xl shadow-lg w-[90%] max-w-[320px] mx-4 p-5"
       >
         <h2 id="popup-dialog-title" className="sr-only">
