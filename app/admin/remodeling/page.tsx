@@ -1075,18 +1075,16 @@ export default function RemodelingAdminPage() {
     }
 
     try {
-      await Promise.all(
-        images.map((image) =>
-          apiFetch("/api/admin/remodeling/images", {
-            method: "DELETE",
-            headers: getHeaders(),
-            body: JSON.stringify({ id: image.id, case_id: caseId }),
-          }),
-        ),
-      );
+      const ids = images.map((image) => image.id);
+      // bulk DELETE: 한 번의 요청으로 묶어 N+1 HTTP 왕복 제거.
+      await apiFetch("/api/admin/remodeling/images", {
+        method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify({ ids, case_id: caseId }),
+      });
       clearSectionChecks(caseId, type);
       load();
-      flash(`${type.toUpperCase()} 이미지가 모두 삭제되었습니다`);
+      flash(`${ids.length}장 삭제되었습니다`);
     } catch (error) {
       flash(`삭제에 실패했습니다: ${errMsg(error)}`);
     }
@@ -1104,19 +1102,16 @@ export default function RemodelingAdminPage() {
     }
 
     try {
-      await Promise.all(
-        ids.map((imageId) =>
-          apiFetch("/api/admin/remodeling/images", {
-            method: "DELETE",
-            headers: getHeaders(),
-            body: JSON.stringify({ id: imageId, case_id: caseId }),
-          }),
-        ),
-      );
+      // bulk DELETE: 한 번의 요청으로 선택 항목 모두 삭제.
+      await apiFetch("/api/admin/remodeling/images", {
+        method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify({ ids, case_id: caseId }),
+      });
       clearSectionChecks(caseId, type);
       cancelSelectionMode(caseId, type);
       load();
-      flash(`${ids.length}장이 삭제되었습니다`);
+      flash(`${ids.length}장 삭제되었습니다`);
     } catch (error) {
       flash(`삭제에 실패했습니다: ${errMsg(error)}`);
     }

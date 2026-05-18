@@ -1,14 +1,13 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import { SignJWT } from "jose";
-import { setupTempDataDir, makeRequest } from "../api-helpers";
-import { JWT_SECRET } from "../../lib/auth";
+import { setupTempDataDir, makeRequest, TEST_JWT_SECRET } from "../api-helpers";
 
 beforeAll(() => {
   setupTempDataDir();
 });
 
 function getSecret() {
-  return new TextEncoder().encode(JWT_SECRET);
+  return new TextEncoder().encode(TEST_JWT_SECRET);
 }
 
 describe("verifyToken", () => {

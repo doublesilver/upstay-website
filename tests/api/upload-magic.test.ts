@@ -1,14 +1,13 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import { SignJWT } from "jose";
-import { JWT_SECRET } from "../../lib/auth";
 import { NextRequest } from "next/server";
-import { setupTempDataDir } from "../api-helpers";
+import { setupTempDataDir, TEST_JWT_SECRET } from "../api-helpers";
 
 let token: string;
 
 beforeAll(async () => {
   setupTempDataDir();
-  const secret = new TextEncoder().encode(JWT_SECRET);
+  const secret = new TextEncoder().encode(TEST_JWT_SECRET);
   token = await new SignJWT({ role: "admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("1h")

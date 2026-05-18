@@ -5,7 +5,11 @@ import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
 import { invalidatePublicCache } from "@/lib/cache";
 import { UPLOAD_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
-import { imagePostSchema, imageSlotSchema } from "@/lib/admin-schemas";
+import {
+  imageDeleteSchema,
+  imagePostSchema,
+  imageSlotSchema,
+} from "@/lib/admin-schemas";
 
 export async function POST(req: NextRequest) {
   if (!(await verifyToken(req))) return unauthorized();
@@ -241,49 +245,104 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   if (!(await verifyToken(req))) return unauthorized();
 
-  const { id, case_id } = await req.json();
-  if (!id || !case_id) {
-    return Response.json({ error: "id, case_id required" }, { status: 400 });
+  const body = await req.json().catch(() => null);
+  const parsed = imageDeleteSchema.safeParse(body);
+  if (!parsed.success) {
+    return Response.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 },
+    );
   }
+
+  const { case_id } = parsed.data;
+  // 단일 id도 ids 배열로 정규화해 이후 로직을 일원화.
+  const ids = parsed.data.ids ?? [parsed.data.id as number];
 
   const db = getDb();
-  const row = db
-    .prepare(
-      "SELECT case_id, image_url, image_url_wm FROM case_images WHERE id = ?",
-    )
-    .get(id) as
-    | { case_id: number; image_url: string; image_url_wm: string }
-    | undefined;
 
-  if (!row) return Response.json({ error: "not found" }, { status: 404 });
-  if (row.case_id !== case_id) {
-    return Response.json({ error: "case_id mismatch" }, { status: 403 });
+  // SQLite는 SQL placeholder 길이 제한이 있어(SQLITE_MAX_VARIABLE_NUMBER)
+  // 여기서는 zod에서 이미 max(500)으로 막아둠. 일반 운영 케이스(수십~수백장)는 안전.
+  const placeholders = ids.map(() => "?").join(",");
+
+  // case_id 소유권 검증과 DELETE를 한 트랜잭션으로 묶어
+  // 부분 삭제 / race 시 다른 케이스 이미지 삭제 사고 방지.
+  let removedRows: { id: number; image_url: string; image_url_wm: string }[];
+  let changes: number;
+  try {
+    const tx = db.transaction(() => {
+      const rows = db
+        .prepare(
+          `SELECT id, case_id, image_url, image_url_wm
+             FROM case_images
+            WHERE id IN (${placeholders})`,
+        )
+        .all(...ids) as {
+        id: number;
+        case_id: number;
+        image_url: string;
+        image_url_wm: string;
+      }[];
+
+      // 요청된 id 중 하나라도 다른 case에 속하면 전체 거부 — 의도치 않은 cross-case 삭제 차단.
+      if (rows.some((r) => r.case_id !== case_id)) {
+        throw new Error("CASE_MISMATCH");
+      }
+
+      const r = db
+        .prepare(
+          `DELETE FROM case_images
+            WHERE case_id = ?
+              AND id IN (${placeholders})`,
+        )
+        .run(case_id, ...ids);
+
+      return {
+        rows: rows.map((r) => ({
+          id: r.id,
+          image_url: r.image_url,
+          image_url_wm: r.image_url_wm,
+        })),
+        changes: r.changes,
+      };
+    });
+    const out = tx();
+    removedRows = out.rows;
+    changes = out.changes;
+  } catch (e) {
+    const msg = (e as Error).message || "";
+    if (msg === "CASE_MISMATCH") {
+      return Response.json({ error: "case_id mismatch" }, { status: 403 });
+    }
+    console.error("images DELETE error:", e);
+    return Response.json({ error: "서버 오류" }, { status: 500 });
   }
 
-  db.prepare("DELETE FROM case_images WHERE id = ?").run(id);
-
-  for (const url of [row.image_url, row.image_url_wm]) {
-    if (!url || !url.startsWith("/api/uploads/")) continue;
-    const filename = path.basename(new URL(url, "http://x").pathname);
-    const resolved = path.resolve(UPLOAD_DIR, filename);
-    if (
-      !resolved.startsWith(UPLOAD_DIR_RESOLVED + path.sep) &&
-      resolved !== UPLOAD_DIR_RESOLVED
-    ) {
-      console.warn("[images DELETE] traversal 차단:", url);
-      continue;
-    }
-    try {
-      fs.unlinkSync(resolved);
-    } catch (e) {
-      console.warn(
-        "[images DELETE] unlink 실패:",
-        resolved,
-        (e as Error).message,
-      );
+  // 파일 unlink는 트랜잭션 밖에서 best-effort.
+  // path-traversal 가드는 기존과 동일하게 이미지별로 유지 (안전 우선).
+  for (const row of removedRows) {
+    for (const url of [row.image_url, row.image_url_wm]) {
+      if (!url || !url.startsWith("/api/uploads/")) continue;
+      const filename = path.basename(new URL(url, "http://x").pathname);
+      const resolved = path.resolve(UPLOAD_DIR, filename);
+      if (
+        !resolved.startsWith(UPLOAD_DIR_RESOLVED + path.sep) &&
+        resolved !== UPLOAD_DIR_RESOLVED
+      ) {
+        console.warn("[images DELETE] traversal 차단:", url);
+        continue;
+      }
+      try {
+        fs.unlinkSync(resolved);
+      } catch (e) {
+        console.warn(
+          "[images DELETE] unlink 실패:",
+          resolved,
+          (e as Error).message,
+        );
+      }
     }
   }
 
   invalidatePublicCache();
-  return Response.json({ ok: true });
+  return Response.json({ ok: true, deleted: changes });
 }
