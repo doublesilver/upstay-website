@@ -37,6 +37,8 @@ export const caseCreateSchema = z.object({
   title: z.string().max(200).default(""),
   sort_order: z.number().int().default(0),
   show_on_main: z.number().int().min(0).max(3).default(1),
+  // 박스 추가 직후 "새박스" 상태(최상단). 저장하면 0으로 전이.
+  is_draft: z.number().int().min(0).max(1).default(1),
 });
 
 export const caseUpdateSchema = z.object({
@@ -44,6 +46,7 @@ export const caseUpdateSchema = z.object({
   title: z.string().max(200).optional(),
   sort_order: z.number().int().optional(),
   show_on_main: z.number().int().min(0).max(3).optional(),
+  is_draft: z.number().int().min(0).max(1).optional(),
 });
 
 export const imagePostSchema = z.object({

@@ -48,6 +48,7 @@ interface RemodelingCase {
   title: string;
   sort_order: number;
   show_on_main: number;
+  is_draft: number;
   created_at: string;
   images: CaseImage[];
 }
@@ -565,7 +566,7 @@ function SortableCase({
         ) : (
           <div
             className="text-[#CCC] shrink-0 p-1"
-            title="메인 슬롯 박스는 메인1/2/3 버튼으로 위치가 결정됩니다"
+            title="새박스/메인 박스는 저장 또는 메인1/2/3 지정으로만 위치가 결정됩니다"
           >
             <GripVertical size={18} />
           </div>
@@ -713,9 +714,13 @@ export default function RemodelingAdminPage() {
     [cases],
   );
 
-  // 메인1/2/3 지정 박스를 항상 상단에 1→2→3 순서로 고정하고,
-  // 나머지 일반 박스는 그 아래에 sort_order 순으로 표시한다.
+  // 박스를 3단계 영역으로 정렬:
+  //   1) 새박스(is_draft=1) — 최상단. 박스 추가 직후 임시 상태.
+  //   2) 메인1/2/3(show_on_main 1-3) — 그 아래에 1→2→3 슬롯 순서로 고정.
+  //   3) 그 외 — 하단에 sort_order 순.
+  // "저장" 또는 "메인1/2/3" 클릭 시 새박스 상태가 종료되며 해당 영역으로 이동.
   const sortedCases = useMemo(() => {
+    const drafts: RemodelingCase[] = [];
     const mainSlots: (RemodelingCase | undefined)[] = [
       undefined,
       undefined,
@@ -723,7 +728,9 @@ export default function RemodelingAdminPage() {
     ];
     const others: RemodelingCase[] = [];
     for (const c of cases) {
-      if (c.show_on_main >= 1 && c.show_on_main <= 3) {
+      if (c.is_draft === 1) {
+        drafts.push(c);
+      } else if (c.show_on_main >= 1 && c.show_on_main <= 3) {
         mainSlots[c.show_on_main - 1] = c;
       } else {
         others.push(c);
@@ -732,12 +739,17 @@ export default function RemodelingAdminPage() {
     const main = mainSlots.filter(
       (c): c is RemodelingCase => c !== undefined,
     );
-    others.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
-    return [...main, ...others];
+    const sortByOrder = (a: RemodelingCase, b: RemodelingCase) =>
+      a.sort_order - b.sort_order || a.id - b.id;
+    drafts.sort(sortByOrder);
+    others.sort(sortByOrder);
+    return [...drafts, ...main, ...others];
   }, [cases]);
 
   const isMainPinned = (c: RemodelingCase) =>
     c.show_on_main >= 1 && c.show_on_main <= 3;
+
+  const isDraft = (c: RemodelingCase) => c.is_draft === 1;
 
   useEffect(() => {
     if (dirtyCount === 0) return;
@@ -804,23 +816,27 @@ export default function RemodelingAdminPage() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // 메인 박스는 드래그 대상에서 제외 — 일반 박스끼리만 순서 변경 가능
-    const normal = cases.filter((item) => !isMainPinned(item));
-    const oldIndex = normal.findIndex((item) => item.id === active.id);
-    const newIndex = normal.findIndex((item) => item.id === over.id);
+    // 메인·새박스는 드래그 비활성 — "그 외" 영역 박스끼리만 순서 변경 가능
+    const reorderable = cases.filter(
+      (item) => !isMainPinned(item) && !isDraft(item),
+    );
+    const oldIndex = reorderable.findIndex((item) => item.id === active.id);
+    const newIndex = reorderable.findIndex((item) => item.id === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
 
-    const reorderedNormal = arrayMove(normal, oldIndex, newIndex);
-    const mains = cases.filter(isMainPinned);
-    // 메인 박스는 정렬 useMemo가 다시 줄세우므로 순서 무관, 단순 머지
-    setCases([...mains, ...reorderedNormal]);
+    const reordered = arrayMove(reorderable, oldIndex, newIndex);
+    const pinned = cases.filter(
+      (item) => isMainPinned(item) || isDraft(item),
+    );
+    // 메인·새박스는 정렬 useMemo가 다시 줄세우므로 순서 무관, 단순 머지
+    setCases([...pinned, ...reordered]);
 
     try {
       await apiFetch("/api/admin/remodeling/reorder", {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
-          items: reorderedNormal.map((item, index) => ({
+          items: reordered.map((item, index) => ({
             id: item.id,
             sort_order: index + 1,
           })),
@@ -836,13 +852,13 @@ export default function RemodelingAdminPage() {
 
   const handleAdd = async () => {
     try {
-      // 메인 박스는 정렬에서 sort_order를 사용하지 않으므로 일반 박스만 기준으로 잡는다.
-      // 그래야 신규 박스가 일반 영역의 맨 위(= 메인 박스 바로 아래)에 자리잡는다.
-      const normalCases = cases.filter((c) => !isMainPinned(c));
+      // 새박스 영역 안에서 최근 추가가 더 위에 오도록 sort_order 최소-1 부여.
+      // 새박스가 여러 개일 때 가장 최근 박스가 맨 위에 위치한다.
+      const draftCases = cases.filter(isDraft);
       const topSortOrder =
-        normalCases.length > 0
-          ? Math.min(...normalCases.map((c) => c.sort_order)) - 1
-          : 1;
+        draftCases.length > 0
+          ? Math.min(...draftCases.map((c) => c.sort_order)) - 1
+          : 0;
       await apiFetch("/api/admin/remodeling", {
         method: "POST",
         headers: getHeaders(),
@@ -850,6 +866,7 @@ export default function RemodelingAdminPage() {
           title: "",
           sort_order: topSortOrder,
           show_on_main: 0,
+          is_draft: 1,
         }),
       });
       load();
@@ -882,13 +899,21 @@ export default function RemodelingAdminPage() {
       value >= 1 && value <= 3
         ? prev.filter((c) => c.show_on_main === value && c.id !== id)
         : [];
+    // 메인 지정(value >= 1)은 "저장" 액션으로 간주 → 새박스 상태도 함께 종료.
+    const promoteFromDraft = value >= 1 && value <= 3;
 
     setCases((current) =>
       current.map((item) => {
         if (conflicts.some((c) => c.id === item.id)) {
           return { ...item, show_on_main: 0 };
         }
-        if (item.id === id) return { ...item, show_on_main: value };
+        if (item.id === id) {
+          return {
+            ...item,
+            show_on_main: value,
+            is_draft: promoteFromDraft ? 0 : item.is_draft,
+          };
+        }
         return item;
       }),
     );
@@ -898,7 +923,11 @@ export default function RemodelingAdminPage() {
       for (const c of conflicts) {
         await saveCase({ id: c.id, show_on_main: 0 });
       }
-      await saveCase({ id, show_on_main: value });
+      await saveCase({
+        id,
+        show_on_main: value,
+        ...(promoteFromDraft ? { is_draft: 0 } : {}),
+      });
     } catch (error) {
       setCases(prev);
       flash(`메인 설정 변경에 실패했습니다: ${errMsg(error)}`);
@@ -934,13 +963,23 @@ export default function RemodelingAdminPage() {
             id: item.id,
             title: item.title,
             show_on_main: item.show_on_main,
+            // "저장" 클릭은 새박스 상태를 종료시키는 액션 — 0으로 전이.
+            // 이미 0인 박스에 0을 다시 써도 멱등.
+            is_draft: 0,
           }),
+        ),
+      );
+      // 옵티미스틱 반영: 저장 직후 새박스 상태를 즉시 해제해 정렬에 반영.
+      setCases((prev) =>
+        prev.map((item) =>
+          targets.some((t) => t.id === item.id)
+            ? { ...item, is_draft: 0 }
+            : item,
         ),
       );
       targets.forEach((item) => {
         originalTitlesRef.current.set(item.id, item.title);
       });
-      setCases((prev) => [...prev]);
       flash("저장되었습니다");
     } catch (error) {
       flash(`저장에 실패했습니다: ${errMsg(error)}`);
@@ -1196,7 +1235,7 @@ export default function RemodelingAdminPage() {
       >
         <SortableContext
           items={sortedCases
-            .filter((item) => !isMainPinned(item))
+            .filter((item) => !isMainPinned(item) && !isDraft(item))
             .map((item) => item.id)}
           strategy={verticalListSortingStrategy}
         >
@@ -1205,7 +1244,7 @@ export default function RemodelingAdminPage() {
               <SortableCase
                 key={item.id}
                 item={item}
-                draggable={!isMainPinned(item)}
+                draggable={!isMainPinned(item) && !isDraft(item)}
                 uploading={uploading}
                 saving={savingCaseIds.has(item.id)}
                 getChecked={(type) =>

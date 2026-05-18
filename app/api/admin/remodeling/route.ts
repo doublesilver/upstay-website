@@ -43,13 +43,13 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { title, sort_order, show_on_main } = parsed.data;
+  const { title, sort_order, show_on_main, is_draft } = parsed.data;
   const db = getDb();
   const result = db
     .prepare(
-      "INSERT INTO remodeling_cases (title, sort_order, show_on_main) VALUES (?, ?, ?)",
+      "INSERT INTO remodeling_cases (title, sort_order, show_on_main, is_draft) VALUES (?, ?, ?, ?)",
     )
-    .run(title, sort_order, show_on_main);
+    .run(title, sort_order, show_on_main, is_draft);
   invalidatePublicCache();
   return Response.json({ id: result.lastInsertRowid });
 }
@@ -70,7 +70,7 @@ export async function PUT(req: NextRequest) {
   >;
   if (!id) return Response.json({ error: "id required" }, { status: 400 });
 
-  const allowed = ["title", "sort_order", "show_on_main"];
+  const allowed = ["title", "sort_order", "show_on_main", "is_draft"];
   const sets: string[] = [];
   const vals: unknown[] = [];
   for (const key of allowed) {
