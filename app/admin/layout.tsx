@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import { Menu, X } from "lucide-react";
 
 const navItems = [
   {
@@ -68,6 +70,12 @@ const navItems = [
   },
 ];
 
+// 모바일 헤더 바에 표시할 현재 페이지 타이틀. navItems의 href 매칭 기반.
+function getPageTitle(pathname: string): string {
+  const match = navItems.find((item) => pathname.startsWith(item.href));
+  return match ? match.label : "관리자";
+}
+
 export default function AdminLayout({
   children,
 }: {
@@ -79,8 +87,69 @@ export default function AdminLayout({
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  // 모바일 사이드바 슬라이드 오버레이 토글. lg 미만에서만 의미를 가짐.
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const hamburgerBtnRef = useRef<HTMLButtonElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   const isLoginPage = pathname === "/admin";
+
+  // 라우트가 바뀌면 모바일 메뉴는 자동으로 닫기. 메뉴 클릭 후 자연스러운 동작.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // 모바일 메뉴 열린 동안 ESC로 닫기 + body 스크롤 잠금.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    // 오버레이 진입 시 닫기 버튼으로 포커스 이동(접근성).
+    closeBtnRef.current?.focus();
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [mobileOpen]);
+
+  // 오버레이가 닫히는 순간 햄버거 버튼으로 포커스 복귀. 초기 마운트 시점에도 호출되지만
+  // 햄버거 버튼은 lg:hidden이라 데스크탑에선 포커스 이동이 시각적 노이즈가 되지 않음.
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (wasOpenRef.current && !mobileOpen) {
+      hamburgerBtnRef.current?.focus({ preventScroll: true });
+    }
+    wasOpenRef.current = mobileOpen;
+  }, [mobileOpen]);
+
+  // Tab/Shift+Tab을 오버레이 내부로 가두는 focus trap. H-15 패턴 동일.
+  const handleTabTrap = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab") return;
+    const container = e.currentTarget;
+    const focusable = Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => !el.hasAttribute("disabled"));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -225,93 +294,178 @@ export default function AdminLayout({
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
-  return (
-    <div className="min-h-screen bg-[#F7F7F7] flex">
-      {/* 사이드바 */}
-      <aside className="w-[240px] bg-white border-r border-[#111] flex flex-col shrink-0 sticky top-0 h-screen">
-        <div className="px-2 py-3 border-b border-[#111]">
-          <Link href="/admin" className="block mx-auto w-[70%]">
-            <Image
-              src="/logo.svg"
-              alt="UPSTAY"
-              width={200}
-              height={100}
-              className="w-full h-auto"
-              priority
-            />
-          </Link>
-        </div>
+  // 데스크탑·모바일 양쪽에서 동일하게 렌더되는 사이드바 내부.
+  // 메뉴 아이템 클릭 시 모바일 오버레이를 닫기 위해 onNavigate prop으로 분기.
+  const renderSidebarInner = (onNavigate?: () => void) => (
+    <>
+      <div className="px-2 py-3 border-b border-[#111]">
+        <Link
+          href="/admin"
+          className="block mx-auto w-[70%]"
+          onClick={onNavigate}
+        >
+          <Image
+            src="/logo.svg"
+            alt="UPSTAY"
+            width={200}
+            height={100}
+            className="w-full h-auto"
+            priority
+          />
+        </Link>
+      </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-all ${
-                isActive(item.href)
-                  ? "bg-[#F7F7F7] text-[#111] font-semibold"
-                  : "text-[#666] hover:bg-[#FAFAFA] hover:text-[#111]"
-              }`}
-            >
-              <span
-                className={isActive(item.href) ? "text-[#111]" : "text-[#999]"}
-              >
-                {item.icon}
-              </span>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="px-3 py-4 border-t border-[#111] space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
+        {navItems.map((item) => (
           <Link
-            href="/"
-            target="_blank"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#888] hover:bg-[#FAFAFA] hover:text-[#111] transition-all"
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-all ${
+              isActive(item.href)
+                ? "bg-[#F7F7F7] text-[#111] font-semibold"
+                : "text-[#666] hover:bg-[#FAFAFA] hover:text-[#111]"
+            }`}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            <span
+              className={isActive(item.href) ? "text-[#111]" : "text-[#999]"}
             >
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15,3 21,3 21,9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            사이트 보기
+              {item.icon}
+            </span>
+            {item.label}
           </Link>
-          <button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#888] hover:bg-[#FAFAFA] hover:text-red-500 transition-all w-full disabled:opacity-50"
+        ))}
+      </nav>
+
+      <div className="px-3 py-4 border-t border-[#111] space-y-0.5">
+        <Link
+          href="/"
+          target="_blank"
+          onClick={onNavigate}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#888] hover:bg-[#FAFAFA] hover:text-[#111] transition-all"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16,17 21,12 16,7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            로그아웃
-          </button>
-        </div>
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15,3 21,3 21,9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          사이트 보기
+        </Link>
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#888] hover:bg-[#FAFAFA] hover:text-red-500 transition-all w-full disabled:opacity-50"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16,17 21,12 16,7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          로그아웃
+        </button>
+      </div>
+    </>
+  );
+
+  const pageTitle = getPageTitle(pathname);
+
+  return (
+    <div className="min-h-screen bg-[#F7F7F7] lg:flex">
+      {/* 데스크탑 사이드바 (lg 이상) */}
+      <aside className="hidden lg:flex w-[240px] bg-white border-r border-[#111] flex-col shrink-0 sticky top-0 h-screen">
+        {renderSidebarInner()}
       </aside>
+
+      {/* 모바일 헤더 바 (lg 미만) — 햄버거 + 현재 페이지 타이틀 + 로그아웃 */}
+      <header className="lg:hidden sticky top-0 z-30 h-14 bg-white border-b border-[#111] flex items-center justify-between px-3">
+        <button
+          ref={hamburgerBtnRef}
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          aria-label="메뉴 열기"
+          aria-expanded={mobileOpen}
+          aria-controls="admin-mobile-sidebar"
+          className="w-10 h-10 flex items-center justify-center rounded-lg text-[#111] hover:bg-[#FAFAFA] transition-colors"
+        >
+          <Menu size={22} strokeWidth={1.8} />
+        </button>
+        <h1 className="text-[15px] font-semibold text-[#111] truncate px-2">
+          {pageTitle}
+        </h1>
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="text-[13px] text-[#666] hover:text-red-500 px-2 py-1 disabled:opacity-50 transition-colors"
+        >
+          로그아웃
+        </button>
+      </header>
+
+      {/* 모바일 슬라이드 오버레이 (lg 미만) */}
+      <div
+        className={`lg:hidden fixed inset-0 z-40 ${mobileOpen ? "" : "pointer-events-none"}`}
+        aria-hidden={!mobileOpen}
+      >
+        {/* backdrop — 배경 클릭으로 닫기 */}
+        <div
+          aria-hidden="true"
+          onClick={() => setMobileOpen(false)}
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${
+            mobileOpen ? "opacity-100" : "opacity-0"
+          }`}
+        />
+
+        {/* 슬라이드 사이드바 본체 */}
+        <aside
+          id="admin-mobile-sidebar"
+          role="dialog"
+          aria-modal="true"
+          aria-label="관리자 메뉴"
+          onKeyDown={handleTabTrap}
+          className={`absolute left-0 top-0 h-full w-[80%] max-w-[320px] bg-white border-r border-[#111] flex flex-col shadow-xl transform transition-transform duration-200 ease-out ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {/* 오버레이 헤더: 닫기 버튼 */}
+          <div className="flex items-center justify-end px-2 pt-2">
+            <button
+              ref={closeBtnRef}
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label="메뉴 닫기"
+              className="w-10 h-10 flex items-center justify-center rounded-lg text-[#111] hover:bg-[#FAFAFA] transition-colors"
+            >
+              <X size={22} strokeWidth={1.8} />
+            </button>
+          </div>
+          {renderSidebarInner(() => setMobileOpen(false))}
+        </aside>
+      </div>
 
       {/* 메인 콘텐츠 */}
       <main className="flex-1 min-w-0">
-        <div className="max-w-5xl mx-auto px-8 py-8">{children}</div>
+        <div className="max-w-5xl mx-auto px-4 lg:px-8 py-4 lg:py-8">
+          {children}
+        </div>
       </main>
     </div>
   );
