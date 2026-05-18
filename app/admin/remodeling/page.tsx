@@ -829,14 +829,16 @@ export default function RemodelingAdminPage() {
 
   const handleToggleMain = async (id: number, value: number) => {
     const prev = cases;
+    // 같은 메인 슬롯(1/2/3)을 이미 점유 중이던 다른 박스 — DB의 partial UNIQUE index
+    // (idx_show_on_main_slot: show_on_main>0) 때문에 새 박스 저장 전에 먼저 0으로 비워야 한다.
+    const conflicts =
+      value >= 1 && value <= 3
+        ? prev.filter((c) => c.show_on_main === value && c.id !== id)
+        : [];
+
     setCases((current) =>
       current.map((item) => {
-        if (
-          value >= 1 &&
-          value <= 3 &&
-          item.show_on_main === value &&
-          item.id !== id
-        ) {
+        if (conflicts.some((c) => c.id === item.id)) {
           return { ...item, show_on_main: 0 };
         }
         if (item.id === id) return { ...item, show_on_main: value };
@@ -844,6 +846,11 @@ export default function RemodelingAdminPage() {
       }),
     );
     try {
+      // 순서 중요: 충돌 박스를 먼저 0으로 → 그 다음 새 박스에 슬롯 부여.
+      // 동시에 보내면 SQLite UNIQUE 제약 위반으로 새 박스 저장이 실패한다.
+      for (const c of conflicts) {
+        await saveCase({ id: c.id, show_on_main: 0 });
+      }
       await saveCase({ id, show_on_main: value });
     } catch (error) {
       setCases(prev);
