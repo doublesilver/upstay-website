@@ -30,6 +30,7 @@ import {
 import Image from "next/image";
 import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
+import { useFocusTrap } from "@/components/use-focus-trap";
 import { apiFetch, errMsg, getHeaders } from "@/lib/admin-api";
 
 interface CaseImage {
@@ -650,6 +651,8 @@ export default function RemodelingAdminPage() {
     new Set(),
   );
   const [collapsedCases, setCollapsedCases] = useState<Set<number>>(new Set());
+  const deleteCancelBtnRef = useRef<HTMLButtonElement>(null);
+  const handleDeleteTabTrap = useFocusTrap<HTMLDivElement>();
 
   const toggleCollapse = (id: number) => {
     setCollapsedCases((prev) => {
@@ -765,6 +768,8 @@ export default function RemodelingAdminPage() {
 
   useEffect(() => {
     if (deleting === null) return;
+    // 다이얼로그 열리면 "취소" 버튼으로 포커스 — Enter 실수로 삭제되는 사고 방지.
+    deleteCancelBtnRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setDeleting(null);
     };
@@ -1307,6 +1312,7 @@ export default function RemodelingAdminPage() {
             aria-modal="true"
             aria-labelledby="remodeling-delete-title"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleDeleteTabTrap}
             className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
           >
             <div className="px-6 py-8 text-center">
@@ -1319,6 +1325,7 @@ export default function RemodelingAdminPage() {
             </div>
             <div className="px-6 py-4 border-t border-[#111] flex gap-3">
               <button
+                ref={deleteCancelBtnRef}
                 type="button"
                 onClick={() => setDeleting(null)}
                 className="flex-1 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"
