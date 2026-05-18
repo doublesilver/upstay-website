@@ -401,6 +401,7 @@ function ImageSection({
 function SortableCase({
   item,
   collapsed,
+  draggable = true,
   uploading,
   saving,
   getChecked,
@@ -422,6 +423,7 @@ function SortableCase({
 }: {
   item: RemodelingCase;
   collapsed: boolean;
+  draggable?: boolean;
   uploading?: boolean;
   saving?: boolean;
   getChecked: (type: "before" | "after") => Set<number>;
@@ -465,7 +467,7 @@ function SortableCase({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id });
+  } = useSortable({ id: item.id, disabled: !draggable });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -549,15 +551,24 @@ function SortableCase({
       )}
 
       <div className="px-5 py-3 border-t border-[#111] bg-[#FAFAFA] flex items-center gap-2">
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-[#999] hover:text-[#111] transition-colors shrink-0 p-1"
-          title="드래그하여 순서를 변경합니다"
-        >
-          <GripVertical size={18} />
-        </button>
+        {draggable ? (
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-[#999] hover:text-[#111] transition-colors shrink-0 p-1"
+            title="드래그하여 순서를 변경합니다"
+          >
+            <GripVertical size={18} />
+          </button>
+        ) : (
+          <div
+            className="text-[#CCC] shrink-0 p-1"
+            title="메인 슬롯 박스는 메인1/2/3 버튼으로 위치가 결정됩니다"
+          >
+            <GripVertical size={18} />
+          </div>
+        )}
 
         {collapsed ? (
           <button
@@ -701,6 +712,32 @@ export default function RemodelingAdminPage() {
     [cases],
   );
 
+  // 메인1/2/3 지정 박스를 항상 상단에 1→2→3 순서로 고정하고,
+  // 나머지 일반 박스는 그 아래에 sort_order 순으로 표시한다.
+  const sortedCases = useMemo(() => {
+    const mainSlots: (RemodelingCase | undefined)[] = [
+      undefined,
+      undefined,
+      undefined,
+    ];
+    const others: RemodelingCase[] = [];
+    for (const c of cases) {
+      if (c.show_on_main >= 1 && c.show_on_main <= 3) {
+        mainSlots[c.show_on_main - 1] = c;
+      } else {
+        others.push(c);
+      }
+    }
+    const main = mainSlots.filter(
+      (c): c is RemodelingCase => c !== undefined,
+    );
+    others.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
+    return [...main, ...others];
+  }, [cases]);
+
+  const isMainPinned = (c: RemodelingCase) =>
+    c.show_on_main >= 1 && c.show_on_main <= 3;
+
   useEffect(() => {
     if (dirtyCount === 0) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -766,17 +803,23 @@ export default function RemodelingAdminPage() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = cases.findIndex((item) => item.id === active.id);
-    const newIndex = cases.findIndex((item) => item.id === over.id);
-    const reordered = arrayMove(cases, oldIndex, newIndex);
-    setCases(reordered);
+    // 메인 박스는 드래그 대상에서 제외 — 일반 박스끼리만 순서 변경 가능
+    const normal = cases.filter((item) => !isMainPinned(item));
+    const oldIndex = normal.findIndex((item) => item.id === active.id);
+    const newIndex = normal.findIndex((item) => item.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const reorderedNormal = arrayMove(normal, oldIndex, newIndex);
+    const mains = cases.filter(isMainPinned);
+    // 메인 박스는 정렬 useMemo가 다시 줄세우므로 순서 무관, 단순 머지
+    setCases([...mains, ...reorderedNormal]);
 
     try {
       await apiFetch("/api/admin/remodeling/reorder", {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
-          items: reordered.map((item, index) => ({
+          items: reorderedNormal.map((item, index) => ({
             id: item.id,
             sort_order: index + 1,
           })),
@@ -792,9 +835,12 @@ export default function RemodelingAdminPage() {
 
   const handleAdd = async () => {
     try {
+      // 메인 박스는 정렬에서 sort_order를 사용하지 않으므로 일반 박스만 기준으로 잡는다.
+      // 그래야 신규 박스가 일반 영역의 맨 위(= 메인 박스 바로 아래)에 자리잡는다.
+      const normalCases = cases.filter((c) => !isMainPinned(c));
       const topSortOrder =
-        cases.length > 0
-          ? Math.min(...cases.map((c) => c.sort_order)) - 1
+        normalCases.length > 0
+          ? Math.min(...normalCases.map((c) => c.sort_order)) - 1
           : 1;
       await apiFetch("/api/admin/remodeling", {
         method: "POST",
@@ -1141,14 +1187,17 @@ export default function RemodelingAdminPage() {
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={cases.map((item) => item.id)}
+          items={sortedCases
+            .filter((item) => !isMainPinned(item))
+            .map((item) => item.id)}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-4">
-            {cases.map((item) => (
+            {sortedCases.map((item) => (
               <SortableCase
                 key={item.id}
                 item={item}
+                draggable={!isMainPinned(item)}
                 uploading={uploading}
                 saving={savingCaseIds.has(item.id)}
                 getChecked={(type) =>
