@@ -184,7 +184,7 @@ export default function AnnouncementsAdminPage() {
         ))}
 
         {loading && items.length === 0 && !creatingNew && (
-          <div className="py-20 text-center text-[#999] text-[14px]">
+          <div className="py-20 text-center text-[#666] text-[14px]">
             로딩 중...
           </div>
         )}

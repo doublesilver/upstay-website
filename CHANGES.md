@@ -141,3 +141,46 @@
 ### 알려진 한계 / 후속 차수 결정 사항
 
 - **caption 필드 toolbar**: 지시서 A1/A2가 `photo_guide_caption` 및 카테고리 caption 필드도 toolbar 대상 요구했으나, caption 필드는 schema에 별도 `_style` JSON 컬럼이 없어 fontWeight 토글 불가능. 이번 차수는 **caption 제외**로 진행. 향후 caption*style 컬럼 추가 마이그레이션 (`lib/db/migrations/014*\*.sql`) 필요 여부 결정 필요.
+
+
+## v3.11~v3.14 (2026-05-06 ~ 2026-05-18 PR #1~#12 일괄 정리)
+
+이번 절에서는 5월 6일 이후 머지된 12개 PR을 한 번에 기록한다. 각 PR은 squash merge로 main에 반영.
+
+### 마이그레이션 차수
+
+- **017** `017_restore_image_url_wm.sql` — 016에서 폐기했던 `case_images.image_url_wm`을 복원. 클라이언트가 워터마크 시스템을 계속 사용하기로 확정함에 따라 컬럼 부활. **중요**: 016이 production volume에서 한 번이라도 적용됐다면 기존 워터마크 URL이 영구 손실됨. 배포 전 schema_migrations 조회로 016 적용 이력 점검 필요.
+- **018** `018_add_edit_settings.sql` (PR #7) — `case_images.edit_settings TEXT` 컬럼 추가. 사진 편집 슬라이더 보정값(선명도/밝기/워터마크 위치·투명도·스케일)을 DB에 영속화. 기존엔 localStorage에만 저장되어 다른 디바이스/브라우저에서 슬라이더 값이 초기화되어 보이는 버그 수정.
+- **019** `019_add_is_draft.sql` (PR #9) — `remodeling_cases.is_draft INTEGER NOT NULL DEFAULT 0` 컬럼 추가. 박스 3단계 영역 흐름(새박스 / 메인1·2·3 / 그 외)의 "새박스" 상태 표현. "박스 추가" 시 1, "저장" 또는 "메인1/2/3 지정" 시 0으로 전이.
+- **020** `020_remodeling_cases_sort_index.sql` (v3.14) — `remodeling_cases(sort_order ASC, id ASC)` 복합 인덱스 추가. 케이스 누적 시 `ORDER BY sort_order` 쿼리가 SCAN + USE TEMP B-TREE로 회귀하는 문제 방지.
+
+### 기능 변경
+
+- **PR #5** `feat(admin): 메인1/2/3 박스를 목록 상단 1→2→3 순서로 고정` (의도 정정 PR #8에서 반전됨)
+- **PR #6** `fix(admin): 메인1/2/3 토글 시 UNIQUE 위반으로 표시 안 되던 버그 수정` — `handleToggleMain`에서 같은 슬롯을 점유하던 박스를 먼저 `show_on_main=0`으로 비운 뒤 새 박스에 슬롯 부여. partial unique index(`idx_show_on_main_slot`) 회피.
+- **PR #7** `feat(admin): 사진 편집 보정값을 DB에 영속화` — 018 마이그레이션과 동반. EditableImage 인터페이스에 `edit_settings` 필드, applyOne/applyAll 시 settings JSON 함께 저장.
+- **PR #8** `fix(admin): 신규 박스를 메인1/2/3 위에 표시 (PR #5 정렬 방향 정정)` — `sortedCases`의 `[main, others]` → `[others, main]`로 반전.
+- **PR #9** `feat(admin): 박스 3단계 영역(새박스/메인/그외) 흐름 구현` — 019 마이그레이션과 동반. sortedCases가 `[drafts, mains, others]` 3단 정렬, 새박스·메인 박스 드래그 비활성.
+- **PR #11** `fix(admin): 새 박스 sort_order를 전체 박스 기준 최소-1로 부여` — `handleAdd`가 `Math.min(...draftCases.sort_order) - 1` → `Math.min(...cases.sort_order) - 1`. 저장 후 그 외 영역에서도 박스가 메인 바로 아래에 위치하도록.
+- **PR #12** `style(remodeling): 전체보기 버튼 테두리 검정톤(#111)으로 변경`
+
+### 보안 / 인프라 (v3.14 자동 수정)
+
+- **CRITICAL**: `sanitize-html ^2.17.4`로 업데이트 — XMP 태그 XSS(`GHSA-rpr9-rxv7-x643`) 해소.
+- **CRITICAL**: `next ^16.2.6`으로 업데이트 — 미들웨어 우회 다중(`GHSA-26hh-7cqf-hhc6` 등) 해소.
+- `components/header.tsx` navItem `<span>` → `<Link>` — 사이트 핵심 탐색 복구.
+- `app/api/auth/route.ts` rate-limit IP 추출을 `x-forwarded-for`의 마지막 IP로 변경 — 프록시 환경에서 스푸핑 방어.
+- `app/remodeling/[id]/page.tsx` 별표(slot_position) 우선 정렬 적용.
+- dnd-kit `KeyboardSensor` 3곳 추가 — 드래그&드롭 키보드 접근성.
+- 색 대비 4.5:1 미달 토큰 일괄 교체 (`#9CA3AF` → `#6B7280`, `#888` → `#555`, 빈 상태 `#999` → `#666`).
+- 관리자 로그인 input `aria-label` 추가 + 에러 박스 `role="alert"`.
+- 홈 페이지 빈 상태 안내 "등록된 사례를 준비 중입니다.".
+- 테스트 4개 suite의 `JWT_SECRET` import 제거 + `setupTempDataDir`에 env 자동 주입. 30개 테스트 전수 통과.
+- ESLint 2 warnings 해소 (`setStyle` dead code 제거, `image-edit-modal` useEffect deps 의도 주석).
+
+### 후속 차수 결정 필요
+
+- `/remodeling` 리스트의 별표 fallback (WORK_ZONES.md Zone 2 명세 vs `lib/home-data.ts:96` 코드 불일치) — 클라이언트 확답 필요.
+- `case_images.image_url_wm` production volume 데이터 손실 점검 — `schema_migrations` 016 적용 이력 확인 후 결과에 따라 백업 복원 가능성.
+- 운영 자격증명(`ADMIN_PW`, `JWT_SECRET`) GitHub 히스토리 노출 — Railway 환경변수 새 값으로 교체 + 필요 시 `git filter-repo` history 정리.
+- `file2s.zip` / `file33s.zip` / `upstay-logo.png` 등 무관 commit 파일 정리 (force push 동의 필요).

@@ -32,10 +32,15 @@ export default async function RemodelingDetailPage({
 
   const images = db
     .prepare(
+      // 별표(slot_position 1-4) 사진을 항상 상단에. README/홈 정렬과 일관성 유지.
       `SELECT type, match_order, image_url, image_url_wm
        FROM case_images
        WHERE case_id = ? AND image_url <> ''
-       ORDER BY type ASC, match_order ASC, id ASC`,
+       ORDER BY type ASC,
+                CASE WHEN slot_position > 0 THEN 0 ELSE 1 END ASC,
+                slot_position ASC,
+                match_order ASC,
+                id ASC`,
     )
     .all(caseRow.id) as {
     type: "before" | "after";
