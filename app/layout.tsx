@@ -1,8 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
 import { HeaderWrapper } from "@/components/header-wrapper";
 import { siteConfig } from "@/lib/site";
 import { getSiteConfig } from "@/lib/home-data";
+
+// Pretendard Variable: 가변(variable) 폰트라 한 파일로 weight 45~920을 모두 커버.
+// next/font/local은 자동으로 preload + font-display:swap 처리해 외부 CDN 차단/지연을 피함.
+const pretendard = localFont({
+  src: "../public/fonts/PretendardVariable.woff2",
+  display: "swap",
+  variable: "--font-pretendard",
+  weight: "45 920",
+  style: "normal",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -38,19 +49,7 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const config = getSiteConfig();
   return (
-    <html lang="ko">
-      <head>
-        <link
-          rel="preconnect"
-          href="https://cdn.jsdelivr.net"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="stylesheet"
-          as="style"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
-        />
-      </head>
+    <html lang="ko" className={pretendard.variable}>
       <body className="bg-white text-[#111111]">
         <HeaderWrapper initialConfig={config} />
         <main>{children}</main>

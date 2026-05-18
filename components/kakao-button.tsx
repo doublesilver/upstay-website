@@ -1,18 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useFocusTrap } from "@/components/use-focus-trap";
 
 const KAKAO_ID = "mh.0624";
 
 export function KakaoButton() {
   const [showKakaoInfo, setShowKakaoInfo] = useState(false);
   const [copied, setCopied] = useState(false);
+  const copyBtnRef = useRef<HTMLButtonElement>(null);
+  const handleTabTrap = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
     if (!showKakaoInfo) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // 모달 열림과 동시에 첫 focusable 요소로 포커스 이동 (WCAG 2.4.3 Focus Order)
+    copyBtnRef.current?.focus();
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setShowKakaoInfo(false);
     };
@@ -66,12 +71,14 @@ export function KakaoButton() {
           <div
             className="bg-[#F5F5E7] rounded-2xl p-5 max-w-[calc(100vw-2rem)] w-[236px] flex flex-col items-stretch"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleTabTrap}
           >
             <h2 className="text-[18px] font-bold text-[#111] text-center mb-3 whitespace-nowrap">
               카카오톡 친구추가
             </h2>
 
             <button
+              ref={copyBtnRef}
               type="button"
               onClick={handleCopyId}
               className="bg-white border border-[#DDD] rounded-lg py-2 px-3 text-[14px] text-[#111] hover:bg-[#FAFAFA] transition whitespace-nowrap"

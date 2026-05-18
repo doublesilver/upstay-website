@@ -5,8 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 //       관리자 초기 번들 크기를 줄일 수 있음. 현재는 직접 import 유지.
 import {
   DndContext,
-  closestCenter,
+  KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -14,6 +15,7 @@ import {
 import {
   SortableContext,
   arrayMove,
+  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -30,6 +32,7 @@ import {
 import Image from "next/image";
 import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
+import { useFocusTrap } from "@/components/use-focus-trap";
 import { apiFetch, errMsg, getHeaders } from "@/lib/admin-api";
 
 interface CaseImage {
@@ -400,6 +403,21 @@ function ImageSection({
   );
 }
 
+// 영역 헤더 — 새박스/메인/그 외 3단계를 가볍게 구분 (기존 톤 #666/#111 유지)
+function SectionHeader({ label, count }: { label: string; count: number }) {
+  return (
+    <div className="flex items-baseline gap-2 mb-2 text-[12px]">
+      <span className="text-[#666]">{label}</span>
+      <span className="text-[#111]">({count})</span>
+    </div>
+  );
+}
+
+// 영역 구분선 — 너무 강하지 않게 얇은 회색 1px
+function SectionDivider() {
+  return <div className="h-px bg-[#E5E5E5]" />;
+}
+
 function SortableCase({
   item,
   collapsed,
@@ -650,6 +668,8 @@ export default function RemodelingAdminPage() {
     new Set(),
   );
   const [collapsedCases, setCollapsedCases] = useState<Set<number>>(new Set());
+  const deleteCancelBtnRef = useRef<HTMLButtonElement>(null);
+  const handleDeleteTabTrap = useFocusTrap<HTMLDivElement>();
 
   const toggleCollapse = (id: number) => {
     setCollapsedCases((prev) => {
@@ -690,6 +710,7 @@ export default function RemodelingAdminPage() {
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const flash = (message: string) => setToast(message);
@@ -719,7 +740,8 @@ export default function RemodelingAdminPage() {
   //   2) 메인1/2/3(show_on_main 1-3) — 그 아래에 1→2→3 슬롯 순서로 고정.
   //   3) 그 외 — 하단에 sort_order 순.
   // "저장" 또는 "메인1/2/3" 클릭 시 새박스 상태가 종료되며 해당 영역으로 이동.
-  const sortedCases = useMemo(() => {
+  // useMemo로 영역별 배열까지 같이 만들어 렌더에서 헤더·구분선을 끼워 넣는다.
+  const { sortedCases, draftCases, mainCases, otherCases } = useMemo(() => {
     const drafts: RemodelingCase[] = [];
     const mainSlots: (RemodelingCase | undefined)[] = [
       undefined,
@@ -743,7 +765,12 @@ export default function RemodelingAdminPage() {
       a.sort_order - b.sort_order || a.id - b.id;
     drafts.sort(sortByOrder);
     others.sort(sortByOrder);
-    return [...drafts, ...main, ...others];
+    return {
+      sortedCases: [...drafts, ...main, ...others],
+      draftCases: drafts,
+      mainCases: main,
+      otherCases: others,
+    };
   }, [cases]);
 
   const isMainPinned = (c: RemodelingCase) =>
@@ -765,6 +792,8 @@ export default function RemodelingAdminPage() {
 
   useEffect(() => {
     if (deleting === null) return;
+    // 다이얼로그 열리면 "취소" 버튼으로 포커스 — Enter 실수로 삭제되는 사고 방지.
+    deleteCancelBtnRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setDeleting(null);
     };
@@ -1235,8 +1264,9 @@ export default function RemodelingAdminPage() {
             .map((item) => item.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-4">
-            {sortedCases.map((item) => (
+          {(() => {
+            // 박스 렌더는 props가 많아 인라인 함수로 단일 정의 (영역 3곳에서 재사용)
+            const renderCase = (item: RemodelingCase) => (
               <SortableCase
                 key={item.id}
                 item={item}
@@ -1267,13 +1297,53 @@ export default function RemodelingAdminPage() {
                 collapsed={collapsedCases.has(item.id)}
                 onToggleCollapse={() => toggleCollapse(item.id)}
               />
-            ))}
-          </div>
+            );
+
+            // 영역에 박스가 0개면 헤더·구분선을 모두 숨긴다.
+            // 구분선은 두 번째 이후로 등장하는 영역의 위에만 붙인다.
+            const hasDrafts = draftCases.length > 0;
+            const hasMains = mainCases.length > 0;
+            const hasOthers = otherCases.length > 0;
+
+            return (
+              <div className="space-y-4">
+                {hasDrafts && (
+                  <div className="space-y-4">
+                    <SectionHeader
+                      label="새로 추가된 박스"
+                      count={draftCases.length}
+                    />
+                    {draftCases.map(renderCase)}
+                  </div>
+                )}
+                {hasMains && (
+                  <div className="space-y-4">
+                    {hasDrafts && <SectionDivider />}
+                    <SectionHeader
+                      label="메인 노출 박스 (1·2·3)"
+                      count={mainCases.length}
+                    />
+                    {mainCases.map(renderCase)}
+                  </div>
+                )}
+                {hasOthers && (
+                  <div className="space-y-4">
+                    {(hasDrafts || hasMains) && <SectionDivider />}
+                    <SectionHeader
+                      label="그 외 박스"
+                      count={otherCases.length}
+                    />
+                    {otherCases.map(renderCase)}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </SortableContext>
       </DndContext>
 
       {loading && cases.length === 0 && (
-        <div className="py-20 text-center text-[#999] text-[14px]">
+        <div className="py-20 text-center text-[#666] text-[14px]">
           로딩 중...
         </div>
       )}
@@ -1302,6 +1372,7 @@ export default function RemodelingAdminPage() {
             aria-modal="true"
             aria-labelledby="remodeling-delete-title"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleDeleteTabTrap}
             className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
           >
             <div className="px-6 py-8 text-center">
@@ -1314,6 +1385,7 @@ export default function RemodelingAdminPage() {
             </div>
             <div className="px-6 py-4 border-t border-[#111] flex gap-3">
               <button
+                ref={deleteCancelBtnRef}
                 type="button"
                 onClick={() => setDeleting(null)}
                 className="flex-1 py-2.5 rounded-xl text-[14px] text-[#666] hover:bg-[#F7F7F7] transition-all"

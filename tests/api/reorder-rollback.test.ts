@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { SignJWT } from "jose";
 import { NextRequest } from "next/server";
-import { setupTempDataDir, TEST_JWT_SECRET } from "../api-helpers";
+import { setupTempDataDir } from "../api-helpers";
 
 vi.mock("@/lib/cache", () => ({ invalidatePublicCache: vi.fn() }));
 
@@ -9,7 +9,7 @@ let token: string;
 
 beforeAll(async () => {
   setupTempDataDir();
-  const secret = new TextEncoder().encode(TEST_JWT_SECRET);
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
   token = await new SignJWT({ role: "admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("1h")

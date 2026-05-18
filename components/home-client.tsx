@@ -91,7 +91,7 @@ export function HomeClient({
                 </h2>
               </Link>
               <span
-                className="text-[9px] md:text-[12px] text-[#888] font-medium shrink-0 mt-0 relative top-[4px]"
+                className="text-[9px] md:text-[12px] text-[#555] font-medium shrink-0 mt-0 relative top-[4px]"
                 style={photoGuideCaptionStyle}
               >
                 ( {photoGuideCaption} )
@@ -101,6 +101,11 @@ export function HomeClient({
             <div className="shrink-0 mt-2 h-px bg-[#E5E5E5]" />
 
             <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-y-auto lg:flex-none lg:overflow-visible">
+              {initialCases.length === 0 && (
+                <div className="py-12 text-center text-[13px] md:text-[14px] text-[#555]">
+                  등록된 사례를 준비 중입니다.
+                </div>
+              )}
               {initialCases.slice(0, 3).map((c, caseIndex) => {
                 const befores = c.before_images?.length
                   ? c.before_images
@@ -177,7 +182,7 @@ function GalleryGrid({
 }) {
   return (
     <div>
-      <p className="text-[9px] md:text-[12px] text-[#888] font-medium mb-0.5">
+      <p className="text-[9px] md:text-[12px] text-[#555] font-medium mb-0.5">
         {label === "Before" ? "Before (전)" : "After (후)"}
       </p>
       <div className="grid grid-cols-2 gap-1">
