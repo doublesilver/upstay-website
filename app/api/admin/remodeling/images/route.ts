@@ -162,7 +162,13 @@ export async function PUT(req: NextRequest) {
     return Response.json({ ok: true });
   }
 
-  const allowed = ["image_url", "image_url_wm", "match_order", "is_starred"];
+  const allowed = [
+    "image_url",
+    "image_url_wm",
+    "match_order",
+    "is_starred",
+    "edit_settings",
+  ];
   const sets: string[] = [];
   const vals: unknown[] = [];
 
