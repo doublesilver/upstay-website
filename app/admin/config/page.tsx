@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
-  closestCenter,
+  KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -12,8 +13,9 @@ import {
 import {
   SortableContext,
   arrayMove,
-  verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
@@ -119,6 +121,7 @@ export default function ConfigPage() {
 
   const categorySensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const load = () =>
@@ -142,10 +145,6 @@ export default function ConfigPage() {
 
   const setText = (key: keyof Config) => (newValue: string) => {
     setConfig((prev) => ({ ...prev, [key]: newValue }));
-  };
-
-  const setStyle = (key: keyof Config) => (style: TextStyle) => {
-    setConfig((prev) => ({ ...prev, [key]: JSON.stringify(style) }));
   };
 
   const getStyle = (key: keyof Config): TextStyle =>
@@ -230,7 +229,7 @@ export default function ConfigPage() {
       </div>
 
       {loading && (
-        <div className="py-20 text-center text-[#999] text-[14px]">
+        <div className="py-20 text-center text-[#666] text-[14px]">
           로딩 중...
         </div>
       )}

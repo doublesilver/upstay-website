@@ -5,8 +5,9 @@ import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { RotateCcw, X } from "lucide-react";
 import {
   DndContext,
-  closestCenter,
+  KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -14,6 +15,7 @@ import {
 import {
   SortableContext,
   horizontalListSortingStrategy,
+  sortableKeyboardCoordinates,
   useSortable,
 } from "@dnd-kit/sortable";
 
@@ -311,6 +313,7 @@ export function ImageEditModal({
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -409,6 +412,10 @@ export function ImageEditModal({
         : prev,
     );
     posCalibratedRef.current = true;
+    // wmPos.{x,y} 는 의도적으로 deps에서 제외 — 사용자가 워터마크를 드래그할 때마다
+    // 캘리브레이션이 재실행되면 위치가 강제로 중앙으로 리셋되어 드래그가 무용지물이 됨.
+    // 캘리브레이션은 로고 로드/앵커 변경/스케일 변경/이미지 전환 시점에만 발생해야 함.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logoImg, settings.wmAnchor, settings.wmScale, currentId]);
 
   useEffect(() => {

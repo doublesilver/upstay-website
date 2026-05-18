@@ -5,8 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 //       관리자 초기 번들 크기를 줄일 수 있음. 현재는 직접 import 유지.
 import {
   DndContext,
-  closestCenter,
+  KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -14,6 +15,7 @@ import {
 import {
   SortableContext,
   arrayMove,
+  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -690,6 +692,7 @@ export default function RemodelingAdminPage() {
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const flash = (message: string) => setToast(message);
@@ -1278,7 +1281,7 @@ export default function RemodelingAdminPage() {
       </DndContext>
 
       {loading && cases.length === 0 && (
-        <div className="py-20 text-center text-[#999] text-[14px]">
+        <div className="py-20 text-center text-[#666] text-[14px]">
           로딩 중...
         </div>
       )}

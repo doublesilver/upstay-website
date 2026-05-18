@@ -291,7 +291,7 @@ erDiagram
 | `site_config`       | 60+          | `key`, `value` (JSON)                       | 헤더/서비스/카테고리 텍스트 + 스타일 |
 | `announcements`     | ~5           | `title_style`, `content_style`              | 공지 팝업                            |
 | `auth_rate_limit`   | 동적         | `ip`, `count`                               | 5분/5회 brute force 방어             |
-| `schema_migrations` | 016+         | `filename`                                  | 자동 마이그레이션 트래커             |
+| `schema_migrations` | 020+         | `filename`                                  | 자동 마이그레이션 트래커             |
 
 ---
 
@@ -602,7 +602,7 @@ catch (e) {
 
 > 💡 **베스트 프랙티스**: `CREATE TABLE`은 절대 변경하지 말 것. 새 컬럼은 ALTER 마이그레이션 단독으로 추가. fresh DB와 production DB 모두 정상 동작.
 
-### 현재 마이그레이션 (16개)
+### 현재 마이그레이션 (20개)
 
 ```
 001_add_star_field.sql              ─ slot_position 별표
@@ -616,7 +616,11 @@ catch (e) {
 013_auth_rate_limit.sql             ─ 로그인 rate limit 테이블
 014_add_announcement_styles.sql     ─ 공지 fontWeight style 컬럼
 015_strip_legacy_bold_markers.sql   ─ ** 마크다운 → fontWeight 마이그레이션
-016_drop_image_url_wm.sql           ─ 워터마크 컬럼 폐기
+016_drop_image_url_wm.sql           ─ 워터마크 컬럼 폐기 (017에서 부활)
+017_restore_image_url_wm.sql        ─ 워터마크 컬럼 부활 (클라이언트 확정)
+018_add_edit_settings.sql           ─ 사진 편집 슬라이더 보정값 DB 영속화
+019_add_is_draft.sql                ─ 박스 새박스 상태 (3단 영역 흐름)
+020_remodeling_cases_sort_index.sql ─ sort_order 복합 인덱스
 ```
 
 ---
@@ -692,7 +696,7 @@ const KAKAO_ID = "mh.0624";
 
 ```bash
 public/logo.svg       # 헤더/관리자 로그인 로고
-public/watermark.svg  # (현재 미사용 — v3.10에서 워터마크 시스템 폐기)
+public/watermark.svg  # (v3.10에서 폐기 후 v3.11에서 부활 — 017 마이그레이션으로 image_url_wm 컬럼 복원)
 ```
 
 > Adobe Illustrator → `File → Export As... → SVG` 로 내보낸 파일을 위 경로에 덮어쓰기.

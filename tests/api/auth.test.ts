@@ -1,14 +1,14 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import { SignJWT } from "jose";
 import { setupTempDataDir, makeRequest } from "../api-helpers";
-import { JWT_SECRET } from "../../lib/auth";
 
 beforeAll(() => {
   setupTempDataDir();
 });
 
 function getSecret() {
-  return new TextEncoder().encode(JWT_SECRET);
+  // setupTempDataDir이 JWT_SECRET을 주입하므로 import 단계가 아닌 함수 호출 시점에 읽는다.
+  return new TextEncoder().encode(process.env.JWT_SECRET!);
 }
 
 describe("verifyToken", () => {
