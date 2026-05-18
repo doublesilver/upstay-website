@@ -713,8 +713,9 @@ export default function RemodelingAdminPage() {
     [cases],
   );
 
-  // 메인1/2/3 지정 박스를 항상 상단에 1→2→3 순서로 고정하고,
-  // 나머지 일반 박스는 그 아래에 sort_order 순으로 표시한다.
+  // 일반(메인 미지정) 박스는 위쪽 영역에 sort_order 순으로,
+  // 메인1/2/3 지정 박스는 그 아래에 1→2→3 순서로 고정 표시한다.
+  // "박스 추가" 시 신규 박스가 최상단에 오도록(클라이언트 요청).
   const sortedCases = useMemo(() => {
     const mainSlots: (RemodelingCase | undefined)[] = [
       undefined,
@@ -733,7 +734,7 @@ export default function RemodelingAdminPage() {
       (c): c is RemodelingCase => c !== undefined,
     );
     others.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
-    return [...main, ...others];
+    return [...others, ...main];
   }, [cases]);
 
   const isMainPinned = (c: RemodelingCase) =>
