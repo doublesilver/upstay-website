@@ -852,12 +852,13 @@ export default function RemodelingAdminPage() {
 
   const handleAdd = async () => {
     try {
-      // 새박스 영역 안에서 최근 추가가 더 위에 오도록 sort_order 최소-1 부여.
-      // 새박스가 여러 개일 때 가장 최근 박스가 맨 위에 위치한다.
-      const draftCases = cases.filter(isDraft);
+      // 모든 박스 중 sort_order 최소-1을 부여한다. 그래야 새박스가
+      //   ① 새박스 영역 안에서 가장 위 (최근 추가가 위)
+      //   ② "저장" 후 그 외 영역으로 이동해도 그 외 영역의 가장 위(메인 바로 아래)
+      // 두 위치 모두 만족한다. 메인 영역은 sort_order를 무시하므로 영향 없음.
       const topSortOrder =
-        draftCases.length > 0
-          ? Math.min(...draftCases.map((c) => c.sort_order)) - 1
+        cases.length > 0
+          ? Math.min(...cases.map((c) => c.sort_order)) - 1
           : 0;
       await apiFetch("/api/admin/remodeling", {
         method: "POST",
