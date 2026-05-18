@@ -330,7 +330,7 @@ flowchart LR
 | Framework | Next.js        | 15.5 | App Router, SSR, ISR |
 | UI        | React          | 19.1 | 컴포넌트             |
 | 스타일    | Tailwind CSS   | 4.x  | 유틸리티 클래스      |
-| 폰트      | Pretendard     | CDN  | 한글 폰트            |
+| 폰트      | Pretendard     | 셀프 호스팅 (next/font/local, SIL OFL 1.1) | 한글 폰트            |
 | DB        | better-sqlite3 | 12.9 | 동기 SQLite, WAL     |
 | 이미지    | sharp          | 0.34 | avif/webp 변환       |
 | 인증      | jose           | 6.x  | JWT (HS256)          |
