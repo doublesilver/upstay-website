@@ -259,6 +259,7 @@ export default function AdminLayout({
                   onChange={(e) => setId(e.target.value)}
                   autoComplete="off"
                   placeholder="아이디"
+                  aria-label="아이디"
                   className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
                 />
                 <input
@@ -268,11 +269,12 @@ export default function AdminLayout({
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="off"
                   placeholder="비밀번호"
+                  aria-label="비밀번호"
                   className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
                 />
                 <div className="h-px bg-[#E5E5E5]" />
                 {error && (
-                  <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-[12px] text-red-600">
+                  <div role="alert" aria-live="polite" className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-[12px] text-red-600">
                     {error}
                   </div>
                 )}
@@ -342,7 +344,7 @@ export default function AdminLayout({
           href="/"
           target="_blank"
           onClick={onNavigate}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#888] hover:bg-[#FAFAFA] hover:text-[#111] transition-all"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#555] hover:bg-[#FAFAFA] hover:text-[#111] transition-all"
         >
           <svg
             width="18"
@@ -363,7 +365,7 @@ export default function AdminLayout({
         <button
           onClick={handleLogout}
           disabled={loggingOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#888] hover:bg-[#FAFAFA] hover:text-red-500 transition-all w-full disabled:opacity-50"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#555] hover:bg-[#FAFAFA] hover:text-red-500 transition-all w-full disabled:opacity-50"
         >
           <svg
             width="18"

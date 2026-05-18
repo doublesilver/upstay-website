@@ -24,7 +24,9 @@ html,
 body {
   background: #ffffff;
   color: #111111;
+  /* --font-pretendard 는 app/layout.tsx 의 next/font/local 이 주입한 CSS 변수 */
   font-family:
+    var(--font-pretendard),
     "Pretendard Variable",
     "Pretendard",
     -apple-system,

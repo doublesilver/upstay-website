@@ -11,12 +11,16 @@ const WINDOW_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 function clientIp(req: NextRequest): string {
-  // Railway/Cloudflare 프록시 환경 기준: 첫 번째 IP가 진짜 클라이언트
-  // 직접 노출이면 헤더 spoofing 가능하나 외주 단일 admin이라 수용 가능
+  // x-forwarded-for는 클라이언트가 임의로 prepend 할 수 있는 헤더다. 프록시(Railway/Cloudflare)는
+  // 자기가 본 IP를 끝에 append 하므로 "마지막" 값이 신뢰 가능한 실제 클라이언트 IP.
+  // 첫 번째를 쓰면 공격자가 매 요청마다 다른 IP를 헤더에 박아 rate-limit 우회 가능.
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return first;
+    const parts = forwarded
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (parts.length > 0) return parts[parts.length - 1];
   }
   const real = req.headers.get("x-real-ip");
   if (real) return real.trim();

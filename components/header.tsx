@@ -55,13 +55,16 @@ export function Header({
                     |
                   </span>
                 )}
-                <span className="text-[15px] md:text-[18px] font-bold text-[#111111] whitespace-nowrap">
+                <Link
+                  href={item.href}
+                  className="text-[15px] md:text-[18px] font-bold text-[#111111] whitespace-nowrap hover:opacity-80 transition-opacity"
+                >
                   {item.label}
-                </span>
+                </Link>
               </span>
             ))}
           </nav>
-          <p className="mt-0 text-[11.5px] md:text-[13px] text-[#9CA3AF] tracking-tight [@media(max-width:380px)]:hidden">
+          <p className="mt-0 text-[11.5px] md:text-[13px] text-[#6B7280] tracking-tight [@media(max-width:380px)]:hidden">
             {config?.slogan_text || SLOGAN}
           </p>
         </div>
