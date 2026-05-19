@@ -18,6 +18,8 @@ const pretendard = localFont({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Android Chrome 주소창 / PWA standalone 상단 색상. 헤더 배경과 동일.
+  themeColor: "#F1F8E9",
 };
 
 export const metadata: Metadata = {
@@ -34,13 +36,41 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  // app/icon.{svg,png}, app/apple-icon.png은 Next.js file convention이 자동으로 처리하지만
+  // app/manifest.ts와 PWA 아이콘은 명시 등록이 필요해 icons 메타에 추가.
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    other: [
+      { rel: "icon", url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { rel: "icon", url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
+  manifest: "/manifest.webmanifest",
   openGraph: {
     title: siteConfig.title,
     description: siteConfig.description,
     siteName: siteConfig.koreanName,
     locale: "ko_KR",
     type: "website",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    url: "/",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: siteConfig.koreanName,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.title,
+    description: siteConfig.description,
+    images: ["/og-image.png"],
   },
 };
 
