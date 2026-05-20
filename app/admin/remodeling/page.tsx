@@ -1018,32 +1018,47 @@ export default function RemodelingAdminPage() {
 
     let success = 0;
     let failedReason = "";
+    // 최신 폰 사진은 장당 5~10MB라 한 번에 보내면 next 미들웨어 100MB 한도나
+    // Cloudflare 100MB request body 한도에 걸리기 쉽다. 5장씩 batch로 끊어
+    // 순차 업로드해서 실패율을 낮춘다. 진행 상황은 토스트로 노출.
+    const BATCH_SIZE = 5;
+    let nextOrder = maxOrder;
 
     try {
-      const urls = await uploadFiles(fileArray);
+      for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
+        const batch = fileArray.slice(i, i + BATCH_SIZE);
+        if (fileArray.length > BATCH_SIZE) {
+          flash(
+            `업로드 중... ${i + 1}~${Math.min(i + BATCH_SIZE, fileArray.length)}/${fileArray.length}장`,
+          );
+        }
+        const urls = await uploadFiles(batch);
 
-      const results = await Promise.allSettled(
-        urls.map((url: string, index: number) =>
-          apiFetch("/api/admin/remodeling/images", {
-            method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify({
-              case_id: caseId,
-              type,
-              match_order: maxOrder + index + 1,
-              image_url: url,
-              is_starred: 0,
+        const results = await Promise.allSettled(
+          urls.map((url: string, index: number) =>
+            apiFetch("/api/admin/remodeling/images", {
+              method: "POST",
+              headers: getHeaders(),
+              body: JSON.stringify({
+                case_id: caseId,
+                type,
+                match_order: nextOrder + index + 1,
+                image_url: url,
+                is_starred: 0,
+              }),
             }),
-          }),
-        ),
-      );
-      success = results.filter((r) => r.status === "fulfilled").length;
-      const firstFail = results.find((r) => r.status === "rejected") as
-        | PromiseRejectedResult
-        | undefined;
-      if (firstFail) failedReason = errMsg(firstFail.reason);
+          ),
+        );
+        nextOrder += batch.length;
+        success += results.filter((r) => r.status === "fulfilled").length;
+        const firstFail = results.find((r) => r.status === "rejected") as
+          | PromiseRejectedResult
+          | undefined;
+        if (firstFail && !failedReason)
+          failedReason = errMsg(firstFail.reason);
+      }
     } catch (error) {
-      failedReason = errMsg(error);
+      if (!failedReason) failedReason = errMsg(error);
     }
 
     setUploading(false);
