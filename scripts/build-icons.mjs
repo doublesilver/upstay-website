@@ -36,8 +36,10 @@ async function makeContain(size, file, { background = BG, padding = 0.15 } = {})
 }
 
 async function makeMaskable(size, file) {
-  // Android maskable: 가운데 80%만 안전. 패딩 20%.
-  await makeContain(size, file, { padding: 0.2 });
+  // Android maskable 표준 안전 영역은 가운데 80% (중심에서 반지름 40%).
+  // 패딩 10% 까지 채워야 안전 영역 한계까지 로고를 크게 표시할 수 있다.
+  // 이전엔 20% 패딩으로 너무 보수적이라 글씨가 작게 보였음.
+  await makeContain(size, file, { padding: 0.1 });
 }
 
 async function makeOgImage(file) {
