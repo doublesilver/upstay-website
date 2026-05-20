@@ -327,6 +327,12 @@ export function ImageEditModal({
   const [settings, setSettings] = useState<EditSettings>(() =>
     loadSettingsForImage(images.find((img) => img.id === initialImageId)),
   );
+  // 화면에 마지막으로 표시된 값을 기억해두는 draft.
+  // 사진 전환 시 그 사진에 저장된 값이 없으면 직전 사진의 슬라이더 값을 그대로
+  // 따라가게 해서 같은 보정을 여러 사진에 빠르게 적용할 수 있게 한다.
+  // (PR #21에서 한 번 제거했으나 클라이언트 작업 흐름을 깨서 복원.
+  //  "데이터 손상 오인" 우려는 슬라이더 위 "미저장" 뱃지로 해결.)
+  const draftSettingsRef = useRef<EditSettings>(settings);
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -339,21 +345,50 @@ export function ImageEditModal({
     [images, currentId],
   );
 
+  // 현재 슬라이더 값이 DB 저장값과 다른지 — "미저장(draft)" 뱃지 표시 기준.
+  const currentDbSettings = useMemo(
+    () => parseSettings(current?.edit_settings),
+    [current?.edit_settings],
+  );
+  const isDirty = useMemo(() => {
+    if (!currentDbSettings) {
+      // DB값 없음 — DEFAULT와 다르면 dirty
+      return JSON.stringify(settings) !== JSON.stringify(DEFAULT_SETTINGS);
+    }
+    return JSON.stringify(settings) !== JSON.stringify(currentDbSettings);
+  }, [settings, currentDbSettings]);
+
   useEffect(() => {
     setCurrentId(initialImageId);
   }, [initialImageId]);
 
   const posCalibratedRef = useRef(false);
 
-  // 사진 전환 시: DB 저장값 > localStorage > DEFAULT 순으로 사용.
-  // 이전 버전에는 draft fallback(직전 사진의 미저장 슬라이더 값을 그대로 따라감)이
-  // 있었으나, 클라이언트가 "개별적용을 눌렀는데 다 적용된 것처럼 보임"으로 혼동.
-  // 시각적 착시로 인한 데이터 손상 오인을 막기 위해 draft fallback을 제거.
+  // draft 추적: 슬라이더가 바뀔 때마다 마지막 값을 기억해둔다.
+  useEffect(() => {
+    draftSettingsRef.current = settings;
+  }, [settings]);
+
+  // 사진 전환 시: DB 저장값 > localStorage > draft > DEFAULT 순.
+  //   - DB값이 있으면 그걸 우선 (영속화된 값 = 진실)
+  //   - 없으면 localStorage (같은 브라우저에서 작업하던 값)
+  //   - 그것도 없으면 직전 사진에서 보던 draft 그대로 (작업 흐름 유지)
+  // 의존성을 [currentId] 만으로 한정 — images 배열은 load() 마다 새 객체라
+  // 그것을 deps에 두면 "전체적용 중에 매번 리셋"되어 슬라이더와 워터마크가
+  // 흔들리는 회귀가 발생함.
   useEffect(() => {
     const img = images.find((image) => image.id === currentId);
-    setSettings(loadSettingsForImage(img));
+    const fromDb = parseSettings(img?.edit_settings);
+    const fromLocal =
+      typeof window !== "undefined"
+        ? parseSettings(localStorage.getItem(imageSettingsKey(currentId)))
+        : null;
+    const next: EditSettings =
+      fromDb ?? fromLocal ?? draftSettingsRef.current ?? DEFAULT_SETTINGS;
+    setSettings(next);
     posCalibratedRef.current = false;
-  }, [currentId, images]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentId]);
 
   useEffect(() => {
     loadImage("/watermark.png")
@@ -665,9 +700,19 @@ export function ImageEditModal({
           <div className="w-[280px] shrink-0 border-l border-[#111] flex flex-col">
             <div className="flex-1 overflow-hidden p-3 space-y-2">
               <div className="border border-[#111] rounded-xl p-3">
-                <p className="text-[11px] font-bold tracking-wider text-[#777] mb-2">
-                  사진 보정
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[11px] font-bold tracking-wider text-[#777]">
+                    사진 보정
+                  </p>
+                  {isDirty && (
+                    <span
+                      className="text-[10px] font-semibold text-orange-600 bg-orange-50 border border-orange-200 rounded px-1.5 py-0.5"
+                      title="이 슬라이더 값은 아직 이 사진에 저장되지 않았습니다. '개별적용' 또는 '전체적용'을 눌러야 저장됩니다."
+                    >
+                      미저장
+                    </span>
+                  )}
+                </div>
                 <div className="h-px bg-[#E5E5E5] mb-2" />
                 <Slider
                   label="선명도"
