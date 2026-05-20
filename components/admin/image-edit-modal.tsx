@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
-import { RotateCcw, X } from "lucide-react";
+import { X } from "lucide-react";
 import {
   DndContext,
   KeyboardSensor,
@@ -840,9 +840,8 @@ export function ImageEditModal({
               <button
                 type="button"
                 onClick={reset}
-                className="inline-flex items-center justify-center gap-1 min-w-[72px] border border-[#111] rounded-lg px-3 py-2 text-[12px] text-[#666] hover:bg-[#F7F7F7] transition-all"
+                className="inline-flex items-center justify-center min-w-[72px] border border-[#111] rounded-lg px-3 py-2 text-[12px] text-[#666] hover:bg-[#F7F7F7] transition-all"
               >
-                <RotateCcw size={12} />
                 초기화
               </button>
               <button
