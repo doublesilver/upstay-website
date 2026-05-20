@@ -327,9 +327,6 @@ export function ImageEditModal({
   const [settings, setSettings] = useState<EditSettings>(() =>
     loadSettingsForImage(images.find((img) => img.id === initialImageId)),
   );
-  // 화면에 마지막으로 표시된 값을 기억해두는 draft.
-  // 사진 전환 시 그 사진의 저장된 슬롯이 없으면 이 draft를 그대로 미리보기로 따라가게 함.
-  const draftSettingsRef = useRef<EditSettings>(settings);
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState<"one" | "all" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -348,25 +345,13 @@ export function ImageEditModal({
 
   const posCalibratedRef = useRef(false);
 
+  // 사진 전환 시: DB 저장값 > localStorage > DEFAULT 순으로 사용.
+  // 이전 버전에는 draft fallback(직전 사진의 미저장 슬라이더 값을 그대로 따라감)이
+  // 있었으나, 클라이언트가 "개별적용을 눌렀는데 다 적용된 것처럼 보임"으로 혼동.
+  // 시각적 착시로 인한 데이터 손상 오인을 막기 위해 draft fallback을 제거.
   useEffect(() => {
-    draftSettingsRef.current = settings;
-  }, [settings]);
-
-  // 사진 전환 시: DB 저장값 > localStorage > 직전 사진의 draft 순으로 우선
-  // 미적용 상태의 보정값이 다른 사진으로도 따라가도록 draft fallback 유지.
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      posCalibratedRef.current = false;
-      return;
-    }
     const img = images.find((image) => image.id === currentId);
-    const fromDb = parseSettings(img?.edit_settings);
-    const fromLocal = parseSettings(
-      localStorage.getItem(imageSettingsKey(currentId)),
-    );
-    const next: EditSettings =
-      fromDb ?? fromLocal ?? draftSettingsRef.current;
-    setSettings(next);
+    setSettings(loadSettingsForImage(img));
     posCalibratedRef.current = false;
   }, [currentId, images]);
 

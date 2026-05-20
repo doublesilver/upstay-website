@@ -2,7 +2,10 @@ import { SignJWT, jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 
 export const AUTH_COOKIE = "upstay_admin_token";
-const MAX_AGE_SECONDS = 60 * 60 * 8;
+// 단일 admin 사용자 환경에서 8시간은 짧아 작업 도중 세션이 만료되는 일이 잦았음.
+// 24시간으로 연장. 위험도: 토큰 탈취 시 노출 시간 3배. 단 HttpOnly+Strict 쿠키 + CSRF
+// origin 검증 + rate limit + 단일 사용자라 실제 위험 증가는 제한적.
+const MAX_AGE_SECONDS = 60 * 60 * 24;
 
 // 테스트에서 동일한 시크릿으로 JWT를 서명하기 위해 export.
 // 운영 코드는 process.env.JWT_SECRET을 직접 읽지 않고 getSecretBytes()를 통한다.
@@ -48,7 +51,7 @@ export function verifyCredentials(id: string, pw: string): boolean {
 export async function createToken(): Promise<string> {
   return await new SignJWT({ role: "admin" })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("8h")
+    .setExpirationTime("24h")
     .setJti(crypto.randomUUID())
     .sign(getSecretBytes());
 }
