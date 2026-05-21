@@ -317,26 +317,31 @@ export default function AdminLayout({
         </Link>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-all ${
-              isActive(item.href)
-                ? "bg-[#F7F7F7] text-[#111] font-semibold"
-                : "text-[#666] hover:bg-[#FAFAFA] hover:text-[#111]"
-            }`}
-          >
-            <span
-              className={isActive(item.href) ? "text-[#111]" : "text-[#999]"}
+      <nav aria-label="관리자 메뉴" className="flex-1 px-3 py-4 space-y-0.5">
+        {navItems.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-all ${
+                active
+                  ? "bg-[#F7F7F7] text-[#111] font-semibold"
+                  : "text-[#666] hover:bg-[#FAFAFA] hover:text-[#111]"
+              }`}
             >
-              {item.icon}
-            </span>
-            {item.label}
-          </Link>
-        ))}
+              <span
+                aria-hidden="true"
+                className={active ? "text-[#111]" : "text-[#999]"}
+              >
+                {item.icon}
+              </span>
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="px-3 py-4 border-t border-[#111] space-y-0.5">

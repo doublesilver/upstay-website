@@ -184,3 +184,79 @@
 - `case_images.image_url_wm` production volume 데이터 손실 점검 — `schema_migrations` 016 적용 이력 확인 후 결과에 따라 백업 복원 가능성.
 - 운영 자격증명(`ADMIN_PW`, `JWT_SECRET`) GitHub 히스토리 노출 — Railway 환경변수 새 값으로 교체 + 필요 시 `git filter-repo` history 정리.
 - `file2s.zip` / `file33s.zip` / `upstay-logo.png` 등 무관 commit 파일 정리 (force push 동의 필요).
+
+
+## v3.15 (2026-05-18) — 1차 전수검사 자동수정 일괄
+
+PR #13 squash merge. 검수 보고서 `inspection-report-2026-05-18-2003.md` 기반.
+
+### CRITICAL
+- sanitize-html `^2.17.4` 업데이트 — `GHSA-rpr9-rxv7-x643` XSS 해소.
+- next `^16.2.6` 메이저 업그레이드 — 미들웨어 우회 다중(`GHSA-26hh-7cqf-hhc6` 등) 해소.
+- `components/header.tsx` navItem `<span>` → `<Link>` — 사이트 핵심 탐색 복구.
+
+### HIGH (보안·a11y·성능 일괄)
+- 테스트 4 suite 정상화 (`JWT_SECRET` import 제거 → setupTempDataDir env 자동 주입). 9 files / 30 tests 전수 PASS.
+- ESLint 2 warnings 해소 (`setStyle` dead code 제거 + image-edit-modal useEffect deps 의도 주석).
+- rate-limit IP 추출을 `x-forwarded-for` "마지막" 값으로 변경 — 프록시 환경 스푸핑 방어.
+- 사례 상세 페이지 `slot_position` 우선 정렬 적용.
+- 색 대비 4.5:1 미달 토큰 일괄 교체 (`#9CA3AF`→`#6B7280`, `#888`→`#555`, 빈상태 `#999`→`#666`).
+- dnd-kit `KeyboardSensor` 3곳 추가 (admin/remodeling, admin/config, image-edit-modal) — 드래그&드롭 키보드 접근성.
+- 관리자 로그인 input `aria-label` + 에러 박스 `role="alert"`.
+- 홈 빈 상태 안내 텍스트.
+
+### 마이그레이션
+- `020_remodeling_cases_sort_index.sql` — `(sort_order, id)` 복합 인덱스로 정렬 회귀 방지.
+
+## v3.16 (2026-05-18 ~ 2026-05-19) — PWA 메타 자산 보강 일괄
+
+PR #14~#20. 외주 Out-of-Scope 자발적 품질 보강 (추가 비용 없음, 클라이언트 사후 동의 권장).
+
+### UX·접근성
+- PR #14 `ui(admin)`: 박스 3단계 영역(새박스/메인/그외) 시각 구분 헤더+구분선.
+- PR #15 `perf(font)`: Pretendard 셀프 호스팅(next/font/local) — LCP 개선, CDN 의존 제거, CSP `jsdelivr` 제거.
+- PR #16 `ui(admin)`: 모바일 햄버거 메뉴 + 슬라이드 사이드바 (lg 이하).
+- PR #17 `a11y`: 모달 focus trap + 초기 포커스 (KakaoButton / AnnouncementPopup / 삭제 다이얼로그 2곳).
+- PR #18 `perf(admin)`: 이미지 bulk delete N+1 → 단일 요청 (`ids: number[]` + `case_id` 트랜잭션).
+- PR #19 `test`: 핵심 비즈니스 로직 단위 테스트 (`lib/case-sorting.ts` 추출 + 5 test 파일, 73 tests 전수 PASS).
+
+### PR #20 PWA 메타 자산 7종 일괄 보강
+- `app/icon.svg`, `app/icon.png` (32), `app/apple-icon.png` (180), `public/icon-{192,512}.png` (Android Chrome maskable), `public/og-image.png` (1200×630, SNS 표준), `app/manifest.ts` (Web App Manifest).
+- `scripts/build-icons.mjs` — sharp 기반 일괄 생성 스크립트.
+- `app/layout.tsx` viewport themeColor + metadata.icons + manifest + twitter card 추가.
+
+## v3.17 (2026-05-19 ~ 2026-05-21) — 회귀 핫픽스 + PWA 추가 보강 + 2차 자동수정
+
+### PR #21 회귀 + silent fail 차단
+- `lib/admin-api.ts` 401 응답 시 `alert()` 동기 차단으로 명시 안내 후 redirect — "업로드 안 됨 + 메시지 없음" 보고 해결.
+- `lib/auth.ts` JWT 만료 8h → 24h (단일 admin + HttpOnly+SameSite+CSRF+rate-limit 종합 위험 평가).
+- `components/admin/image-edit-modal.tsx` draft fallback 일시 제거 (이후 PR #24에서 복원).
+
+### PR #22~#23 PWA 아이콘 추가 보강
+- PR #22: Maskable 안전 영역 80%까지 사용(padding 0.2 → 0.1).
+- PR #23: any/maskable 자산 분리 (`icon-{192,512}.png` purpose=any 패딩 5%, `icon-maskable-{192,512}.png` purpose=maskable 패딩 10%) + SVG trim. manifest.ts 분리 등록.
+
+### PR #24 모달 회귀 핫픽스 + 다량 업로드 batch
+- `image-edit-modal.tsx` draft fallback 복원 (`draftSettingsRef`) + useEffect deps `[currentId]` 만으로 한정 → 전체적용 중 슬라이더/워터마크 흔들림 제거.
+- "미저장" orange 뱃지 — 데이터 손상 오인 방지와 작업 흐름 양립.
+- `handleBulkUpload` 5장씩 batch 분할 + 진행 토스트 → next 미들웨어 100MB / Cloudflare 100MB 한도 회피.
+
+### PR #25 사진 편집 모달 정리
+- 초기화 버튼 `RotateCcw` 아이콘 제거 (텍스트만).
+
+### 2차 전수검사 자동수정 (현재 차수)
+- `lib/home-data.ts` `getMainCases` / `getAllCases` 공개 쿼리에 `is_draft = 0` 필터 — 새박스(작업 중)가 공개 페이지에 노출되지 않도록.
+- `app/remodeling/[id]/page.tsx` `generateStaticParams` + 케이스 조회에 `is_draft = 0` 필터 — sitemap·정적 빌드 깨끗.
+- 마이그레이션 `021_case_images_type_index.sql` — `(case_id, type, match_order)` 일반 복합 인덱스로 케이스 증가 시 full scan 회귀 방지.
+- `lib/admin-schemas.ts` 이미지 URL regex `^/api/uploads/[\w.-]+$` 로 좁힘 (SSRF·내부망 주입 차단).
+- `app/api/admin/upload/route.ts` sharp `limitInputPixels` 24M → 200M 상향 — 최신 폰 카메라(48MP/200MP)도 자동 다운스케일 정상 처리, silent fallback DoS 위험 제거.
+- `next.config.ts` 정적 자산 캐시 헤더 매칭 패턴 보강 — PWA 아이콘(`icon-192/512`, `icon-maskable-*`)과 `og-image` 도 포함.
+- `README.md` 디렉토리 구조 + 워터마크 표기 갱신, `scripts/build-icons.mjs` 헤더 주석 any/maskable 분리 반영.
+
+### 후속 차수 결정 필요 (계속)
+- `/remodeling` 별표 fallback (클라이언트 확답).
+- production volume의 016 적용 이력 점검 (워터마크 손실 가능성).
+- 운영 자격증명 GitHub 히스토리 + Railway env 교체.
+- 무관 파일(`file2s.zip` 등) 정리 (force push 동의 필요).
+- Pretendard 폰트 KS X 1001 서브셋 woff2 교체 (~450KB 절감).
+- 비밀번호 평문 → argon2 해시 전환.

@@ -178,9 +178,19 @@ function ImageThumb({
   onToggleCheck: () => void;
   onAssignSlot: (slot: number) => void;
 }) {
+  const handleActivate = selectionMode ? onToggleCheck : onOpenImage;
   return (
     <div
-      onClick={selectionMode ? onToggleCheck : onOpenImage}
+      role="button"
+      tabIndex={0}
+      aria-label={selectionMode ? "사진 선택 토글" : "사진 편집 열기"}
+      onClick={handleActivate}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleActivate();
+        }
+      }}
       className={`relative group w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all cursor-pointer ${
         checked ? "border-[#111] ring-2 ring-[#111]" : "border-[#111]"
       }`}

@@ -34,9 +34,14 @@ async function optimize(buffer: Buffer, ext: string): Promise<Buffer> {
   if (normalizedExt === "gif") {
     return buffer;
   }
+  // 최신 폰 카메라(예: 갤럭시 S24 Ultra 200MP, iPhone Pro 48MP)가 24M 픽셀을
+  // 초과하는 일이 잦음. 24M로 두면 sharp가 throw → catch에서 원본 저장(silent
+  // fallback) → 25MB JPEG가 디스크에 그대로 저장되어 DoS 위험.
+  // 200M까지 허용해 다운스케일이 정상 수행되도록 함. 메모리 부담은 일시적이며
+  // resize fit:inside로 출력은 항상 MAX_DIMENSION(2048) 이내로 줄어듦.
   let pipeline = sharp(buffer, {
     animated: false,
-    limitInputPixels: 24_000_000,
+    limitInputPixels: 200_000_000,
     failOn: "truncated",
   })
     .rotate()

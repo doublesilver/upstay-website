@@ -405,9 +405,15 @@ upstay-website/
 ├── middleware.ts                 # /admin/* + /api/admin/* JWT 검증
 ├── public/
 │   ├── logo.svg                  # 헤더/로그인 로고
-│   ├── icon-kakao.png
-│   ├── icon-phone.png
-│   └── ...
+│   ├── icon-kakao.png            # 카카오 버튼 아이콘
+│   ├── icon-phone.png            # 전화 버튼 아이콘
+│   ├── icon-192.png              # PWA any 192
+│   ├── icon-512.png              # PWA any 512
+│   ├── icon-maskable-192.png     # PWA Android maskable 192
+│   ├── icon-maskable-512.png     # PWA Android maskable 512
+│   ├── og-image.png              # SNS 미리보기 (1200x630)
+│   ├── watermark.png             # 워터마크 합성용
+│   └── fonts/                    # PretendardVariable.woff2 (셀프 호스팅)
 ├── data/                         # ⚠️ .gitignore (volume mount)
 │   ├── upstay.db
 │   ├── uploads/
@@ -696,7 +702,7 @@ const KAKAO_ID = "mh.0624";
 
 ```bash
 public/logo.svg       # 헤더/관리자 로그인 로고
-public/watermark.svg  # (v3.10에서 폐기 후 v3.11에서 부활 — 017 마이그레이션으로 image_url_wm 컬럼 복원)
+public/watermark.png  # 워터마크 합성용 (v3.10 폐기 → v3.11 부활, 017 마이그레이션으로 image_url_wm 컬럼 복원)
 ```
 
 > Adobe Illustrator → `File → Export As... → SVG` 로 내보낸 파일을 위 경로에 덮어쓰기.

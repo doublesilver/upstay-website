@@ -896,6 +896,7 @@ function Slider({
       <div className="flex items-center gap-2">
         <button
           type="button"
+          aria-label={`${label} 감소`}
           onClick={() => onChange(Math.max(min, value - 1))}
           className="text-[12px] text-[#666] w-3 text-center leading-none"
         >
@@ -903,6 +904,10 @@ function Slider({
         </button>
         <input
           type="range"
+          aria-label={label}
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={value}
           min={min}
           max={max}
           step={1}
@@ -912,6 +917,7 @@ function Slider({
         />
         <button
           type="button"
+          aria-label={`${label} 증가`}
           onClick={() => onChange(Math.min(max, value + 1))}
           className="text-[12px] text-[#666] w-3 text-center leading-none"
         >
