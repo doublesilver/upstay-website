@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     url: "/",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image-v2.png",
         width: 1200,
         height: 630,
         alt: siteConfig.koreanName,
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.description,
-    images: ["/og-image.png"],
+    images: ["/og-image-v2.png"],
   },
 };
 
@@ -90,7 +90,7 @@ export default async function RootLayout({
               "@context": "https://schema.org",
               "@type": "LocalBusiness",
               name: "업스테이",
-              image: "https://upstay.co.kr/og-image.png",
+              image: "https://upstay.co.kr/og-image-v2.png",
               address: {
                 "@type": "PostalAddress",
                 streetAddress: "학동로 26길 82 (논현동 157-26번지 1층)",
