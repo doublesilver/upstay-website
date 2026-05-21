@@ -260,3 +260,47 @@ PR #14~#20. 외주 Out-of-Scope 자발적 품질 보강 (추가 비용 없음, �
 - 무관 파일(`file2s.zip` 등) 정리 (force push 동의 필요).
 - Pretendard 폰트 KS X 1001 서브셋 woff2 교체 (~450KB 절감).
 - 비밀번호 평문 → argon2 해시 전환.
+
+## v3.18 (2026-05-21) — 3차 검수 자동수정 + 정책 결정
+
+### PR #27 자동수정 (UI 무영향 14건)
+
+CRITICAL 3건
+- CN-1 `app/sitemap.ts` `WHERE is_draft = 0` — PR #26 누락분.
+- C-3 README:518 ADMIN_PW 평문 제거 → placeholder + `openssl rand`.
+- C-4 무관 파일 4건 git rm (file2s.zip, file33s.zip, Screenshot*.JPG, upstay-logo.png).
+
+HIGH 4건
+- NH-2 ImageThumb nested interactive 해소 — 자식 별표 button `tabIndex={-1}` + `aria-label`.
+- NH-3 드래그 핸들 `aria-label` 2곳 (admin/remodeling, admin/config).
+- NH-4 모바일 헤더 `<h1>` → `<p aria-hidden>` — 페이지 본문 h1 중복 회피.
+- H-22 sharp metadata 사전 게이트 — 100MP 초과 업로드 400. 200MP OOM 차단.
+
+MEDIUM 7건
+- NM-1 `/api/uploads` `limitInputPixels` 100M 통일 (업로드 게이트와 일관).
+- NM-3 `next.config.ts` `icon-maskable-.*` 중복 패턴 제거.
+- NM-4 `next.config.ts` `/uploads/:path*` dead source 제거.
+- NM-15 로그인 input `aria-describedby` + `aria-invalid` 에러 메시지 연결.
+- NM-19 `.env.example`에 `SEED_DEMO=` 주석 추가.
+- 보안 HSTS 헤더 (`Strict-Transport-Security`) 추가.
+- `.gitignore`에 `.env.*` 패턴 + `sanitize-html`에 `https` only + `target="_blank"`에 `rel="noopener noreferrer"` 자동 주입.
+
+### 정책 결정 (클라이언트 확답)
+
+- **H-3 `/remodeling` 별표 fallback**: 클라이언트가 "현재 동작 유지"로 결정.
+  - 별표(`slot_position` 1~4) 지정된 사진이 있는 박스만 메인/리스트에 노출.
+  - 별표 미지정 박스는 의도적 제외.
+  - `WORK_ZONES.md` Zone 2 명세를 "별표만 노출"로 정정 (명세-코드 일치).
+  - `QUESTIONS.md` Q7로 기록.
+
+### 후속 차수 잔존
+
+- C-2 production volume 016/017 데이터 점검 (사용자 외부 액션 진행 중)
+- C-3 Railway env `ADMIN_PW`/`JWT_SECRET` 교체 (사용자 외부 액션 진행 중)
+- H-1 `/admin/config` 이탈 경고 (UI 다이얼로그 체감 우려로 보류)
+- H-6 Pretendard 폰트 KS X 1001 서브셋 (디자인 결정)
+- H-13 비밀번호 argon2 해시 전환 (보안 정책 결정)
+- H-16 배치 업로드 토스트 카피 (UX 카피 체감 우려)
+- H-17 `lib/site.ts` 주소 통일 (DB 운영값 확인)
+- NM-2 `home-data.ts` starredOnly=false dead 분기 (시그니처 변경, 별도 차수)
+- NM-30+ Medium 22건 (별도 차수)

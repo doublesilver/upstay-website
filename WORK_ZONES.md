@@ -20,7 +20,7 @@
 
 - **경로**: `/remodeling`
 - **대표 파일**: `app/remodeling/page.tsx`
-- **데이터 소스**: `lib/home-data.ts` (`getAllCases`) — 별표 우선 + 일반 fallback
+- **데이터 소스**: `lib/home-data.ts` (`getAllCases`) — **별표(`slot_position` 1~4) 지정된 사진이 있는 박스만 노출** (2026-05-21 클라이언트 확정). 별표 미지정 박스는 노출 대상 아님.
 - **검증 페이지**: 데스크탑 + 모바일
 
 ### Zone 3: 사례 상세 (사용자)
