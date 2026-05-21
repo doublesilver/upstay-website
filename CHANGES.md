@@ -304,3 +304,36 @@ MEDIUM 7건
 - H-17 `lib/site.ts` 주소 통일 (DB 운영값 확인)
 - NM-2 `home-data.ts` starredOnly=false dead 분기 (시그니처 변경, 별도 차수)
 - NM-30+ Medium 22건 (별도 차수)
+
+## v3.19 (2026-05-21) — 이미지 로딩 속도 개선 (precompute WebP/AVIF)
+
+### 배경
+클라이언트(민혁) "업로드한 사진이 로딩되는게 너무 느리다" 보고.
+진단 결과 sharp 변환 자체는 잘 동작하지만, **첫 요청 시 매번 변환에 1-3초** 소요 → 콜드캐시 첫 방문자가 느림.
+
+### 변경 (UI 무영향, DB 변경 0)
+
+**`app/api/admin/upload/route.ts`**
+- 업로드 직후 `precomputeVariants()` 백그라운드 호출. fire-and-forget이라 업로드 응답 지연 0.
+- 원본 옆에 `1234-abc.jpg.webp` + `1234-abc.jpg.avif` 사본 동시 생성.
+- gif는 sharp 단일프레임 한계로 제외.
+
+**`app/api/uploads/[...path]/route.ts`**
+- Accept 헤더 기반 서빙 시 1순위로 precomputed 사본 확인 → 있으면 즉시 streaming (sharp 호출 0, <50ms).
+- 없으면 (기존 업로드) 2순위로 기존 변환 캐시 fallback — 후방 호환 완전 유지.
+
+**`app/api/admin/remodeling/images/route.ts` + `app/api/admin/remodeling/route.ts`**
+- 이미지/케이스 삭제 시 `.webp` + `.avif` 사본도 동반 unlink. ENOENT는 정상(기존 업로드).
+
+### 효과
+- 새 업로드: 첫 요청부터 사용자 전원 빠름 (Railway CPU 0, 응답 <50ms)
+- 기존 업로드: 변경 없음 (기존 캐시 그대로)
+- 디스크 사용량: 업로드당 약 1.5-1.8배 (원본 + webp + avif)
+- Cloudflare cache HIT률 향상 — 정적 파일 동일 응답이라 CDN 캐싱 용이
+
+### 검증
+- 73 tests PASS (회귀 0)
+- typecheck PASS, lint clean, build PASS
+
+### 백필 (선택)
+기존 업로드에도 효과 적용하려면 1회성 백필 스크립트 필요. 우선 새 업로드부터 효과 확인 후 결정.

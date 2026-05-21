@@ -110,6 +110,35 @@ export async function GET(
   }
 
   if (targetFormat) {
+    // 1순위: 업로드 시점에 미리 만들어둔 .webp / .avif 사본 (Upload route의 precomputeVariants).
+    // 첫 요청부터 sharp 변환 없이 정적 streaming — Railway CPU 0, 응답 <50ms.
+    const precomputedPath = `${resolvedPath}.${targetFormat}`;
+    try {
+      const precomputedStat = await stat(precomputedPath);
+      if (precomputedStat.isFile()) {
+        const stream = createReadStream(precomputedPath);
+        const webStream = Readable.toWeb(stream) as ReadableStream;
+        return new Response(webStream, {
+          headers: {
+            "Content-Type": `image/${targetFormat}`,
+            "Content-Length": String(precomputedStat.size),
+            "Cache-Control": "public, max-age=31536000, immutable",
+            Vary: "Accept",
+          },
+        });
+      }
+    } catch (e) {
+      // ENOENT는 정상(기존 업로드는 사본 없음) — 아래 변환 fallback으로 진행.
+      if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
+        console.warn(
+          "[uploads GET] precomputed stat 실패:",
+          precomputedPath,
+          (e as Error).message,
+        );
+      }
+    }
+
+    // 2순위: 기존 업로드용 fallback — sha1 해시 키로 변환 캐시 (변환 후 디스크 저장).
     try {
       await mkdir(CACHE_DIR, { recursive: true });
 

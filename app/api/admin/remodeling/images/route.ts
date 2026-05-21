@@ -340,6 +340,21 @@ export async function DELETE(req: NextRequest) {
           (e as Error).message,
         );
       }
+      // 업로드 시 precompute한 WebP/AVIF 사본도 동반 삭제. 기존 업로드는 사본이
+      // 없으므로 ENOENT는 정상 — 그 외 오류만 로깅.
+      for (const suffix of [".webp", ".avif"]) {
+        try {
+          fs.unlinkSync(resolved + suffix);
+        } catch (e) {
+          if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
+            console.warn(
+              "[images DELETE] 사본 unlink 실패:",
+              resolved + suffix,
+              (e as Error).message,
+            );
+          }
+        }
+      }
     }
   }
 

@@ -118,6 +118,20 @@ export async function DELETE(req: NextRequest) {
       } catch (e) {
         console.warn("[DELETE] unlink 실패:", resolved, (e as Error).message);
       }
+      // 업로드 시 precompute한 WebP/AVIF 사본도 동반 삭제.
+      for (const suffix of [".webp", ".avif"]) {
+        try {
+          fs.unlinkSync(resolved + suffix);
+        } catch (e) {
+          if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
+            console.warn(
+              "[DELETE] 사본 unlink 실패:",
+              resolved + suffix,
+              (e as Error).message,
+            );
+          }
+        }
+      }
     }
   }
   invalidatePublicCache();
