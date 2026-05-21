@@ -471,6 +471,9 @@ function VisibilityToggle({
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={visible}
+      aria-label={`노출 ${visible ? "해제" : "활성화"}`}
       onClick={onToggle}
       className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-[12px] font-medium transition-all ${
         visible

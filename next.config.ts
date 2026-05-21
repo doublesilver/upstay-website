@@ -50,7 +50,10 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/:file(icon.*|logo.*|apple-icon.*|favicon.*)",
+        // PWA 아이콘(any/maskable) + 로고 + apple-icon + favicon + OG 이미지까지 포함.
+        // 기존 패턴은 `icon.svg` 등 dot 변형만 매치하고 `icon-192.png` 같은 dash는 미매치였음.
+        source:
+          "/:file(icon.*|icon-.*|icon-maskable-.*|logo.*|apple-icon.*|favicon.*|og-image.*)",
         headers: [
           {
             key: "Cache-Control",

@@ -6,9 +6,10 @@ import { notFound } from "next/navigation";
 export async function generateStaticParams() {
   try {
     const db = getDb();
-    const cases = db.prepare("SELECT id FROM remodeling_cases").all() as {
-      id: number;
-    }[];
+    // sitemap·정적 빌드에 새박스(작업 중) 포함되지 않도록.
+    const cases = db
+      .prepare("SELECT id FROM remodeling_cases WHERE is_draft = 0")
+      .all() as { id: number }[];
     return cases.map((c) => ({ id: String(c.id) }));
   } catch {
     return [];
@@ -26,7 +27,9 @@ export default async function RemodelingDetailPage({
 
   const db = getDb();
   const caseRow = db
-    .prepare("SELECT id, title FROM remodeling_cases WHERE id = ?")
+    .prepare(
+      "SELECT id, title FROM remodeling_cases WHERE id = ? AND is_draft = 0",
+    )
     .get(numId) as { id: number; title: string } | undefined;
   if (!caseRow) notFound();
 

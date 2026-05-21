@@ -1,6 +1,8 @@
 // 메타 아이콘 일괄 생성 스크립트
-// - app/icon.png, app/apple-icon.png, app/icon.svg
-// - public/icon-192.png, public/icon-512.png (maskable; Android Chrome 홈 화면)
+// - app/icon.png(32), app/apple-icon.png(180), app/icon.svg (favicon/iOS)
+// - public/icon-192.png, public/icon-512.png  (purpose=any; 사각 마스크 OS용)
+// - public/icon-maskable-192.png, public/icon-maskable-512.png  (purpose=maskable;
+//                                                                안전영역 80%)
 // - public/og-image.png (1200x630, SNS 미리보기 표준 비율)
 //
 // 실행: node scripts/build-icons.mjs

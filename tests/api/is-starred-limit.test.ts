@@ -47,7 +47,7 @@ describe("images POST is_starred 4-limit server guard", () => {
           case_id: 100,
           type: "before",
           is_starred: 1,
-          image_url: "http://example.com/star-5th.jpg",
+          image_url: "/api/uploads/star-5th.jpg",
         }),
       },
     );
@@ -88,7 +88,7 @@ describe("images POST is_starred 4-limit server guard", () => {
           case_id: 101,
           type: "after",
           is_starred: 1,
-          image_url: "http://example.com/after-4th.jpg",
+          image_url: "/api/uploads/after-4th.jpg",
         }),
       },
     );

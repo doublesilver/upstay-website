@@ -84,9 +84,10 @@ function buildCases(
 
 export function getMainCases(): RemodelingCase[] {
   const db = getDb();
+  // is_draft=1(새박스 작업 중)은 공개 메인에 노출 금지.
   const cases = db
     .prepare(
-      "SELECT id, title FROM remodeling_cases WHERE show_on_main IN (1, 2, 3) ORDER BY show_on_main ASC, sort_order ASC, id ASC",
+      "SELECT id, title FROM remodeling_cases WHERE show_on_main IN (1, 2, 3) AND is_draft = 0 ORDER BY show_on_main ASC, sort_order ASC, id ASC",
     )
     .all() as { id: number; title: string }[];
 
@@ -95,9 +96,10 @@ export function getMainCases(): RemodelingCase[] {
 
 export function getAllCases(): RemodelingCase[] {
   const db = getDb();
+  // is_draft=1(새박스 작업 중)은 공개 리스트에 노출 금지.
   const cases = db
     .prepare(
-      "SELECT id, title FROM remodeling_cases ORDER BY sort_order ASC, id ASC",
+      "SELECT id, title FROM remodeling_cases WHERE is_draft = 0 ORDER BY sort_order ASC, id ASC",
     )
     .all() as { id: number; title: string }[];
 

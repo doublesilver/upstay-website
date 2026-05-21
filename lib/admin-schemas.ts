@@ -49,12 +49,16 @@ export const caseUpdateSchema = z.object({
   is_draft: z.number().int().min(0).max(1).optional(),
 });
 
+// 내부 업로드 경로만 허용 — 임의 외부 URL을 image_url로 받지 않아 SSRF/내부망 주입 차단.
+// 데모 seed는 직접 INSERT라 zod 우회됨(seed 데이터는 이 검증 거치지 않음).
+const INTERNAL_IMAGE_URL = /^\/api\/uploads\/[\w.-]+$/;
+
 export const imagePostSchema = z.object({
   case_id: z.number().int(),
   type: z.enum(["before", "after"]),
   image_url: z
     .string()
-    .regex(/^(\/api\/uploads\/[\w.-]+|https?:\/\/.+)$/, "잘못된 image_url 형식")
+    .regex(INTERNAL_IMAGE_URL, "잘못된 image_url 형식")
     .optional(),
   is_starred: z.number().int().min(0).max(1).optional(),
 });
@@ -66,14 +70,11 @@ export const imageSlotSchema = z.object({
   is_starred: z.number().int().min(0).max(1).optional(),
   image_url: z
     .string()
-    .regex(/^(\/api\/uploads\/[\w.-]+|https?:\/\/.+)$/, "잘못된 image_url 형식")
+    .regex(INTERNAL_IMAGE_URL, "잘못된 image_url 형식")
     .optional(),
   image_url_wm: z
     .string()
-    .regex(
-      /^(\/api\/uploads\/[\w.-]+|https?:\/\/.+)$/,
-      "잘못된 image_url_wm 형식",
-    )
+    .regex(INTERNAL_IMAGE_URL, "잘못된 image_url_wm 형식")
     .optional(),
   // 사진 편집 슬라이더 보정값을 JSON 문자열로 저장. 길이 상한은 안전 마진.
   edit_settings: z.string().max(2000).optional(),
