@@ -337,3 +337,31 @@ MEDIUM 7건
 
 ### 백필 (선택)
 기존 업로드에도 효과 적용하려면 1회성 백필 스크립트 필요. 우선 새 업로드부터 효과 확인 후 결정.
+
+## v3.20 (2026-05-21) — 기존 업로드 백필 스크립트
+
+### 배경
+v3.19에서 새 업로드는 첫 요청부터 빠르게 됐지만, 기존 업로드는 여전히 콜드 캐시 시 sharp 변환에 1-3초.
+일회성 백필 스크립트로 기존 사진 전부에 WebP/AVIF 사본을 미리 생성한다.
+
+### 변경
+- **`scripts/backfill-image-variants.mjs`** 신규
+  - `data/uploads/` 스캔 → 원본 후보 추출 (사본 자체는 배제)
+  - 이미 사본 있으면 skip → 중복 실행 안전
+  - 각 사진 실패해도 다음 진행 → 배치 중단 방지
+  - `--dry-run`으로 처리 대상 미리 확인 가능
+  - 직렬 처리 (Railway 1코어 환경 대비, 사이트 응답 영향 최소화)
+- **`Dockerfile`** scripts/ 디렉토리 standalone runner에 명시 copy
+
+### 안전성
+- 원본 파일은 read-only로만 접근 — sharp 자체가 in-place 수정 API 없음
+- DB 변경 0
+- 기존 변환 캐시(`data/cache/`) 변경 0
+- 이미 생성된 사본은 skip → 중복 실행해도 안전
+
+### 실행 방법
+```
+railway ssh
+cd /app && node scripts/backfill-image-variants.mjs --dry-run  # 미리보기
+cd /app && node scripts/backfill-image-variants.mjs            # 실제 실행
+```
