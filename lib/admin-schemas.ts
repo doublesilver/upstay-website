@@ -15,8 +15,22 @@ const sanitizeOptions: sanitizeHtml.IOptions = {
     "h2",
     "h3",
   ],
-  allowedAttributes: { a: ["href", "target"] },
-  allowedSchemes: ["http", "https"],
+  // rel은 transformTags에서 자동 주입되므로 허용 목록에 포함.
+  allowedAttributes: { a: ["href", "target", "rel"] },
+  // http 평문 링크 금지. 공지 본문에서 phishing 가능성을 줄인다.
+  allowedSchemes: ["https"],
+  // target="_blank" 링크는 reverse-tabnabbing 방지를 위해 rel="noopener noreferrer" 강제.
+  transformTags: {
+    a: (tagName, attribs) => ({
+      tagName,
+      attribs: {
+        ...attribs,
+        ...(attribs.target === "_blank"
+          ? { rel: "noopener noreferrer" }
+          : {}),
+      },
+    }),
+  },
 };
 
 export const announcementSchema = z.object({

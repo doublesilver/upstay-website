@@ -515,7 +515,8 @@ flowchart LR
 ```bash
 railway login
 railway link  # 프로젝트 연결
-railway variables --set "ADMIN_ID=upstay" --set "ADMIN_PW=0426" \
+railway variables --set "ADMIN_ID=<your-admin-id>" \
+                  --set "ADMIN_PW=$(openssl rand -base64 24)" \
                   --set "JWT_SECRET=$(openssl rand -hex 32)"
 railway redeploy -y
 ```

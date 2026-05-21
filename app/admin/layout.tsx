@@ -260,6 +260,8 @@ export default function AdminLayout({
                   autoComplete="off"
                   placeholder="아이디"
                   aria-label="아이디"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? "login-error" : undefined}
                   className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
                 />
                 <input
@@ -270,11 +272,18 @@ export default function AdminLayout({
                   autoComplete="off"
                   placeholder="비밀번호"
                   aria-label="비밀번호"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? "login-error" : undefined}
                   className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
                 />
                 <div className="h-px bg-[#E5E5E5]" />
                 {error && (
-                  <div role="alert" aria-live="polite" className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-[12px] text-red-600">
+                  <div
+                    id="login-error"
+                    role="alert"
+                    aria-live="polite"
+                    className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-[12px] text-red-600"
+                  >
                     {error}
                   </div>
                 )}
@@ -414,9 +423,13 @@ export default function AdminLayout({
         >
           <Menu size={22} strokeWidth={1.8} />
         </button>
-        <h1 className="text-[15px] font-semibold text-[#111] truncate px-2">
+        {/* 페이지 본문에 이미 <h1>이 있으므로 모바일 헤더는 시각 표시만. h1 중복 회피. */}
+        <p
+          className="text-[15px] font-semibold text-[#111] truncate px-2"
+          aria-hidden="true"
+        >
           {pageTitle}
-        </h1>
+        </p>
         <button
           type="button"
           onClick={handleLogout}

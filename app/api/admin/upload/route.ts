@@ -104,6 +104,22 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
+    // 픽셀 사전 측정 — 압축률 높인 거대 이미지(예: 200MP를 18MB JPEG로)가
+    // file.size 가드를 통과해도 sharp 디코딩에서 ~수백 MB 메모리 점유로 OOM 유도 가능.
+    // gif는 sharp 최적화를 건너뛰는 경로라 메타만 살핀다.
+    const MAX_PIXELS = 100_000_000; // 100MP (iPhone 48MP·갤럭시 200MP의 안전 한도)
+    try {
+      const meta = await sharp(buffer, { failOn: "none" }).metadata();
+      const pixels = (meta.width ?? 0) * (meta.height ?? 0);
+      if (pixels > MAX_PIXELS) {
+        return Response.json(
+          { error: `${file.name}: 이미지 해상도가 너무 큽니다 (최대 100MP)` },
+          { status: 400 },
+        );
+      }
+    } catch {
+      // metadata 자체가 실패하면 후속 optimize에서 처리. 여기선 게이트 통과.
+    }
     let optimizedBuffer: Buffer;
     try {
       optimizedBuffer = await optimize(buffer, ext);

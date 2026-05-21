@@ -23,19 +23,9 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      {
-        source: "/uploads/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=86400",
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*",
-          },
-        ],
-      },
+      // 참고: 실제 업로드 이미지 서빙 경로는 `/api/uploads/[...path]` 라우트 핸들러가
+      // Cache-Control 헤더를 직접 설정하므로, 여기서 `/uploads/:path*` 패턴을 따로 두는
+      // 것은 dead rule이라 제거. 헤더 정책은 route.ts에서 일원화.
       {
         source: "/watermark.png",
         headers: [
@@ -52,8 +42,9 @@ const nextConfig: NextConfig = {
       {
         // PWA 아이콘(any/maskable) + 로고 + apple-icon + favicon + OG 이미지까지 포함.
         // 기존 패턴은 `icon.svg` 등 dot 변형만 매치하고 `icon-192.png` 같은 dash는 미매치였음.
+        // icon-.* 가 icon-maskable-.* 를 이미 포함하므로 후자는 중복(제거).
         source:
-          "/:file(icon.*|icon-.*|icon-maskable-.*|logo.*|apple-icon.*|favicon.*|og-image.*)",
+          "/:file(icon.*|icon-.*|logo.*|apple-icon.*|favicon.*|og-image.*)",
         headers: [
           {
             key: "Cache-Control",
@@ -66,6 +57,12 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
+          // HSTS — Railway/Cloudflare가 HTTPS를 강제하지만 앱 레벨에서도 선언해
+          // 브라우저가 캐싱하도록 한다. SSL stripping 다운그레이드 공격 방어.
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",

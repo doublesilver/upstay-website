@@ -326,7 +326,7 @@ function SortableConfigSection({
       {...attributes}
       {...listeners}
       className="cursor-grab active:cursor-grabbing text-[#999] hover:text-[#111] transition-colors shrink-0 p-1 -ml-1"
-      title="드래그하여 순서를 변경합니다"
+      aria-label="드래그하여 순서 변경" title="드래그하여 순서를 변경합니다"
     >
       <GripVertical size={18} />
     </button>
