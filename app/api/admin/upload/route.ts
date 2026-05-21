@@ -65,6 +65,25 @@ async function optimize(buffer: Buffer, ext: string): Promise<Buffer> {
   return await pipeline.toBuffer();
 }
 
+// 업로드 직후 동일 디렉토리에 .webp / .avif 사본 생성.
+// 서빙 라우트가 Accept 헤더 보고 미리 만들어둔 파일을 바로 streaming하므로
+// 첫 요청부터 sharp 변환 없이 빠름. Railway CPU·디스크캐시 부담도 동시 감소.
+async function precomputeVariants(originalPath: string): Promise<void> {
+  const sharpOpts = {
+    limitInputPixels: 100_000_000,
+    failOn: "truncated" as const,
+  };
+  // 병렬로 두 포맷 인코딩. AVIF는 effort 4 기본값(1-3s) 그대로 — 백그라운드라 응답엔 영향 없음.
+  await Promise.all([
+    sharp(originalPath, sharpOpts)
+      .webp({ quality: 80 })
+      .toFile(`${originalPath}.webp`),
+    sharp(originalPath, sharpOpts)
+      .avif({ quality: 80 })
+      .toFile(`${originalPath}.avif`),
+  ]);
+}
+
 export async function POST(req: NextRequest) {
   if (!(await verifyToken(req))) return unauthorized();
 
@@ -131,8 +150,17 @@ export async function POST(req: NextRequest) {
       optimizedBuffer = buffer;
     }
     const filename = `${Date.now()}-${randomBytes(8).toString("hex")}${ext}`;
-    await writeFile(path.join(UPLOAD_DIR, filename), optimizedBuffer);
+    const savedPath = path.join(UPLOAD_DIR, filename);
+    await writeFile(savedPath, optimizedBuffer);
     saved.push(filename);
+    // 응답 후 백그라운드로 WebP/AVIF 사본 생성. 다음 사용자가 첫 요청부터
+    // sharp 변환 없이 정적 서빙 받게 함. fire-and-forget이라 실패는 콘솔만.
+    // gif는 sharp 단일프레임 한계로 제외.
+    if (ext !== ".gif") {
+      precomputeVariants(savedPath).catch((e) =>
+        console.warn("[upload] WebP/AVIF 사본 생성 실패:", (e as Error).message),
+      );
+    }
   }
 
   return Response.json({
