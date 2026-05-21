@@ -435,9 +435,9 @@ function SectionHeader({ label, count }: { label: string; count: number }) {
   );
 }
 
-// 영역 구분선 — 너무 강하지 않게 얇은 회색 1px
+// 영역 구분선 — 클라이언트 요청으로 검정 통일 (2026-05-21)
 function SectionDivider() {
-  return <div className="h-px bg-[#E5E5E5]" />;
+  return <div className="h-px bg-[#111]" />;
 }
 
 function SortableCase({

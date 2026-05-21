@@ -713,7 +713,7 @@ export function ImageEditModal({
                     </span>
                   )}
                 </div>
-                <div className="h-px bg-[#E5E5E5] mb-2" />
+                <div className="h-px bg-[#111] mb-2" />
                 <Slider
                   label="선명도"
                   value={settings.sharpness}
@@ -740,7 +740,7 @@ export function ImageEditModal({
                 <p className="text-[11px] font-bold tracking-wider text-[#777] mb-2">
                   워터마크 설정
                 </p>
-                <div className="h-px bg-[#E5E5E5] mb-2" />
+                <div className="h-px bg-[#111] mb-2" />
                 <Slider
                   label="투명도"
                   value={settings.wmOpacity}

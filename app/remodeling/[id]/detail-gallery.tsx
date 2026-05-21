@@ -149,7 +149,7 @@ export function DetailGallery({
           )}
 
           {beforeImages.length > 0 && afterImages.length > 0 && (
-            <div className="h-px landscape:h-auto landscape:w-px lg:h-auto lg:w-px bg-[#E5E7EB] shrink-0" />
+            <div className="h-px landscape:h-auto landscape:w-px lg:h-auto lg:w-px bg-[#111] shrink-0" />
           )}
 
           {afterImages.length > 0 && (
@@ -168,7 +168,7 @@ export function DetailGallery({
         </div>
       )}
 
-      <div className="shrink-0 h-px bg-[#DDD]" />
+      <div className="shrink-0 h-px bg-[#111]" />
 
       <div className="shrink-0 border border-[#111] rounded-lg flex max-h-[20svh] overflow-hidden">
         <div className="shrink-0 flex flex-col lg:flex-row items-center justify-center bg-white px-3 py-2 min-w-[40px] lg:min-w-[64px] lg:gap-1">
@@ -179,7 +179,7 @@ export function DetailGallery({
             명
           </span>
         </div>
-        <div className="w-px bg-[#DDD] my-2 shrink-0" />
+        <div className="w-px bg-[#111] my-2 shrink-0" />
         <div className="flex-1 min-w-0 px-3 py-2 overflow-y-auto">
           <p className="text-[13px] md:text-[14px] text-[#111] leading-[1.7] whitespace-pre-wrap">
             {title || "-"}
@@ -212,7 +212,7 @@ export function DetailGallery({
               </button>
             </div>
 
-            <div className="h-px bg-[#DDD] mx-1" />
+            <div className="h-px bg-[#111] mx-1" />
 
             <div className="flex lg:flex-row flex-col gap-4 lg:gap-6">
               <div
@@ -331,7 +331,7 @@ function LightboxColumn({
         </span>
       </div>
 
-      <div className="w-full h-px bg-[#E5E5E5]" />
+      <div className="w-full h-px bg-[#111]" />
 
       <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2">
         {images.length > 1 && (
@@ -392,7 +392,7 @@ function LightboxColumn({
           >
             &#9664;
           </button>
-          <div className="w-px h-5 bg-[#555]" />
+          <div className="w-px h-5 bg-[#111]" />
           <button
             type="button"
             onClick={onNext}
@@ -406,7 +406,7 @@ function LightboxColumn({
 
       {images.length > 1 && (
         <>
-          <div className="w-full h-px bg-[#E5E5E5]" />
+          <div className="w-full h-px bg-[#111]" />
           <LightboxThumbStrip
             images={images}
             activeIndex={activeIndex}
@@ -553,7 +553,7 @@ function GallerySection({
             >
               &#9664;
             </button>
-            <div className="w-px h-5 bg-[#555]" />
+            <div className="w-px h-5 bg-[#111]" />
             <button
               type="button"
               onClick={(e) => {
@@ -568,7 +568,7 @@ function GallerySection({
           </div>
         )}
         {images.length > 1 && (
-          <div className="shrink-0 border-t border-gray-300 pt-1.5">
+          <div className="shrink-0 border-t border-[#111] pt-1.5">
             <ThumbnailStrip
               images={images}
               activeIndex={activeIndex}
@@ -647,7 +647,7 @@ function ThumbnailStrip({
             className={`relative shrink-0 aspect-[4/3] rounded-lg overflow-hidden bg-[#F1F8E9] ${
               index === activeIndex
                 ? "border-2 border-[#111]"
-                : "border border-[#ccc]"
+                : "border border-[#111]"
             }`}
           >
             <ProtectedImage

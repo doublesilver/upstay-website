@@ -15,12 +15,12 @@ export default function BuildingManagementPage() {
           건물관리
         </h1>
         <p className="mt-2 text-[12px] text-[#6B7280]">수선유지 및 하자보수</p>
-        <div className="mt-6 border-t border-[#E5E7EB]" />
+        <div className="mt-6 border-t border-[#111]" />
       </header>
 
       <ul className="mt-6">
         {buildingManagementItems.map((item) => (
-          <li key={item.title} className="border-b border-[#E5E7EB] py-5">
+          <li key={item.title} className="border-b border-[#111] py-5">
             <div className="flex items-start gap-3">
               <span className="mt-1 text-[#6B7280]">—</span>
               <div>

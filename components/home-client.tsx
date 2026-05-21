@@ -81,7 +81,7 @@ export function HomeClient({
             <div className="shrink-0 flex items-end justify-between gap-3">
               <Link
                 href="/remodeling"
-                className="inline-block bg-white border border-[#ccc] rounded px-1 py-px hover:border-[#999] transition-colors"
+                className="inline-block bg-white border border-[#111] rounded px-1 py-px hover:border-[#333] transition-colors"
               >
                 <h2
                   className="text-[12px] md:text-[18px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
@@ -98,7 +98,7 @@ export function HomeClient({
               </span>
             </div>
 
-            <div className="shrink-0 mt-2 h-px bg-[#E5E5E5]" />
+            <div className="shrink-0 mt-2 h-px bg-[#111]" />
 
             <div className="mt-3 md:mt-4 flex-1 min-h-0 overflow-y-auto lg:flex-none lg:overflow-visible">
               {initialCases.length === 0 && (
@@ -117,7 +117,7 @@ export function HomeClient({
                 return (
                   <div key={c.id}>
                     {caseIndex > 0 && (
-                      <div className="h-px bg-[#E5E5E5] my-3 md:my-4" />
+                      <div className="h-px bg-[#111] my-3 md:my-4" />
                     )}
                     <Link
                       href={`/remodeling/${c.id}`}
@@ -149,7 +149,7 @@ export function HomeClient({
         </Container>
       </section>
 
-      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#faf8f5] border-t border-[#E5E7EB] flex flex-col justify-between overflow-hidden lg:h-auto lg:min-h-0 lg:overflow-visible">
+      <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] bg-[#faf8f5] border-t border-[#111] flex flex-col justify-between overflow-hidden lg:h-auto lg:min-h-0 lg:overflow-visible">
         <Container className="py-4 md:py-8 w-full flex-1 flex items-center">
           <div className="w-full">
             <ServiceSections config={initialConfig} />

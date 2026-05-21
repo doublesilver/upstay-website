@@ -443,7 +443,7 @@ function AnnouncementCard({
           ))}
         </select>
 
-        <div className="h-px bg-[#DDD] my-1" />
+        <div className="h-px bg-[#111] my-1" />
 
         <div className="flex gap-1 mt-auto">
           <button

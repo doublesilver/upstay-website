@@ -86,7 +86,7 @@ export function KakaoButton() {
               {copied ? "복사됨" : `ID : ${KAKAO_ID}`}
             </button>
 
-            <div className="h-px bg-[#DDD] my-2" />
+            <div className="h-px bg-[#111] my-2" />
 
             <button
               type="button"

@@ -365,3 +365,37 @@ railway ssh
 cd /app && node scripts/backfill-image-variants.mjs --dry-run  # 미리보기
 cd /app && node scripts/backfill-image-variants.mjs            # 실제 실행
 ```
+
+## v3.21 (2026-05-21) — 모든 구분선 검정색 통일
+
+### 배경
+클라이언트 요청 "모든 화면 구분선을 검정으로". 회색·중간색으로 흩어져 있던 디바이더(#E5E5E5/#E5E7EB/#DDD/#D1D5DB/#555/#ccc/gray-300/#999)를 기존 검정 패턴 `#111`로 통일.
+
+### 변경 위치 (총 24곳)
+
+**사용자 페이지 (17곳)**
+- `components/home-client.tsx` × 4 — 메인 박스 내부 디바이더 + 섹션 경계 + 포토가이드 버튼 보더
+- `components/announcement-popup.tsx` × 2 — 공지 팝업 내부 디바이더
+- `components/kakao-button.tsx` × 1 — 카카오 드롭다운 디바이더
+- `app/remodeling/page.tsx` × 1 — 사례 카드 사이 디바이더
+- `app/remodeling/[id]/detail-gallery.tsx` × 10 — 갤러리/라이트박스 디바이더, 카운트 점, 썸네일 보더
+- `app/rental-management/page.tsx` × 2 — 제목 하단 + 리스트 구분
+- `app/building-management/page.tsx` × 2 — 제목 하단 + 리스트 구분
+
+**관리자 페이지 (5곳)**
+- `app/admin/layout.tsx` × 2 — 메뉴 디바이더
+- `app/admin/announcements/page.tsx` × 1 — 폼 디바이더
+- `app/admin/remodeling/page.tsx` × 1 — SectionDivider 컴포넌트
+- `components/admin/image-edit-modal.tsx` × 2 — 슬라이더 그룹 디바이더
+
+### 변경 내역
+- `bg-[#E5E5E5]` / `bg-[#E5E7EB]` / `bg-[#DDD]` / `bg-[#D1D5DB]` / `bg-[#555]` → `bg-[#111]`
+- `border-[#E5E7EB]` / `border-[#ccc]` / `border-gray-300` / `border-[#999]` → `border-[#111]`
+
+### 보존
+- 상태 표시 dot (`announcements:390`, `config:486`)는 디바이더가 아니므로 그대로
+- 기존 검정 박스 보더(`border-[#111]`)는 변경 없음
+
+### 검증
+- 73 tests PASS, typecheck/lint/build 모두 OK
+- DB/API/JS 동작 변경 0 — 순수 CSS only
