@@ -21,7 +21,7 @@ export default function RemodelingPage() {
             : [c.after_image].filter(Boolean);
           return (
             <div key={c.id} className="flex flex-col gap-1">
-              {i > 0 && <div className="h-px bg-[#E5E5E5]" />}
+              {i > 0 && <div className="h-px bg-[#111]" />}
               <Link
                 href={`/remodeling/${c.id}`}
                 aria-hidden="true"

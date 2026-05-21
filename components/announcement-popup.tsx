@@ -72,7 +72,7 @@ export function AnnouncementPopup({
                   >
                     {a.title}
                   </div>
-                  <div className="mx-4 h-px bg-[#E5E5E5]" />
+                  <div className="mx-4 h-px bg-[#111]" />
                 </>
               )}
               <div
@@ -84,7 +84,7 @@ export function AnnouncementPopup({
             </div>
           );
         })}
-        <div className="h-px bg-[#E5E5E5] my-3" />
+        <div className="h-px bg-[#111] my-3" />
         <div>
           <button
             ref={closeBtnRef}

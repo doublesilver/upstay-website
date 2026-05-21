@@ -226,7 +226,7 @@ export default function AdminLayout({
               />
             </div>
             <div
-              className="h-px bg-[#D1D5DB] my-2"
+              className="h-px bg-[#111] my-2"
               style={{ width: "219.68px" }}
             />
             <p className="text-[14px] text-[#666] whitespace-nowrap">
@@ -276,7 +276,7 @@ export default function AdminLayout({
                   aria-describedby={error ? "login-error" : undefined}
                   className="w-full border border-[#DDD] rounded-lg px-3 py-2.5 text-[14px] outline-none focus:border-[#111] transition-colors"
                 />
-                <div className="h-px bg-[#E5E5E5]" />
+                <div className="h-px bg-[#111]" />
                 {error && (
                   <div
                     id="login-error"
