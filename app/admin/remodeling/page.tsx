@@ -139,6 +139,10 @@ function SlotStars({
           <button
             key={slot}
             type="button"
+            // 부모 ImageThumb의 role="button" 안에 nested된 interactive 요소.
+            // 키보드 포커스 흐름은 부모로 일원화하고 별표는 마우스/터치 전용으로 유지.
+            tabIndex={-1}
+            aria-label={`${slot}번 슬롯 ${isActive ? "해제" : "지정"}`}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
@@ -216,7 +220,10 @@ function ImageThumb({
       )}
 
       {selectionMode && (
+        // 부모 div가 이미 role="button"이고 selectionMode일 때 부모 클릭으로 onToggleCheck가
+        // 호출되므로 자식은 마우스 클릭 영역 시각화만 담당. 키보드 포커스는 부모로 일원화.
         <span
+          aria-hidden="true"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
@@ -592,7 +599,7 @@ function SortableCase({
             {...attributes}
             {...listeners}
             className="cursor-grab active:cursor-grabbing text-[#999] hover:text-[#111] transition-colors shrink-0 p-1"
-            title="드래그하여 순서를 변경합니다"
+            aria-label="드래그하여 순서 변경" title="드래그하여 순서를 변경합니다"
           >
             <GripVertical size={18} />
           </button>

@@ -124,7 +124,9 @@ export async function GET(
         buffer = await readFile(cachePath);
       } else {
         const sharpOpts = {
-          limitInputPixels: 24_000_000,
+          // 업로드 게이트(100MP)와 동일 한도. 업로드된 파일은 이미 2048px로 다운스케일돼
+          // 4MP 이내가 정상이지만 gif 등 원본 저장 경로를 위한 약간의 여유.
+          limitInputPixels: 100_000_000,
           failOn: "truncated" as const,
         };
         buffer =
