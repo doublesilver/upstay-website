@@ -95,7 +95,9 @@ async function main() {
   await makeMaskable(192, path.join(ROOT, "public/icon-maskable-192.png"));
   await makeMaskable(512, path.join(ROOT, "public/icon-maskable-512.png"));
 
-  await makeOgImage(path.join(ROOT, "public/og-image.png"));
+  // 외부 메신저(카카오톡·Slack·페이스북) OG 캐시 무효화 위해 버전드 파일명 사용.
+  // 로고 갱신 시마다 v 번호 올려 새 URL로 만들면 캐시 우회.
+  await makeOgImage(path.join(ROOT, "public/og-image-v2.png"));
 
   console.log("\n로고 메타 자산 생성 완료.");
 }
