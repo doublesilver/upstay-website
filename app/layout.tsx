@@ -72,6 +72,14 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     images: ["/og-image-v2.png"],
   },
+  // 검색엔진 사이트 소유 확인 메타 태그. Next.js metadata API가 자동으로
+  // <head>에 <meta name="naver-site-verification" content="..." /> 삽입.
+  verification: {
+    other: {
+      "naver-site-verification":
+        "3553cb8493f2e4de7e0be7ad8a28df96e48cd339",
+    },
+  },
 };
 
 export default async function RootLayout({
