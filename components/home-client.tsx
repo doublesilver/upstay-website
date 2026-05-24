@@ -192,7 +192,7 @@ function GalleryGrid({
             className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
           >
             <ProtectedImage
-              src={url}
+              src={`${url}.thumb.webp`}
               alt={`${title || "리모델링 사례"} ${label} ${index + 1}번 사진`}
               fill
               className="object-cover"

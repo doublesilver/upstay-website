@@ -48,7 +48,7 @@ export default function RemodelingPage() {
                           className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                         >
                           <ProtectedImage
-                            src={url}
+                            src={`${url}.thumb.webp`}
                             alt={`${c.title || "리모델링 사례"} 시공 전 ${j + 1}번째 사진`}
                             fill
                             className="object-cover"
@@ -75,7 +75,7 @@ export default function RemodelingPage() {
                           className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                         >
                           <ProtectedImage
-                            src={url}
+                            src={`${url}.thumb.webp`}
                             alt={`${c.title || "리모델링 사례"} 시공 후 ${j + 1}번째 사진`}
                             fill
                             className="object-cover"
