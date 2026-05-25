@@ -419,28 +419,7 @@ function LightboxColumn({
         </>
       )}
 
-      <div className="hidden" aria-hidden="true">
-        {images[(activeIndex - 1 + images.length) % images.length] && (
-          <ProtectedImage
-            src={M(images[(activeIndex - 1 + images.length) % images.length])}
-            alt=""
-            fill
-            sizes="500px"
-            quality={85}
-            loading="eager"
-          />
-        )}
-        {images[(activeIndex + 1) % images.length] && (
-          <ProtectedImage
-            src={M(images[(activeIndex + 1) % images.length])}
-            alt=""
-            fill
-            sizes="500px"
-            quality={85}
-            loading="eager"
-          />
-        )}
-      </div>
+      {/* preload 블록 제거 — 모바일 1/8 OCPU 환경에서 첫 응답 부담 줄임 */}
     </div>
   );
 }
