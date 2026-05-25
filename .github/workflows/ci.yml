@@ -1,0 +1,24 @@
+name: CI
+
+# 글로벌 표준 §15.2: lint → typecheck → test → build. 하나라도 실패하면 머지·배포 차단.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      # better-sqlite3/sharp는 네이티브 모듈 — ubuntu 러너에서 빌드됨.
+      # next build가 런타임 env/DB를 요구하면 여기서 빨갛게 드러남(의도된 게이트).
+      - run: npm run build
