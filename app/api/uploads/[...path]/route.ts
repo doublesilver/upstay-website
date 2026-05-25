@@ -85,9 +85,25 @@ export async function GET(
     resolvedPath = await realpath(filePath);
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === "ENOENT") {
-      return new Response("Not found", { status: 404 });
+      // Fallback: .thumb.webp / .medium.webp 가 아직 안 만들어졌으면 원본으로
+      const m = filename.match(/^(.+)\.(thumb|medium)\.webp$/);
+      if (m) {
+        const origPath = path.resolve(UPLOAD_DIR, m[1]);
+        if (origPath.startsWith(UPLOAD_DIR_RESOLVED + path.sep)) {
+          try {
+            resolvedPath = await realpath(origPath);
+          } catch {
+            return new Response("Not found", { status: 404 });
+          }
+        } else {
+          return new Response("Not found", { status: 404 });
+        }
+      } else {
+        return new Response("Not found", { status: 404 });
+      }
+    } else {
+      throw e;
     }
-    throw e;
   }
 
   if (!resolvedPath.startsWith(UPLOAD_DIR_RESOLVED + path.sep)) {
