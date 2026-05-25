@@ -5,6 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { blurDataURL } from "@/lib/shimmer";
 
+const T = (url: string) => `${url}.thumb.webp`;
+const M = (url: string) => `${url}.medium.webp`;
+
 export function DetailGallery({
   title,
   beforeImages,
@@ -291,7 +294,7 @@ function LightboxThumbStrip({
           }`}
         >
           <ProtectedImage
-            src={url}
+            src={T(url)}
             alt={`${label} 썸네일 ${i + 1}`}
             fill
             sizes="20vw"
@@ -360,7 +363,7 @@ function LightboxColumn({
           }}
         >
           <ProtectedImage
-            src={images[activeIndex]}
+            src={M(images[activeIndex])}
             alt={`${label} ${activeIndex + 1}`}
             fill
             sizes="(min-width: 1024px) 450px, 85vw"
@@ -419,7 +422,7 @@ function LightboxColumn({
       <div className="hidden" aria-hidden="true">
         {images[(activeIndex - 1 + images.length) % images.length] && (
           <ProtectedImage
-            src={images[(activeIndex - 1 + images.length) % images.length]}
+            src={M(images[(activeIndex - 1 + images.length) % images.length])}
             alt=""
             fill
             sizes="500px"
@@ -429,7 +432,7 @@ function LightboxColumn({
         )}
         {images[(activeIndex + 1) % images.length] && (
           <ProtectedImage
-            src={images[(activeIndex + 1) % images.length]}
+            src={M(images[(activeIndex + 1) % images.length])}
             alt=""
             fill
             sizes="500px"
@@ -509,7 +512,7 @@ function GallerySection({
               className="relative cursor-pointer lg:cursor-default touch-pan-y select-none will-change-transform w-full max-h-full aspect-[4/3]"
             >
               <ProtectedImage
-                src={images[activeIndex]}
+                src={M(images[activeIndex])}
                 alt={`${altPrefix} ${activeIndex + 1}`}
                 fill
                 sizes="(max-width: 768px) 90vw, 800px"
@@ -651,7 +654,7 @@ function ThumbnailStrip({
             }`}
           >
             <ProtectedImage
-              src={url}
+              src={T(url)}
               alt={`${altPrefix} ${index + 1}`}
               fill
               sizes="20vw"
