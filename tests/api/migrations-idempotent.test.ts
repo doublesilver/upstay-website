@@ -5,12 +5,9 @@ import path from "path";
 import Database from "better-sqlite3";
 import fs from "fs";
 
-const MIGRATIONS_DIR = path.join(
-  "/Users/leeeunseok/Projects/upstay-website",
-  "lib",
-  "db",
-  "migrations",
-);
+// lib/db/index.ts와 동일하게 cwd 기준으로 해석한다. 절대경로 하드코딩은
+// 로컬 외 환경(CI·타 머신)에서 ENOENT를 유발했다.
+const MIGRATIONS_DIR = path.join(process.cwd(), "lib", "db", "migrations");
 
 function freshDb(): { db: Database.Database; dir: string } {
   const dir = mkdtempSync(path.join(os.tmpdir(), "upstay-migrate-"));
