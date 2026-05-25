@@ -62,6 +62,11 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
+          // Cloudflare가 이미 HSTS를 주입하지만, origin 직접 접근 경로 방어로 이중화
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
+          },
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
