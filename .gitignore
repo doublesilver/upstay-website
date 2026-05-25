@@ -11,6 +11,7 @@ data/
 *.m4a
 *.JPG
 tsconfig.tsbuildinfo
+*.zip
 통화*
 Gemini_Generated_Image*
 Screenshot*
