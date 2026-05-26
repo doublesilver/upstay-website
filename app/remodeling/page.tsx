@@ -4,6 +4,7 @@ import { Container } from "@/components/container";
 import { getAllCases } from "@/lib/home-data";
 import { blurDataURL } from "@/lib/shimmer";
 import { CasePrefetchTrigger } from "@/components/case-prefetch-trigger";
+import { resolveImg } from "@/lib/image-url";
 
 export const revalidate = 60;
 
@@ -54,7 +55,7 @@ export default function RemodelingPage() {
                           className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                         >
                           <ProtectedImage
-                            src={`${url}.thumb.webp`}
+                            src={resolveImg(`${url}.thumb.webp`)}
                             alt={`${c.title || "리모델링 사례"} 시공 전 ${j + 1}번째 사진`}
                             fill
                             className="object-cover"
@@ -81,7 +82,7 @@ export default function RemodelingPage() {
                           className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
                         >
                           <ProtectedImage
-                            src={`${url}.thumb.webp`}
+                            src={resolveImg(`${url}.thumb.webp`)}
                             alt={`${c.title || "리모델링 사례"} 시공 후 ${j + 1}번째 사진`}
                             fill
                             className="object-cover"

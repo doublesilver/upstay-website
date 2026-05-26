@@ -5,8 +5,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { blurDataURL } from "@/lib/shimmer";
 
-const T = (url: string) => `${url}.thumb.webp`;
-const M = (url: string) => `${url}.medium.webp`;
+import { resolveImg } from "@/lib/image-url";
+
+const T = (url: string) => resolveImg(`${url}.thumb.webp`);
+const M = (url: string) => resolveImg(`${url}.medium.webp`);
 
 export function DetailGallery({
   title,
@@ -52,11 +54,13 @@ export function DetailGallery({
     const targets: string[] = [];
     if (beforeImages.length > 1) {
       const next = (beforeIndex + 1) % beforeImages.length;
-      if (next !== beforeIndex) targets.push(`${beforeImages[next]}.medium.webp`);
+      if (next !== beforeIndex)
+        targets.push(resolveImg(`${beforeImages[next]}.medium.webp`));
     }
     if (afterImages.length > 1) {
       const next = (afterIndex + 1) % afterImages.length;
-      if (next !== afterIndex) targets.push(`${afterImages[next]}.medium.webp`);
+      if (next !== afterIndex)
+        targets.push(resolveImg(`${afterImages[next]}.medium.webp`));
     }
     if (targets.length === 0) return;
     const timer = setTimeout(() => {
