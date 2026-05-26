@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/container";
 import { getAllCases } from "@/lib/home-data";
 import { blurDataURL } from "@/lib/shimmer";
+import { CasePrefetchTrigger } from "@/components/case-prefetch-trigger";
 
 export const revalidate = 60;
 
@@ -20,7 +21,12 @@ export default function RemodelingPage() {
             ? c.after_images
             : [c.after_image].filter(Boolean);
           return (
-            <div key={c.id} className="flex flex-col gap-1">
+            <CasePrefetchTrigger
+              key={c.id}
+              className="flex flex-col gap-1"
+              befores={befores}
+              afters={afters}
+            >
               {i > 0 && <div className="h-px bg-[#111]" />}
               <Link
                 href={`/remodeling/${c.id}`}
@@ -90,7 +96,7 @@ export default function RemodelingPage() {
                   </div>
                 </div>
               </Link>
-            </div>
+            </CasePrefetchTrigger>
           );
         })}
       </div>

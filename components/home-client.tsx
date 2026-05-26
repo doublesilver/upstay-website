@@ -23,6 +23,18 @@ interface Props {
   initialConfig: Record<string, string>;
 }
 
+// 사례 카드 hover/touch 시 detail 페이지에서 처음 표시될 medium.webp 한국 PoP에 미리 채움.
+// 클릭 직후 화면 전환 시 Cloudflare 캐시 HIT 가능성 높여 1/8 OCPU origin 큐잉 우회.
+// 이미 prefetch된 URL은 브라우저 캐시가 알아서 dedup.
+function prefetchDetailImages(befores: string[], afters: string[]) {
+  if (typeof window === "undefined") return;
+  [befores[0], afters[0]].forEach((url) => {
+    if (!url) return;
+    const img = new window.Image();
+    img.src = `${url}.medium.webp`;
+  });
+}
+
 export function HomeClient({
   initialCases,
   initialAnnouncements,
@@ -121,6 +133,8 @@ export function HomeClient({
                     )}
                     <Link
                       href={`/remodeling/${c.id}`}
+                      onMouseEnter={() => prefetchDetailImages(befores, afters)}
+                      onTouchStart={() => prefetchDetailImages(befores, afters)}
                       className="block w-full bg-white border border-[#111111] rounded-xl p-2 md:p-3 text-left hover:shadow-md transition-shadow"
                     >
                       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
