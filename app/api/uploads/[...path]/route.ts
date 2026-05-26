@@ -57,11 +57,39 @@ const MIME: Record<string, string> = {
   ".gif": "image/gif",
 };
 
+// OCI 1/8 OCPU origin 보호 — 동시 image 요청을 N개로 제한.
+// Cloudflare PoP miss 폭주 시 N+1번째부터는 짧게 대기 후 진입.
+// precomputed 사본 streaming은 가벼우나 fallback sharp 변환·tiered cache miss 시 무거움.
+// MAX는 OCPU 여유 가늠치(0.125코어 × 약 50ms/sharp 1장).
+const MAX_CONCURRENT = 6;
+let activeRequests = 0;
+async function acquireSlot() {
+  while (activeRequests >= MAX_CONCURRENT) {
+    await new Promise((r) => setTimeout(r, 30));
+  }
+  activeRequests++;
+}
+function releaseSlot() {
+  activeRequests--;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { path: segments } = await params;
+  await acquireSlot();
+  try {
+    return await handleGet(req, params);
+  } finally {
+    releaseSlot();
+  }
+}
+
+async function handleGet(
+  req: NextRequest,
+  paramsPromise: Promise<{ path: string[] }>,
+) {
+  const { path: segments } = await paramsPromise;
   if (segments.length === 0) {
     return new Response("Not found", { status: 404 });
   }
