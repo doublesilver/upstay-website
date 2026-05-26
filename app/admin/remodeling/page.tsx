@@ -398,7 +398,7 @@ function ImageSection({
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="w-full py-8 border-2 border-dashed border-[#111] rounded-xl text-[13px] text-[#BBB] hover:border-[#999] hover:text-[#666] transition-all bg-white"
+            className="w-full py-8 border-2 border-dashed border-[#111] rounded-xl text-[13px] text-[#666] hover:border-[#555] hover:text-[#111] transition-all bg-white"
           >
             클릭하여 {label} 이미지를 업로드해 주세요
           </button>
@@ -1362,10 +1362,10 @@ export default function RemodelingAdminPage() {
           <div className="w-16 h-16 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#CCC]">
             <ImageOff size={28} />
           </div>
-          <p className="text-[15px] font-medium text-[#999]">
+          <p className="text-[15px] font-medium text-[#555]">
             등록된 박스가 없습니다
           </p>
-          <p className="mt-1 text-[13px] text-[#CCC]">
+          <p className="mt-1 text-[13px] text-[#777]">
             새 박스를 추가하고 Before/After 사진을 업로드해 주세요
           </p>
         </div>

@@ -211,10 +211,10 @@ export default function AnnouncementsAdminPage() {
                 <polyline points="14,2 14,8 20,8" />
               </svg>
             </div>
-            <p className="text-[15px] font-medium text-[#999]">
+            <p className="text-[15px] font-medium text-[#555]">
               등록된 공지가 없습니다
             </p>
-            <p className="mt-1 text-[13px] text-[#CCC]">
+            <p className="mt-1 text-[13px] text-[#777]">
               새 공지를 작성해보세요
             </p>
           </div>
