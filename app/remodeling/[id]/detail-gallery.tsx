@@ -45,6 +45,29 @@ export function DetailGallery({
     [afterImages.length],
   );
 
+  // 다음 사진 미리 받기: 첫 진입 부담은 피하고 1.5초 뒤 idle 타이밍에 한 장만.
+  // 한국 PoP 첫 miss → 1/8 OCPU origin 큐잉 우회 효과. 사용자가 화살표 누를 때면
+  // 이미 브라우저 캐시(또는 한국 PoP)에 medium.webp 있어 즉시 전환.
+  useEffect(() => {
+    const targets: string[] = [];
+    if (beforeImages.length > 1) {
+      const next = (beforeIndex + 1) % beforeImages.length;
+      if (next !== beforeIndex) targets.push(`${beforeImages[next]}.medium.webp`);
+    }
+    if (afterImages.length > 1) {
+      const next = (afterIndex + 1) % afterImages.length;
+      if (next !== afterIndex) targets.push(`${afterImages[next]}.medium.webp`);
+    }
+    if (targets.length === 0) return;
+    const timer = setTimeout(() => {
+      for (const src of targets) {
+        const img = new window.Image();
+        img.src = src;
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [beforeIndex, afterIndex, beforeImages, afterImages]);
+
   useEffect(() => {
     const bindSwipe = (
       ref: React.RefObject<HTMLDivElement | null>,
