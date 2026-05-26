@@ -399,3 +399,65 @@ cd /app && node scripts/backfill-image-variants.mjs            # 실제 실행
 ### 검증
 - 73 tests PASS, typecheck/lint/build 모두 OK
 - DB/API/JS 동작 변경 0 — 순수 CSS only
+
+## v3.22 (2026-05-22 ~ 26) — SEO + OG + R2 마이그레이션 + 검수수정 사이클 1·2
+
+지난 한 주간 누적된 22개 PR(#28~#42)을 한 절에 정리.
+
+### SEO·검색엔진 메타 (PR #28~#35)
+- 네이버 site verification 메타 태그 (PR #33, #34) — `naver-site-verification`
+- robots.txt에 `/admin`, `/api` Disallow + sitemap.xml 명시 (PR #35)
+- OG 이미지 파일명 v2로 변경 (PR #32) — 카카오톡·페이스북 OG 캐시 무효화
+- 모든 구분선 검정 통일 (PR #31) — v3.21에서 별도 기록
+- H-3 정책 결정 문서화 (PR #28)
+
+### 사진 성능 최적화 (PR #29~#30, #38~#40)
+- 업로드 시 WebP/AVIF 즉시 precompute (PR #29)
+- 기존 2462장 백필 스크립트 (PR #30)
+- 사례 카드 hover/touch detail 이미지 prefetch + 갤러리 다음 사진 1.5초 idle preload (PR #38)
+- 사진 로딩 중 스피너 + 라임 배경 (PR #39, 모바일 UX 안전망)
+- /api/uploads origin 동시 요청 6개 semaphore (PR #40, 1/8 OCPU 보호)
+
+### Railway → OCI 마이그레이션 (2026-05-24, 별도 인프라 CR 필요)
+- agora VM 공유 (오사카, 161.33.19.104), systemd `upstay.service` port 3001
+- SQLite + uploads 1018MB rsync, Caddy + Let's Encrypt 자동 발급
+- Cloudflare DNS A record 변경, Tiered Cache(Smart Topology) + 이미지 Cache Rule 1년
+
+### Cloudflare R2 이미지 분리 (PR #41)
+- `lib/image-url.ts` `resolveImg()` helper — `NEXT_PUBLIC_IMAGE_HOST` 환경변수 분기
+- 9849 파일(jpg + webp + thumb.webp + medium.webp) R2 sync 완료
+- Custom domain img.upstay.co.kr 활성 + SSL 자동
+- cron 5분 새 업로드 R2 sync 등록
+- origin OCI 1/8 OCPU에 이미지 요청 0건 → CPU 부담 거의 해소
+
+### 검수수정 사이클 1 (PR #42, 2026-05-26)
+9개 에이전트 병렬 검수 결과 Critical 12 / High 30 / Medium 17 / Low 11 검출.
+이 중 자동수정 가능 18건 처리:
+- CSP `img-src` 자동 동적 추가 (C1 — R2 컷오버 후 즉시 차단되어야 했던 누락 잡음)
+- `.env.example` `NEXT_PUBLIC_IMAGE_HOST` 추가 (C3)
+- `.gitignore` `.env.*` 패턴 강화 (H15)
+- reorder 라우트 Zod + max 500 (H6)
+- acquireSlot AbortSignal + 10s timeout, 429 반환 (H7)
+- upload 한 요청 파일 20개 상한 (H8)
+- 이미지 DELETE 시 thumb/medium 사본 동반 unlink (H1)
+- `/admin` redirect (H21)
+- admin/config beforeunload + initialRef (C7)
+- prefetch per-card dedup (H23)
+- 스피너 motion-reduce (H29)
+- 화살표 aria-hidden (M-1 a11y)
+- dead export 제거 (M-1)
+
+### 잔존 (사용자 결정·외부 작업)
+- C2 ADMIN_PW 공개 git 히스토리 + 미교체 — 즉시 교체 + git-filter-repo
+- C5 KAKAO_URL placeholder — 실제 채널 URL 클라이언트 확정
+- C6 견적/문의 폼 — 외주 In-Scope 결정
+- C11/C12 인프라 CR 정식화 (Railway→OCI + R2 host)
+- H2 워터마크 두께 슬라이더 — QUESTIONS Q3 클라이언트 확답
+- H4 ADMIN_PW bcrypt 해시 마이그레이션
+- H5 PUBLIC_ORIGIN env 정리
+
+### 검증 (전 PR 공통)
+- 73/73 tests PASS
+- `tsc --noEmit` clean
+- `eslint` clean
+- `next build` PASS

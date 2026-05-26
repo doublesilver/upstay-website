@@ -22,6 +22,17 @@ export function DetailGallery({
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
   const [lightbox, setLightbox] = useState<"before" | "after" | null>(null);
+  // 라이트박스 트리거 요소 — 닫힌 후 포커스 복귀를 위해 (WCAG 2.4.3)
+  const lightboxTriggerRef = useRef<HTMLElement | null>(null);
+  const openLightbox = (type: "before" | "after", trigger?: HTMLElement) => {
+    if (trigger) lightboxTriggerRef.current = trigger;
+    setLightbox(type);
+  };
+  const closeLightbox = () => {
+    setLightbox(null);
+    // 다음 tick에 포커스 복귀 (React가 모달 unmount 끝낸 후)
+    requestAnimationFrame(() => lightboxTriggerRef.current?.focus());
+  };
   const beforeRef = useRef<HTMLDivElement>(null);
   const afterRef = useRef<HTMLDivElement>(null);
 
@@ -128,7 +139,7 @@ export function DetailGallery({
     if (lightbox === null) return;
     lightboxCloseBtnRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "Escape") closeLightbox();
       if (e.key === "ArrowLeft") lightboxMoveRef.current(-1);
       if (e.key === "ArrowRight") lightboxMoveRef.current(1);
     };
@@ -174,7 +185,7 @@ export function DetailGallery({
               onNext={() => moveBefore(1)}
               containerRef={beforeRef}
               altPrefix={`${title || "리모델링"} Before`}
-              onOpenLightbox={() => setLightbox("before")}
+              onOpenLightbox={(trigger) => openLightbox("before", trigger)}
             />
           )}
 
@@ -192,7 +203,7 @@ export function DetailGallery({
               onNext={() => moveAfter(1)}
               containerRef={afterRef}
               altPrefix={`${title || "리모델링"} After`}
-              onOpenLightbox={() => setLightbox("after")}
+              onOpenLightbox={(trigger) => openLightbox("after", trigger)}
             />
           )}
         </div>
@@ -223,7 +234,7 @@ export function DetailGallery({
           aria-modal="true"
           aria-label="사진 크게 보기"
           className="fixed inset-0 z-50 bg-[#F1F8E9] flex flex-col items-center justify-center p-2"
-          onClick={() => setLightbox(null)}
+          onClick={closeLightbox}
           onKeyDown={handleLightboxTabTrap}
         >
           <div
@@ -234,7 +245,7 @@ export function DetailGallery({
               <button
                 ref={lightboxCloseBtnRef}
                 type="button"
-                onClick={() => setLightbox(null)}
+                onClick={closeLightbox}
                 aria-label="닫기"
                 className="bg-white border border-[#111] text-[#111] text-[14px] font-medium px-4 py-1.5 rounded-lg hover:bg-[#F5F5F5] transition-colors"
               >
@@ -470,9 +481,19 @@ function GallerySection({
   onNext: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   altPrefix: string;
-  onOpenLightbox: () => void;
+  onOpenLightbox: (trigger?: HTMLElement) => void;
 }) {
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  // 모바일 라이트박스 진입을 키보드로도 가능하게 (Enter/Space). WCAG 2.1.1.
+  const tryOpen = (currentTarget: HTMLElement) => {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(min-width: 1024px)").matches
+    )
+      return;
+    onOpenLightbox(currentTarget);
+  };
   // 활성 사진 로딩 중 신호. 1/8 OCPU + 한국 PoP miss 시 30초+ 걸릴 수 있어
   // 빈 흰 박스만 보면 사용자가 "고장" 인식. 스피너로 "로딩 중" 명시.
   const [loading, setLoading] = useState(true);
@@ -502,14 +523,19 @@ function GallerySection({
           )}
           <div className="flex-1 min-h-0 min-w-0 self-stretch flex items-center justify-center">
             <div
-              ref={containerRef}
-              onClick={() => {
-                if (
-                  typeof window !== "undefined" &&
-                  window.matchMedia("(min-width: 1024px)").matches
-                )
-                  return;
-                onOpenLightbox();
+              ref={(el) => {
+                containerRef.current = el;
+                triggerRef.current = el;
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label="사진 크게보기"
+              onClick={(e) => tryOpen(e.currentTarget)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  tryOpen(e.currentTarget);
+                }
               }}
               onMouseMove={(e) => {
                 const el = tooltipRef.current;

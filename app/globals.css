@@ -65,6 +65,26 @@ button {
   color: #ffffff;
 }
 
+/* 키보드 포커스 표시 — Tailwind v4는 자동 outline을 안 줘서 명시 필요.
+   마우스 클릭에는 안 뜨고 키보드(:focus-visible)에서만 노출. */
+:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* reduced-motion 사용자에겐 모든 트랜지션/애니메이션 최소화 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
