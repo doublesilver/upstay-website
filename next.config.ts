@@ -1,5 +1,17 @@
 import type { NextConfig } from "next";
 
+// CSP img-src에 외부 이미지 host(R2 등) 자동 포함.
+// NEXT_PUBLIC_IMAGE_HOST=https://img.upstay.co.kr 설정 시 그 origin이 img-src에 추가됨.
+const IMAGE_HOST = process.env.NEXT_PUBLIC_IMAGE_HOST?.trim() || "";
+const IMAGE_HOST_ORIGIN = (() => {
+  if (!IMAGE_HOST) return "";
+  try {
+    return new URL(IMAGE_HOST).origin;
+  } catch {
+    return "";
+  }
+})();
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
@@ -79,7 +91,7 @@ const nextConfig: NextConfig = {
                 : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self'",
-              "img-src 'self' data: https://images.unsplash.com blob:",
+              `img-src 'self' data: https://images.unsplash.com blob:${IMAGE_HOST_ORIGIN ? ` ${IMAGE_HOST_ORIGIN}` : ""}`,
               process.env.NODE_ENV === "production"
                 ? "connect-src 'self'"
                 : "connect-src 'self' ws: wss:",

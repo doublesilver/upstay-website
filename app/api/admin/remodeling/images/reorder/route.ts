@@ -1,17 +1,34 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
 import { invalidatePublicCache } from "@/lib/cache";
 
+const imagesReorderSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.number().int().positive(),
+        match_order: z.number().int(),
+      }),
+    )
+    .min(1)
+    .max(500),
+  case_id: z.number().int().positive(),
+  type: z.enum(["before", "after"]),
+});
+
 export async function POST(req: NextRequest) {
   if (!(await verifyToken(req))) return unauthorized();
-  const { items, case_id, type } = await req.json();
-  if (!case_id || !type || !Array.isArray(items)) {
+  const body = await req.json().catch(() => null);
+  const parsed = imagesReorderSchema.safeParse(body);
+  if (!parsed.success) {
     return Response.json(
-      { error: "items, case_id, type required" },
+      { error: parsed.error.issues[0].message },
       { status: 400 },
     );
   }
+  const { items, case_id, type } = parsed.data;
 
   const db = getDb();
   const ids = items.map((r: { id: number }) => r.id);

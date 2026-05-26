@@ -98,6 +98,18 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "No files" }, { status: 400 });
   }
 
+  // 1/8 OCPU + 1GB RAM 환경 보호 — 한 요청에 너무 많은 파일이 오면
+  // 20MB × N + sharp 변환 동시성으로 OOM 가능. admin 클라이언트도 5장 batch.
+  const MAX_FILES_PER_REQUEST = 20;
+  if (files.length > MAX_FILES_PER_REQUEST) {
+    return Response.json(
+      {
+        error: `한 번에 최대 ${MAX_FILES_PER_REQUEST}개까지 업로드 가능합니다`,
+      },
+      { status: 400 },
+    );
+  }
+
   const saved: string[] = [];
 
   for (const file of files) {

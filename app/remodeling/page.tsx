@@ -68,7 +68,10 @@ export default function RemodelingPage() {
                       ))}
                     </div>
                   </div>
-                  <span className="text-[18px] md:text-[22px] font-black text-[#111]">
+                  <span
+                    aria-hidden="true"
+                    className="text-[18px] md:text-[22px] font-black text-[#111]"
+                  >
                     &rarr;
                   </span>
                   <div>

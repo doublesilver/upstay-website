@@ -340,9 +340,17 @@ export async function DELETE(req: NextRequest) {
           (e as Error).message,
         );
       }
-      // 업로드 시 precompute한 WebP/AVIF 사본도 동반 삭제. 기존 업로드는 사본이
-      // 없으므로 ENOENT는 정상 — 그 외 오류만 로깅.
-      for (const suffix of [".webp", ".avif"]) {
+      // precompute한 모든 사본 동반 삭제. 기존 업로드는 사본이
+      // 없을 수 있어 ENOENT는 정상.
+      const VARIANT_SUFFIXES = [
+        ".webp",
+        ".avif",
+        ".thumb.webp",
+        ".thumb.webp.avif",
+        ".medium.webp",
+        ".medium.webp.avif",
+      ];
+      for (const suffix of VARIANT_SUFFIXES) {
         try {
           fs.unlinkSync(resolved + suffix);
         } catch (e) {

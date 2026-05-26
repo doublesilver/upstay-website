@@ -62,12 +62,18 @@ const MIME: Record<string, string> = {
 // precomputed 사본 streaming은 가벼우나 fallback sharp 변환·tiered cache miss 시 무거움.
 // MAX는 OCPU 여유 가늠치(0.125코어 × 약 50ms/sharp 1장).
 const MAX_CONCURRENT = 6;
+const SLOT_TIMEOUT_MS = 10_000;
 let activeRequests = 0;
-async function acquireSlot() {
+async function acquireSlot(signal: AbortSignal): Promise<boolean> {
+  const deadline = Date.now() + SLOT_TIMEOUT_MS;
   while (activeRequests >= MAX_CONCURRENT) {
+    if (signal.aborted) return false;
+    if (Date.now() > deadline) return false;
     await new Promise((r) => setTimeout(r, 30));
   }
+  if (signal.aborted) return false;
   activeRequests++;
+  return true;
 }
 function releaseSlot() {
   activeRequests--;
@@ -77,7 +83,10 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
-  await acquireSlot();
+  const acquired = await acquireSlot(req.signal);
+  if (!acquired) {
+    return new Response("Too Many Requests", { status: 429 });
+  }
   try {
     return await handleGet(req, params);
   } finally {
