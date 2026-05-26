@@ -9,6 +9,7 @@ import { Container } from "@/components/container";
 import { ServiceSections } from "@/components/service-sections";
 import { Footer } from "@/components/footer";
 import { parseStyle, styleToCss } from "@/lib/text-style";
+import { resolveImg } from "@/lib/image-url";
 import type { RemodelingCase, Announcement } from "@/lib/home-data";
 
 const AnnouncementPopup = dynamic(
@@ -31,7 +32,7 @@ function prefetchDetailImages(befores: string[], afters: string[]) {
   [befores[0], afters[0]].forEach((url) => {
     if (!url) return;
     const img = new window.Image();
-    img.src = `${url}.medium.webp`;
+    img.src = resolveImg(`${url}.medium.webp`);
   });
 }
 
@@ -206,7 +207,7 @@ function GalleryGrid({
             className="aspect-square border border-[#111] rounded overflow-hidden bg-[#F1F8E9] relative"
           >
             <ProtectedImage
-              src={`${url}.thumb.webp`}
+              src={resolveImg(`${url}.thumb.webp`)}
               alt={`${title || "리모델링 사례"} ${label} ${index + 1}번 사진`}
               fill
               className="object-cover"
