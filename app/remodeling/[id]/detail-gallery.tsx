@@ -469,6 +469,12 @@ function GallerySection({
   onOpenLightbox: () => void;
 }) {
   const tooltipRef = useRef<HTMLDivElement>(null);
+  // 활성 사진 로딩 중 신호. 1/8 OCPU + 한국 PoP miss 시 30초+ 걸릴 수 있어
+  // 빈 흰 박스만 보면 사용자가 "고장" 인식. 스피너로 "로딩 중" 명시.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    setLoading(true);
+  }, [activeIndex]);
 
   return (
     <section className="flex-1 min-h-0 min-w-0 flex flex-col gap-1">
@@ -511,7 +517,7 @@ function GallerySection({
               onMouseLeave={() => {
                 if (tooltipRef.current) tooltipRef.current.style.opacity = "0";
               }}
-              className="relative cursor-pointer lg:cursor-default touch-pan-y select-none will-change-transform w-full max-h-full aspect-[4/3]"
+              className="relative cursor-pointer lg:cursor-default touch-pan-y select-none will-change-transform w-full max-h-full aspect-[4/3] bg-[#F1F8E9]"
             >
               <ProtectedImage
                 src={M(images[activeIndex])}
@@ -521,7 +527,13 @@ function GallerySection({
                 className="object-contain pointer-events-none"
                 quality={70}
                 priority
+                onLoad={() => setLoading(false)}
               />
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-8 h-8 border-2 border-[#111] border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
               <div
                 ref={tooltipRef}
                 aria-hidden="true"
