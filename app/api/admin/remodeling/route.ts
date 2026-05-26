@@ -118,8 +118,16 @@ export async function DELETE(req: NextRequest) {
       } catch (e) {
         console.warn("[DELETE] unlink 실패:", resolved, (e as Error).message);
       }
-      // 업로드 시 precompute한 WebP/AVIF 사본도 동반 삭제.
-      for (const suffix of [".webp", ".avif"]) {
+      // precompute한 모든 사본 동반 삭제.
+      const VARIANT_SUFFIXES = [
+        ".webp",
+        ".avif",
+        ".thumb.webp",
+        ".thumb.webp.avif",
+        ".medium.webp",
+        ".medium.webp.avif",
+      ];
+      for (const suffix of VARIANT_SUFFIXES) {
         try {
           fs.unlinkSync(resolved + suffix);
         } catch (e) {

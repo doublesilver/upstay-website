@@ -26,13 +26,17 @@ interface Props {
 
 // 사례 카드 hover/touch 시 detail 페이지에서 처음 표시될 medium.webp 한국 PoP에 미리 채움.
 // 클릭 직후 화면 전환 시 Cloudflare 캐시 HIT 가능성 높여 1/8 OCPU origin 큐잉 우회.
-// 이미 prefetch된 URL은 브라우저 캐시가 알아서 dedup.
+// Set으로 prefetched URL 추적 — 같은 카드 여러 번 hover/touch해도 1회만 요청.
+const prefetchedUrls = new Set<string>();
 function prefetchDetailImages(befores: string[], afters: string[]) {
   if (typeof window === "undefined") return;
   [befores[0], afters[0]].forEach((url) => {
     if (!url) return;
+    const target = resolveImg(`${url}.medium.webp`);
+    if (prefetchedUrls.has(target)) return;
+    prefetchedUrls.add(target);
     const img = new window.Image();
-    img.src = resolveImg(`${url}.medium.webp`);
+    img.src = target;
   });
 }
 
@@ -145,7 +149,10 @@ export function HomeClient({
                           title={c.title}
                           caseIndex={caseIndex}
                         />
-                        <span className="text-[18px] md:text-[22px] font-black text-[#111]">
+                        <span
+                          aria-hidden="true"
+                          className="text-[18px] md:text-[22px] font-black text-[#111]"
+                        >
                           →
                         </span>
                         <GalleryGrid

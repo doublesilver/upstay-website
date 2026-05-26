@@ -118,6 +118,12 @@ export default function ConfigPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(true);
+  // dirty 추적 — 사용자가 카피 수정 후 의도치 않게 뒤로가기·새로고침 시 손실 방지.
+  // 처음 load한 원본과 현재 config가 다르면 dirty.
+  const initialRef = useRef<Config | null>(null);
+  const isDirty =
+    !!initialRef.current &&
+    JSON.stringify(initialRef.current) !== JSON.stringify(config);
 
   const categorySensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -129,13 +135,27 @@ export default function ConfigPage() {
       headers: getHeaders(),
     })
       .then((r) => r.json())
-      .then((data) => setConfig((prev) => ({ ...prev, ...data })))
+      .then((data) => {
+        const merged = { ...DEFAULT_CONFIG, ...data };
+        setConfig(merged);
+        initialRef.current = merged;
+      })
       .catch(() => setToast("불러오기에 실패했습니다"))
       .finally(() => setLoading(false));
 
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   const set =
     (key: keyof Config) =>
@@ -178,6 +198,7 @@ export default function ConfigPage() {
         return;
       }
       setToast("저장되었습니다");
+      initialRef.current = config;
       await load();
     } catch {
       setToast("저장에 실패했습니다");
