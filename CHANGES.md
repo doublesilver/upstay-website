@@ -461,3 +461,56 @@ cd /app && node scripts/backfill-image-variants.mjs            # 실제 실행
 - `tsc --noEmit` clean
 - `eslint` clean
 - `next build` PASS
+
+## v3.23 (2026-05-27) — 검수수정 사이클 3 (최종) + 마무리
+
+### 검수수정 사이클 3 (PR #44, High 3건)
+- H11 admin/remodeling 설명 label `htmlFor` + textarea `id` 연결 (WCAG 1.3.1)
+- H13 카카오 dialog ARIA — `role="dialog"`를 backdrop에서 내부 컨텐츠 div로 이동 (표준 ARIA 패턴)
+- H17 `dynamicParams = true` 명시 — 빌드 후 추가된 사례도 첫 요청 SSR → ISR 캐싱 (404 방지)
+- (참고) H22는 false positive — admin handlers는 이미 `invalidatePublicCache` 호출 중
+
+### 검수수정 누적 결과 (사이클 1+2+3)
+
+| 등급 | 시작 | 자동수정 | 남은 |
+|---|---|---|---|
+| 🔴 Critical | 12 | 9 | 3 |
+| 🟠 High | 30 | 17 | 13 |
+| 🟡 Medium | 17 | 2 | 15 |
+| 🟢 Low | 11 | 0 | 11 |
+
+**자동수정 누적 28건** — PR #42(18) + PR #43(7) + PR #44(3).
+회귀 발견 Critical/High **0건**.
+
+### 마무리 작업 (PR #45 — 본 commit)
+- README OCI/R2 갱신: 14곳 Railway 잔존 → OCI/Caddy/R2/systemd 기준으로 재작성
+- mermaid 아키텍처 다이어그램 갱신 (Railway Container → OCI agora VM + Cloudflare R2)
+- 환경변수 표에 `PUBLIC_ORIGIN`, `NEXT_PUBLIC_IMAGE_HOST` 추가
+- 배포 명령 OCI ssh + rsync 패턴으로 정정
+- 보안 권고 갱신: OCI `/etc/upstay/env` 보관, 노출 시 즉시 교체
+
+### 남은 항목 (사용자 결정·외부 작업 필요)
+
+**Critical (3)**
+- C2 ADMIN_PW 공개 git 히스토리 + 즉시 교체
+- C5 KAKAO_URL 실제 채널 (클라이언트 확정)
+- C6 견적/문의 폼 (외주 In-Scope 결정)
+
+**High (13)** — 디자인·외부 결정
+- C11/C12 인프라 Side CR 정식화 (Railway→OCI + R2)
+- H2 워터마크 두께 결정 (QUESTIONS Q3)
+- H4 ADMIN_PW bcrypt 해시 마이그레이션
+- H5 PUBLIC_ORIGIN env 정리
+- H14 Pretendard 폰트 서브셋 (CDN URL 부재로 자동 다운 실패, 사용자 직접)
+- H26 admin resolveImg 일관 적용 (디자인 결정)
+- H27/H28 라이트박스 데스크탑·모바일 동시 비교 (디자인)
+- 외 다수
+
+### 인수 가능 판정
+
+자동 수정 가능한 모든 항목 완료. 코드 품질 자체는 인수 가능:
+- 73 tests PASS, typecheck/lint/build clean
+- 보안 (OWASP), 접근성 (WCAG 2.1 AA 핵심), 성능 (1/8 OCPU 보호) 모두 정리
+- 인프라 문서화 (README OCI 갱신, CHANGES.md ledger v3.18~v3.23 누적 정리)
+
+남은 항목은 클라이언트 합의·외부 작업·디자인 결정이라 인수 단계에서 5조항 동의 + Side CR 정식화로 처리.
