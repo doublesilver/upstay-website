@@ -6,7 +6,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4.x-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-3.46+-003B57?logo=sqlite)](https://www.sqlite.org/)
-[![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?logo=railway)](https://railway.app/)
+[![OCI](https://img.shields.io/badge/Deploy-Oracle%20Cloud-F80000?logo=oracle)](https://www.oracle.com/cloud/)
+[![Cloudflare](https://img.shields.io/badge/CDN-Cloudflare-F38020?logo=cloudflare)](https://www.cloudflare.com/)
+[![R2](https://img.shields.io/badge/Images-R2-F38020?logo=cloudflare)](https://developers.cloudflare.com/r2/)
 [![License](https://img.shields.io/badge/License-Private-red.svg)]()
 
 ---
@@ -22,7 +24,7 @@
 - [디렉토리 구조](#-디렉토리-구조)
 - [설치 및 실행](#-설치-및-실행)
 - [환경 변수](#-환경-변수)
-- [Railway 배포](#-railway-배포)
+- [OCI 배포](#-oci-배포)
 - [보안](#-보안)
 - [마이그레이션](#-마이그레이션)
 - [테스트](#-테스트)
@@ -49,10 +51,11 @@ mindmap
       사진등록 / 사례 + 이미지 + 별표
       팝업창 / 공지 인라인 편집
     인프라
-      Railway / Standalone Build
+      OCI / Standalone Build + systemd
+      Caddy / TLS · 리버스 프록시
       SQLite / better-sqlite3 + WAL
-      Volume / 영속 데이터
-      Cloudflare / DNS + Insights
+      Cloudflare R2 / 이미지 CDN
+      Cloudflare / DNS + Tiered Cache
 ```
 
 업스테이 사이트는 **외주 단일 개발자 환경**을 전제로 설계되었습니다.
@@ -75,21 +78,22 @@ flowchart TB
 
     subgraph CDN["☁️ Cloudflare"]
         DNS[DNS<br/>upstay.co.kr]
-        Insights[Web Analytics]
+        Tiered[Tiered Cache<br/>Smart Topology]
+        R2[("R2 bucket<br/>img.upstay.co.kr<br/>9849 파일")]
     end
 
-    subgraph Railway["🚂 Railway Container"]
-        subgraph App["Next.js 15 Standalone"]
+    subgraph OCI["☁️ OCI agora VM (1/8 OCPU, 오사카)"]
+        Caddy["Caddy<br/>TLS + 리버스 프록시"]
+        subgraph App["Next.js 16 Standalone<br/>(systemd: upstay.service:3001)"]
             MW["middleware.ts<br/>JWT verify edge"]
             Public["Public Routes<br/>/ /remodeling /id"]
             AdminRoute["Admin Routes<br/>/admin/*"]
             API["API Routes<br/>/api/*"]
         end
 
-        subgraph Volume["📦 /app/data Volume"]
+        subgraph Data["📦 /home/ubuntu/upstay/data"]
             DB[(upstay.db<br/>SQLite + WAL)]
-            Uploads[uploads/<br/>이미지 파일]
-            Cache[cache/<br/>avif/webp 변환]
+            Uploads[uploads/<br/>원본 + variants]
         end
     end
 
@@ -99,18 +103,19 @@ flowchart TB
 
     Visitor -->|HTTPS| DNS
     Admin -->|/admin| DNS
-    DNS --> MW
+    DNS --> Tiered
+    Tiered --> Caddy
+    Caddy --> MW
     MW -->|/admin/*<br/>/api/admin/*| AdminRoute
     MW -->|public| Public
     Public --> DB
     AdminRoute --> API
     API --> DB
     API --> Uploads
-    Public --> Uploads
-    Uploads --> Cache
+    Uploads -->|cron 5min sync| R2
+    Visitor -->|img.upstay.co.kr| R2
 
-    Repo -->|git push main| Railway
-    Insights -.->|trace| Visitor
+    Repo -->|머지 + rsync| OCI
 ```
 
 ### 핵심 설계 결정
@@ -317,8 +322,9 @@ flowchart LR
     subgraph DevOps["DevOps"]
         Vitest["vitest<br/>단위 테스트"]
         ESLint["ESLint"]
-        Docker["Docker"]
-        Railway2["Railway<br/>volume mount"]
+        Systemd["systemd<br/>upstay.service"]
+        Caddy2["Caddy<br/>TLS + proxy"]
+        R2["Cloudflare R2<br/>이미지 CDN"]
     end
 
     Frontend --> Backend
@@ -423,8 +429,8 @@ upstay-website/
 ├── WORK_ZONES.md                 # Zone 작업 규칙
 ├── CHANGES.md                    # 변경 로그
 ├── QUESTIONS.md                  # 클라이언트 확인 사항
-├── Dockerfile
-├── railway.json
+├── Dockerfile                    # 옛 Railway 환경 잔존 — OCI에서 미사용
+├── railway.json                  # 옛 Railway 환경 잔존 — OCI에서 미사용
 └── README.md
 ```
 
@@ -464,15 +470,17 @@ npm start
 
 ## 🔑 환경 변수
 
-`.env.local` 또는 Railway Environment Variables에 설정:
+`.env.local` (로컬 개발) 또는 OCI `/etc/upstay/env` (production)에 설정:
 
-| 키           | 필수 | 기본값   | 설명                                                          |
-| ------------ | ---- | -------- | ------------------------------------------------------------- |
-| `ADMIN_ID`   | ✅   | -        | 관리자 아이디                                                 |
-| `ADMIN_PW`   | ✅   | -        | 관리자 비밀번호 (개인 사이트라 짧게 OK + rate limit으로 방어) |
-| `JWT_SECRET` | ✅   | -        | JWT 서명 키 (**32자 이상**)                                   |
-| `DATA_DIR`   | ⚪   | `./data` | DB + 업로드 저장소                                            |
-| `SEED_DEMO`  | ⚪   | -        | `1`이면 데모 데이터 시드                                      |
+| 키 | 필수 | 기본값 | 설명 |
+| --- | --- | --- | --- |
+| `ADMIN_ID` | ✅ | - | 관리자 아이디 |
+| `ADMIN_PW` | ✅ | - | 관리자 비밀번호 (rate limit + JWT로 방어) |
+| `JWT_SECRET` | ✅ | - | JWT 서명 키 (**32자 이상**) |
+| `DATA_DIR` | ⚪ | `./data` | DB + 업로드 저장소 (OCI: `/home/ubuntu/upstay/data`) |
+| `PUBLIC_ORIGIN` | ⚪ | - | CSRF origin allowlist 쉼표 구분 (예: `https://upstay.co.kr,https://www.upstay.co.kr`) |
+| `NEXT_PUBLIC_IMAGE_HOST` | ⚪ | - | 이미지 외부 CDN host (예: `https://img.upstay.co.kr` — R2 분리 시). 빌드 타임 inline, 변경 후 재빌드 필수 |
+| `SEED_DEMO` | ⚪ | - | `1`이면 데모 데이터 시드 |
 
 ### JWT_SECRET 생성
 
@@ -483,42 +491,85 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ### 보안 권고
 
-> ⚠️ `JWT_SECRET`은 한 번 노출되면 모든 admin 토큰 위조 가능. Railway env에만 보관, git history에 commit 금지.
+> ⚠️ `JWT_SECRET`·`ADMIN_PW`은 한 번 노출되면 모든 admin 토큰 위조 가능. OCI `/etc/upstay/env`(root 권한 파일)에만 보관, git history에 commit 금지. 노출 시 즉시 `openssl rand -base64 24`로 교체 + restart.
 
 ---
 
-## 🚂 Railway 배포
+## ☁️ OCI 배포
+
+> 2026-05-24부터 Oracle Cloud Infrastructure(OCI Always Free) 단독 운영. 이전 Railway 환경은 폐기됨.
+> 이미지는 Cloudflare R2(`img.upstay.co.kr`)로 분리 서빙되어 origin OCI는 HTML/JS/관리자만 처리.
 
 ```mermaid
 flowchart LR
     Dev["💻 로컬 개발"] -->|git push main| GH["GitHub"]
-    GH -->|webhook| RW["Railway"]
-    RW -->|Dockerfile| Build["Build container"]
-    Build -->|standalone| Container["Run container"]
-    Container -->|/app/data mount| Volume[("Volume<br/>upstay.db<br/>+ uploads")]
-    Container -->|3000 port| LB["Load Balancer"]
-    LB -->|HTTPS| User["👤 User"]
+    GH -->|머지| Main["main branch"]
+    Main -->|rsync| OCI["☁️ OCI VM<br/>agora (오사카)"]
+    OCI -->|systemd: upstay.service| App["Next.js 16 standalone<br/>:3001"]
+    App -->|/api/uploads or admin| Origin["origin OCI"]
+    App -->|/_next, HTML, JS| User["👤 User"]
+    User -->|이미지| R2["Cloudflare R2<br/>img.upstay.co.kr"]
+    OCI -->|local FS| SQLite[("SQLite<br/>/home/ubuntu/upstay/data/<br/>upstay.db + uploads")]
+    OCI -->|cron 5min sync| R2sync["rclone copy → R2"]
 ```
 
-### 배포 체크리스트
+### 운영 정보
 
-1. **GitHub 연결**: Railway dashboard에서 `doublesilver/upstay-website` 연결
-2. **Environment Variables**: `ADMIN_ID`, `ADMIN_PW`, `JWT_SECRET` 설정
-3. **Volume mount**:
-   - Service → Settings → Volumes
-   - Mount path: `/app/data`
-   - Size: 1GB
-4. **자동 배포**: `git push origin main` → Railway 자동 빌드+배포
+| 항목 | 값 |
+|---|---|
+| SSH 명령 | `ssh upstay` (또는 `ssh -i ~/.ssh/oci_agora_key ubuntu@161.33.19.104`) |
+| VM | agora VM 공유 (오사카, ap-osaka-1, 1/8 OCPU + 1GB) |
+| 코드 위치 | `~/upstay/` |
+| 서비스 | systemd `upstay.service`, port 3001 |
+| 데이터 | `/home/ubuntu/upstay/data/` (SQLite + uploads) |
+| 환경변수 | `/etc/upstay/env` (`ADMIN_ID`, `ADMIN_PW`, `JWT_SECRET`, `DATA_DIR`, `NEXT_PUBLIC_IMAGE_HOST`) |
+| 도메인 | upstay.co.kr → Cloudflare (proxy) → 161.33.19.104 |
+| 이미지 host | `https://img.upstay.co.kr` (Cloudflare R2, 무료 10GB) |
+| 인증서 | Caddy + Let's Encrypt 자동 갱신 |
+| 자동 sync | cron 5분 마다 `rclone copy /home/ubuntu/upstay/data/uploads r2:upstay-uploads` |
 
-### CLI 방식
+### 배포 순서 (코드 변경 후)
 
 ```bash
-railway login
-railway link  # 프로젝트 연결
-railway variables --set "ADMIN_ID=<your-admin-id>" \
-                  --set "ADMIN_PW=$(openssl rand -base64 24)" \
-                  --set "JWT_SECRET=$(openssl rand -hex 32)"
-railway redeploy -y
+# 1. 로컬에서 main 최신 동기화
+cd ~/Projects/upstay-website
+git checkout main && git pull origin main
+
+# 2. OCI로 rsync (worktree 또는 main 디렉토리에서)
+rsync -avz --exclude={'.git','node_modules','.next','data','.claude'} \
+  -e "ssh -i ~/.ssh/oci_agora_key" \
+  ./ ubuntu@161.33.19.104:~/upstay/
+
+# 3. OCI에서 빌드 + 재시작
+ssh upstay 'cd ~/upstay && \
+  NODE_OPTIONS="--max-old-space-size=512" \
+  NEXT_PUBLIC_IMAGE_HOST="https://img.upstay.co.kr" \
+  npm run build && \
+  cp -r .next/static .next/standalone/.next/ && \
+  cp -r public .next/standalone/ && \
+  sudo systemctl restart upstay'
+
+# 4. 검증
+ssh upstay 'systemctl is-active upstay.service && curl -sI -o /dev/null -w "homepage:%{http_code}\n" http://localhost:3001/'
+```
+
+### 환경변수 갱신
+
+```bash
+ssh upstay 'sudo nano /etc/upstay/env'
+# 변경 후
+ssh upstay 'sudo systemctl restart upstay'
+```
+
+> `NEXT_PUBLIC_*` 환경변수는 빌드 타임 inline이라 변경 후 반드시 재빌드 필요.
+
+### 운영 명령
+
+```bash
+ssh upstay 'sudo systemctl status upstay caddy'
+ssh upstay 'sudo journalctl -u upstay -n 50'
+ssh upstay 'sqlite3 ~/upstay/data/upstay.db ".backup /var/backups/upstay-$(date +%Y%m%d).db"'
+ssh upstay 'df -h ~/upstay/data'
 ```
 
 ---
@@ -678,7 +729,7 @@ launchctl load ~/Library/LaunchAgents/com.upstay.backup.plist
 ```bash
 tar xzf ~/upstay-backups/upstay-20260428-030000.tar.gz
 # data/ 디렉토리 추출
-# Railway: railway ssh + scp로 /app/data에 업로드
+# OCI: rsync로 ubuntu@161.33.19.104:~/upstay/data/에 업로드
 ```
 
 ---
