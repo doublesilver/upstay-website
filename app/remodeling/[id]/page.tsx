@@ -3,6 +3,10 @@ import { DetailGallery } from "./detail-gallery";
 import { getDb } from "@/lib/db";
 import { notFound } from "next/navigation";
 
+// 빌드 시점에 알려진 사례만 prerender. 빌드 후 추가된 사례는 dynamicParams=true(기본)로
+// 첫 요청 시 SSR → ISR revalidate=60 캐싱 → 404 안 발생. 명시적으로 표시.
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
   try {
     const db = getDb();

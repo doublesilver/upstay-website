@@ -64,11 +64,12 @@ export function KakaoButton() {
         <div
           className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
           onClick={() => setShowKakaoInfo(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="카카오톡 친구추가"
+          aria-hidden="true"
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="카카오톡 친구추가"
             className="bg-[#F5F5E7] rounded-2xl p-5 max-w-[calc(100vw-2rem)] w-[236px] flex flex-col items-stretch"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={handleTabTrap}

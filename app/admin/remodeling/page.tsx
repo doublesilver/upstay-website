@@ -578,10 +578,14 @@ function SortableCase({
           <div className="border-t border-[#111]" />
 
           <div className="flex items-start gap-3">
-            <label className="text-[13px] font-medium text-[#333] shrink-0 pt-1.5">
+            <label
+              htmlFor={`case-description-${item.id}`}
+              className="text-[13px] font-medium text-[#333] shrink-0 pt-1.5"
+            >
               설명
             </label>
             <textarea
+              id={`case-description-${item.id}`}
               value={item.title}
               onChange={(e) => onTitleChange(item.id, e.target.value)}
               placeholder="설명을 입력해 주세요"
