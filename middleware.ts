@@ -9,7 +9,7 @@ function getSecretBytes(): Uint8Array | null {
   if (!v || v.length < 32) {
     if (!secretWarned) {
       console.error(
-        "[middleware] JWT_SECRET missing or shorter than 32 bytes — all admin requests will fail",
+        "[proxy] JWT_SECRET missing or shorter than 32 bytes — all admin requests will fail",
       );
       secretWarned = true;
     }
