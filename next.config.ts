@@ -15,9 +15,14 @@ const IMAGE_HOST_ORIGIN = (() => {
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
+  // worktree 디렉토리(.claude/worktrees/*)에 자체 package-lock.json이 생기면
+  // Next.js가 monorepo 루트를 잘못 추론해 standalone에 server.js를 안 만듦.
+  // 빌드되는 현재 디렉토리를 root로 강제.
+  outputFileTracingRoot: process.cwd(),
   reactStrictMode: true,
   expireTime: 60,
   experimental: {
+    // proxyClientMaxBodySize는 Next.js 16.2.6에 아직 없음. deprecated 경고는 무시.
     middlewareClientMaxBodySize: "100mb",
   },
   allowedDevOrigins: [
