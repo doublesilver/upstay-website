@@ -6,7 +6,8 @@ import { blurDataURL } from "@/lib/shimmer";
 import { CasePrefetchTrigger } from "@/components/case-prefetch-trigger";
 import { resolveImg } from "@/lib/image-url";
 
-export const revalidate = 60;
+// force-dynamic — 빌드 시점 DB 의존 회귀 방지 (page.tsx와 동일 사유)
+export const dynamic = "force-dynamic";
 
 export default function RemodelingPage() {
   const cases = getAllCases();

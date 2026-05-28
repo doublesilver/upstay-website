@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getDb } from "@/lib/db";
 
+// sitemap도 빌드 시점 DB 의존 회귀 방지. 매 요청 OCI DB 조회.
+export const dynamic = "force-dynamic";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://upstay.co.kr";
   const db = getDb();
