@@ -19,6 +19,17 @@ const nextConfig: NextConfig = {
   // Next.js가 monorepo 루트를 잘못 추론해 standalone에 server.js를 안 만듦.
   // 빌드되는 현재 디렉토리를 root로 강제.
   outputFileTracingRoot: process.cwd(),
+  // OCI 운영 환경에 누적된 일회성 스크립트들(이미지 백필·압축 등)이 standalone
+  // trace에 포함되면 server.js 생성을 막을 수 있어 명시적으로 제외.
+  outputFileTracingExcludes: {
+    "*": [
+      "**/.claude/**",
+      "**/data.empty/**",
+      "gen-*.js",
+      "compress-*.sh",
+      "**/scripts/backfill-*.mjs",
+    ],
+  },
   reactStrictMode: true,
   expireTime: 60,
   experimental: {
