@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { X } from "lucide-react";
+import { resolveImg } from "@/lib/image-url";
 import {
   DndContext,
   KeyboardSensor,
@@ -104,7 +105,7 @@ function SortableThumb({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={image.image_url}
+        src={resolveImg(`${image.image_url}.thumb.webp`)}
         alt=""
         draggable={false}
         style={{ filter }}
