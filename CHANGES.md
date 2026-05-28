@@ -568,3 +568,33 @@ cd /app && node scripts/backfill-image-variants.mjs            # 실제 실행
 - WCAG h1/aria-hidden/aria-label 핵심 항목 마무리
 
 인수 단계에서 5조항 동의 + Side CR 정식화로 처리.
+
+## v3.25 (2026-05-28) — env 검증 + E2E 자동화 (운영 차단 회귀 방지)
+
+### 배경
+PR #52 후 사용자가 admin/config 저장 시 "저장에 실패했습니다" 발견.
+원인: OCI `/etc/upstay/env`에 **`PUBLIC_ORIGIN` 누락** → middleware CSRF 검증에서 403.
+교훈: 핵심 env 누락이 silent 운영 회귀로 사용자가 발견하기 전까진 안 잡힘.
+
+### 자동수정
+- **`lib/env-validation.ts`** 신규 — production 시작 시점에 필수 env(`JWT_SECRET`, `ADMIN_ID`, `ADMIN_PW`, `PUBLIC_ORIGIN`) 검증. 누락 시 콘솔에 명시 에러 + 해결 가이드 출력
+- **`instrumentation.ts`** 신규 — Next.js boot 훅으로 env 검증 호출
+- **`scripts/e2e-check.sh`** 신규 — production 9개 카테고리 자동 검증:
+  1. Public 페이지 5개
+  2. 메타 파일 6개
+  3. 보안 헤더 5개 + CSP img-src 검증
+  4. HTML 메타 (title, og, naver verification)
+  5. 인증 보호 (admin redirect, /api/admin 401)
+  6. 입력 검증 가드 (path traversal, null byte, 확장자)
+  7. R2 이미지 + cf-cache 상태 (HIT 또는 경고)
+  8. 로그인 rate limit (5회 후 429 검증)
+  9. (선택) admin credentials로 인증 후 mutation API
+- OCI에 `PUBLIC_ORIGIN=https://upstay.co.kr,https://www.upstay.co.kr` 추가 + restart
+
+### 운영 체크
+- 새 인스턴스 셋업 시 `bash scripts/e2e-check.sh` 한 줄로 핵심 차단 회귀 발견
+- Cron 일간 실행 권장 (`scripts/e2e-check.sh > /var/log/upstay-e2e.log`)
+
+### 검증
+- 73 tests PASS, typecheck OK
+- 사용자 admin 저장 정상 동작 확인됨
