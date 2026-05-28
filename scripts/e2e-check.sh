@@ -31,7 +31,9 @@ warn() { printf "  ⚠️  %s\n" "$1"; WARNINGS=$((WARNINGS + 1)); }
 section() { printf "\n## %s\n" "$1"; }
 
 curl_code() {
-  curl -sL -o /dev/null -w "%{http_code}" "$1" -H 'User-Agent: e2e-check'
+  # -L 제거 — redirect follow하면 /admin/remodeling 307 → /admin 200으로 잘못 catch.
+  # 인증 보호 검증은 첫 응답(307) 확인이 정답.
+  curl -s -o /dev/null -w "%{http_code}" "$1" -H 'User-Agent: e2e-check'
 }
 
 curl_header() {
@@ -50,12 +52,23 @@ echo " UPSTAY E2E 검사 시작 — $(date +%H:%M:%S)"
 echo " BASE=$BASE  IMG_HOST=$IMG_HOST"
 echo "=========================================="
 
+# public 페이지는 직접 200이거나 Cloudflare가 캐시 응답.
+curl_code_follow() {
+  curl -sL -o /dev/null -w "%{http_code}" "$1" -H 'User-Agent: e2e-check'
+}
+assert_follow() {
+  local url="$1" expected="$2" desc="$3"
+  local code
+  code=$(curl_code_follow "$url")
+  if [ "$code" = "$expected" ]; then ok "$desc ($code)"; else fail "$desc — expected $expected, got $code"; fi
+}
+
 section "1. Public 페이지"
-assert_code "$BASE/"                    200 "GET /"
-assert_code "$BASE/remodeling"          200 "GET /remodeling"
-assert_code "$BASE/remodeling/1"        200 "GET /remodeling/1"
-assert_code "$BASE/rental-management"   200 "GET /rental-management"
-assert_code "$BASE/building-management" 200 "GET /building-management"
+assert_follow "$BASE/"                    200 "GET /"
+assert_follow "$BASE/remodeling"          200 "GET /remodeling"
+assert_follow "$BASE/remodeling/1"        200 "GET /remodeling/1"
+assert_follow "$BASE/rental-management"   200 "GET /rental-management"
+assert_follow "$BASE/building-management" 200 "GET /building-management"
 
 section "2. 메타 파일"
 assert_code "$BASE/robots.txt"           200 "robots.txt"
@@ -103,7 +116,8 @@ ext_code=$(curl_code "$BASE/api/uploads/test.exe")
 if [ "$ext_code" = "404" ]; then ok "확장자 차단 ($ext_code)"; else fail "확장자 차단 — expected 404, got $ext_code"; fi
 
 section "7. R2 이미지"
-sample_img=$(curl -sL "$BASE/remodeling" -H 'User-Agent: e2e-check' | grep -oE "$IMG_HOST/[^\"]+\.webp" | head -1)
+# 변수 expansion + escape 회피 위해 hostname을 inline string으로 직접 사용.
+sample_img=$(curl -sL "$BASE/remodeling" -H 'User-Agent: e2e-check' | grep -oE 'https://img\.upstay\.co\.kr/[^"]+\.webp' | head -1)
 if [ -n "$sample_img" ]; then
   img_code=$(curl_code "$sample_img")
   if [ "$img_code" = "200" ]; then ok "R2 이미지 200 ($sample_img)"; else fail "R2 이미지 $img_code"; fi
