@@ -92,6 +92,9 @@ export function HomeClient({
 
   return (
     <div className="snap-y snap-mandatory h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-y-auto lg:snap-none lg:h-auto lg:overflow-visible">
+      {/* 페이지 h1 — 시각적으로는 디자인에 포함되지 않지만 스크린리더·SEO 핵심.
+          기존 h2(사례 가이드) 위에 위치하여 outline order를 맞춘다. */}
+      <h1 className="sr-only">UPSTAY — 리모델링 · 빌딩관리 · 임대관리</h1>
       <section className="snap-start min-h-[calc(100dvh-56px)] md:h-[calc(100dvh-80px)] overflow-hidden lg:h-auto lg:min-h-0 lg:overflow-visible">
         <Container className="pt-4 pb-6 md:pt-10 md:pb-12 h-full flex flex-col lg:h-auto">
           <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl p-3 md:p-5 flex-1 min-h-0 flex flex-col overflow-y-auto lg:flex-none lg:overflow-visible">
@@ -104,7 +107,8 @@ export function HomeClient({
                   className="text-[12px] md:text-[18px] font-bold tracking-tight text-[#111111] hover:text-[#6B7280] transition-colors"
                   style={photoGuideStyle}
                 >
-                  {photoGuideTitle} →
+                  {photoGuideTitle}{" "}
+                  <span aria-hidden="true">→</span>
                 </h2>
               </Link>
               <span

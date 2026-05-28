@@ -640,7 +640,11 @@ export function ImageEditModal({
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={current.image_url}
+                      // 메인 미리보기도 R2(NEXT_PUBLIC_IMAGE_HOST) 가 설정돼 있으면
+                      // 외부 CDN으로 가게 한다. 그렇지 않으면 원래 `/api/uploads/...`
+                      // 그대로라 OCI origin 서빙. PR #47에서 썸네일만 처리하고 미리보기를
+                      // 놓친 빈틈을 보충.
+                      src={resolveImg(current.image_url)}
                       alt=""
                       className="max-h-[58vh] max-w-full object-contain block"
                       style={{ filter: imageFilter }}

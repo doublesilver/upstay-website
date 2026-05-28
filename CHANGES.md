@@ -514,3 +514,57 @@ cd /app && node scripts/backfill-image-variants.mjs            # 실제 실행
 - 인프라 문서화 (README OCI 갱신, CHANGES.md ledger v3.18~v3.23 누적 정리)
 
 남은 항목은 클라이언트 합의·외부 작업·디자인 결정이라 인수 단계에서 5조항 동의 + Side CR 정식화로 처리.
+
+## v3.24 (2026-05-28) — 검수수정 사이클 4 + PR #46~#48 회귀 점검
+
+### PR #46~#48 잔존 변경 (사이클 3 이후 자연 누적)
+- PR #46 `/api/uploads/[...path]/route.ts` — admin 인증 쿠키 보유 트래픽 semaphore skip + MAX_CONCURRENT 6→24 + timeout 10→15s
+- PR #47 `app/admin/remodeling/page.tsx` + `components/admin/image-edit-modal.tsx` 썸네일 `resolveImg` + `.thumb.webp` 적용
+- PR #48 `next.config.ts` `outputFileTracingRoot: process.cwd()` 명시 + Dockerfile에 deps node_modules 통째 copy (Next.js 16 standalone worktree 회귀 fix)
+
+### 사이클 4 자동 수정 (4건)
+- **보안 회귀 (PR #46 후속)** `app/api/uploads/[...path]/route.ts` — `isAuthenticatedTraffic`가 쿠키 존재 여부만 보던 것을 `jwtVerify`로 실제 서명 검증. 외부 공격자가 `upstay_admin_token=fake`를 보내 1/8 OCPU semaphore를 우회하던 회귀 차단
+- **H26 후속 (PR #47 빈틈)** `components/admin/image-edit-modal.tsx` 메인 미리보기 `<img>`에 `resolveImg` 적용 — R2 환경에서 미리보기도 외부 CDN으로 분기 (워터마크 합성 source는 CORS 안전을 위해 변경 안 함)
+- **H9** `components/home-client.tsx` 메인 페이지 sr-only `<h1>UPSTAY — 리모델링 · 빌딩관리 · 임대관리</h1>` 추가 (WCAG 1.3.1, 2.4.6)
+- **H10** `components/home-client.tsx` photoGuideTitle 옆 `→` 화살표 `<span aria-hidden="true">` 감쌈 (스크린리더가 "오른쪽 화살표" 읽지 않도록)
+- **H11** `app/admin/config/page.tsx` ConfigSection 3개 input/textarea에 `aria-label={`${title} 제목/설명/캡션`}` 추가 (label 미연결 해소)
+
+### 회귀 검증
+- 73 tests PASS, typecheck/lint clean
+- standalone 빌드 `server.js` 생성 OK (PR #48 outputFileTracingRoot 정상 작동)
+
+### 검수수정 누적 결과 (사이클 1+2+3+4)
+
+| 등급 | 시작 | 자동수정 | 남은 |
+|---|---|---|---|
+| 🔴 Critical | 12 | 9 | 3 |
+| 🟠 High | 30 | 22 | 8 |
+| 🟡 Medium | 17 | 2 | 15 |
+| 🟢 Low | 11 | 0 | 11 |
+
+**자동수정 누적 33건** — PR #42(18) + PR #43(7) + PR #44(3) + 사이클 4(5).
+
+### 사용자 결정·외부 작업 잔존 (인수 시점 합의)
+
+**Critical (3)**
+- C2 ADMIN_PW 공개 git 히스토리 + 즉시 교체 (사용자 조치)
+- C5 KAKAO_URL 실제 채널 (클라이언트 확정)
+- C6 견적/문의 폼 (외주 In-Scope 결정)
+
+**High (8)** — 디자인·외부 결정
+- C11/C12 인프라 Side CR 정식화 (Railway→OCI + R2)
+- H2 워터마크 두께 결정 (QUESTIONS Q3)
+- H4 ADMIN_PW bcrypt 해시 마이그레이션
+- H5 PUBLIC_ORIGIN env 정리 (OCI 운영자 작업)
+- H14 Pretendard 폰트 서브셋
+- H27/H28 라이트박스 데스크탑·모바일 동시 비교 (디자인)
+
+### 인수 가능 판정 (v3.24 시점)
+
+자동 수정 가능한 모든 항목 완료, 잔존 8건은 외부 결정 의존.
+- 73 tests PASS, typecheck/lint/build clean
+- PR #46 보안 회귀 차단됨 (semaphore bypass 인증 검증 강화)
+- PR #47 빈틈 보충 (미리보기 resolveImg)
+- WCAG h1/aria-hidden/aria-label 핵심 항목 마무리
+
+인수 단계에서 5조항 동의 + Side CR 정식화로 처리.

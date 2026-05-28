@@ -449,6 +449,7 @@ function ConfigSection({
             onChange={onTitleChange}
             onFocus={() => setActiveField("title")}
             onBlur={() => setActiveField(null)}
+            aria-label={`${title} 제목`}
             className={`${inputCls}`}
             style={styleToCss(titleStyle)}
           />
@@ -461,6 +462,7 @@ function ConfigSection({
             onFocus={() => setActiveField("desc")}
             onBlur={() => setActiveField(null)}
             rows={1}
+            aria-label={`${title} 설명`}
             className={`${inputCls} resize-none overflow-hidden [field-sizing:content]`}
             style={styleToCss(descStyle)}
           />
@@ -473,6 +475,7 @@ function ConfigSection({
             onChange={onCaptionChange}
             onFocus={() => setActiveField("caption")}
             onBlur={() => setActiveField(null)}
+            aria-label={`${title} 캡션`}
             className={inputCls}
             style={styleToCss(captionStyle)}
           />
