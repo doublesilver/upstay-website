@@ -34,6 +34,7 @@ import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
 import { useFocusTrap } from "@/components/use-focus-trap";
 import { apiFetch, errMsg, getHeaders } from "@/lib/admin-api";
+import { resolveImg } from "@/lib/image-url";
 import {
   getMainSlotConflicts,
   nextTopSortOrder,
@@ -202,7 +203,9 @@ function ImageThumb({
       {image.image_url ? (
         <>
           <Image
-            src={image.image_url_wm || image.image_url}
+            src={resolveImg(
+              `${image.image_url_wm || image.image_url}.thumb.webp`,
+            )}
             alt=""
             width={120}
             height={90}
