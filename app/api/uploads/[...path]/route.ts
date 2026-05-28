@@ -13,6 +13,7 @@ import { Readable } from "stream";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
+import { jwtVerify } from "jose";
 import { UPLOAD_DIR, DATA_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
 
 const CACHE_DIR = path.join(DATA_DIR, "cache");
@@ -81,16 +82,48 @@ function releaseSlot() {
 
 // admin 인증 쿠키 보유 트래픽은 신뢰. semaphore 건너뜀.
 // 쿠키 이름은 lib/auth.ts의 AUTH_COOKIE와 동일 — 순환 import 회피 위해 string literal.
+//
+// 단순히 쿠키 존재 여부만 확인하면 외부 공격자가 `upstay_admin_token=anything`을
+// 보내 semaphore를 우회해 1/8 OCPU 보호선을 뚫을 수 있다. JWT 서명을 실제로
+// 검증해야 안전. 동일 요청에서 검증을 두 번 안 하도록 결과는 1회만 계산.
 const AUTH_COOKIE_NAME = "upstay_admin_token";
-function isAuthenticatedTraffic(req: NextRequest): boolean {
-  return Boolean(req.cookies?.get(AUTH_COOKIE_NAME)?.value);
+
+let secretBytesCache: Uint8Array | null = null;
+let secretBytesWarned = false;
+function getSecretBytes(): Uint8Array | null {
+  if (secretBytesCache) return secretBytesCache;
+  const v = process.env.JWT_SECRET;
+  if (!v || v.length < 32) {
+    if (!secretBytesWarned) {
+      console.error(
+        "[uploads] JWT_SECRET missing or shorter than 32 bytes — admin traffic semaphore skip disabled",
+      );
+      secretBytesWarned = true;
+    }
+    return null;
+  }
+  secretBytesCache = new TextEncoder().encode(v);
+  return secretBytesCache;
+}
+
+async function isAuthenticatedTraffic(req: NextRequest): Promise<boolean> {
+  const token = req.cookies?.get(AUTH_COOKIE_NAME)?.value;
+  if (!token) return false;
+  const secret = getSecretBytes();
+  if (!secret) return false;
+  try {
+    await jwtVerify(token, secret);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
-  if (isAuthenticatedTraffic(req)) {
+  if (await isAuthenticatedTraffic(req)) {
     // admin 트래픽 — semaphore 건너뜀
     return handleGet(req, params);
   }
