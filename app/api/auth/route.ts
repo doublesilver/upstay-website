@@ -11,9 +11,16 @@ const WINDOW_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 function clientIp(req: NextRequest): string {
+  // Cloudflare proxy 환경 우선 — Cloudflare가 검증한 실제 클라이언트 IP.
+  // 이 값은 Cloudflare edge가 setting하며 클라이언트가 임의로 prepend 불가.
+  const cfIp = req.headers.get("cf-connecting-ip");
+  if (cfIp) return cfIp.trim();
+
   // x-forwarded-for는 클라이언트가 임의로 prepend 할 수 있는 헤더다. 프록시(Railway/Cloudflare)는
   // 자기가 본 IP를 끝에 append 하므로 "마지막" 값이 신뢰 가능한 실제 클라이언트 IP.
   // 첫 번째를 쓰면 공격자가 매 요청마다 다른 IP를 헤더에 박아 rate-limit 우회 가능.
+  // 단 Cloudflare 환경에선 마지막 = Cloudflare edge IP라 모든 요청이 같은 IP로 보임 →
+  // rate-limit 무용. cf-connecting-ip가 우선이지만, fallback 패턴은 유지.
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
     const parts = forwarded
