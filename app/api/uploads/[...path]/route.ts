@@ -58,11 +58,11 @@ const MIME: Record<string, string> = {
 };
 
 // OCI 1/8 OCPU origin 보호 — 동시 image 요청을 N개로 제한.
-// Cloudflare PoP miss 폭주 시 N+1번째부터는 짧게 대기 후 진입.
-// precomputed 사본 streaming은 가벼우나 fallback sharp 변환·tiered cache miss 시 무거움.
-// MAX는 OCPU 여유 가늠치(0.125코어 × 약 50ms/sharp 1장).
-const MAX_CONCURRENT = 6;
-const SLOT_TIMEOUT_MS = 10_000;
+// 사용자 페이지는 R2(img.upstay.co.kr) 직접 서빙이라 이 라우트는 거의 admin 트래픽만 처리.
+// admin은 인증된 신뢰 트래픽 + 사례 카드 N장 동시 fetch 패턴이라 semaphore 건너뜀.
+// 익명 트래픽(R2 fallback, 외부 봇)만 24개 동시 제한.
+const MAX_CONCURRENT = 24;
+const SLOT_TIMEOUT_MS = 15_000;
 let activeRequests = 0;
 async function acquireSlot(signal: AbortSignal): Promise<boolean> {
   const deadline = Date.now() + SLOT_TIMEOUT_MS;
@@ -79,10 +79,21 @@ function releaseSlot() {
   activeRequests--;
 }
 
+// admin 인증 쿠키 보유 트래픽은 신뢰. semaphore 건너뜀.
+// 쿠키 이름은 lib/auth.ts의 AUTH_COOKIE와 동일 — 순환 import 회피 위해 string literal.
+const AUTH_COOKIE_NAME = "upstay_admin_token";
+function isAuthenticatedTraffic(req: NextRequest): boolean {
+  return Boolean(req.cookies?.get(AUTH_COOKIE_NAME)?.value);
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
+  if (isAuthenticatedTraffic(req)) {
+    // admin 트래픽 — semaphore 건너뜀
+    return handleGet(req, params);
+  }
   const acquired = await acquireSlot(req.signal);
   if (!acquired) {
     return new Response("Too Many Requests", { status: 429 });
