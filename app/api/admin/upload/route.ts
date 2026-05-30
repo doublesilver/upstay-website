@@ -67,13 +67,16 @@ async function optimize(buffer: Buffer, ext: string): Promise<Buffer> {
 
 // 업로드 직후 동일 디렉토리에 .webp / .avif 사본 생성.
 // 서빙 라우트가 Accept 헤더 보고 미리 만들어둔 파일을 바로 streaming하므로
-// 첫 요청부터 sharp 변환 없이 빠름. Railway CPU·디스크캐시 부담도 동시 감소.
+// 첫 요청부터 sharp 변환 없이 빠름. Railway/OCI CPU·디스크캐시 부담 감소.
+// admin은 .thumb.webp(480px), 사례 상세 메인은 .medium.webp(1280px) 요청.
+// 누락 시 admin·R2에서 404 엑박이라 4종 모두 항상 생성.
 async function precomputeVariants(originalPath: string): Promise<void> {
   const sharpOpts = {
     limitInputPixels: 100_000_000,
     failOn: "truncated" as const,
   };
-  // 병렬로 두 포맷 인코딩. AVIF는 effort 4 기본값(1-3s) 그대로 — 백그라운드라 응답엔 영향 없음.
+  // 병렬로 4종 인코딩. AVIF effort 4(1-3s) + 사이즈 리사이즈는 더 빠름.
+  // 백그라운드 fire-and-forget이라 사용자 응답 지연 0.
   await Promise.all([
     sharp(originalPath, sharpOpts)
       .webp({ quality: 80 })
@@ -81,6 +84,14 @@ async function precomputeVariants(originalPath: string): Promise<void> {
     sharp(originalPath, sharpOpts)
       .avif({ quality: 80 })
       .toFile(`${originalPath}.avif`),
+    sharp(originalPath, sharpOpts)
+      .resize(480, null, { withoutEnlargement: true })
+      .webp({ quality: 75 })
+      .toFile(`${originalPath}.thumb.webp`),
+    sharp(originalPath, sharpOpts)
+      .resize(1280, null, { withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toFile(`${originalPath}.medium.webp`),
   ]);
 }
 
