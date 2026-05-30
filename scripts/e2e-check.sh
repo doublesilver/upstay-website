@@ -66,7 +66,13 @@ assert_follow() {
 section "1. Public 페이지"
 assert_follow "$BASE/"                    200 "GET /"
 assert_follow "$BASE/remodeling"          200 "GET /remodeling"
-assert_follow "$BASE/remodeling/1"        200 "GET /remodeling/1"
+# 사례 상세는 sitemap에서 실 case ID 추출 (DB 첫 사례)
+sample_case=$(curl -sL "$BASE/sitemap.xml" | grep -oE '/remodeling/[0-9]+' | head -1)
+if [ -n "$sample_case" ]; then
+  assert_follow "$BASE$sample_case"       200 "GET $sample_case"
+else
+  warn "sitemap에서 사례 ID 못 찾음"
+fi
 assert_follow "$BASE/rental-management"   200 "GET /rental-management"
 assert_follow "$BASE/building-management" 200 "GET /building-management"
 
