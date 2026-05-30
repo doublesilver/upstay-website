@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
       "gen-*.js",
       "compress-*.sh",
       "**/scripts/backfill-*.mjs",
+      // SQLite WAL/SHM은 빌드 시작 후 사라질 수 있어 trace 실패 노이즈 유발.
+      "**/data/*.db-shm",
+      "**/data/*.db-wal",
     ],
   },
   reactStrictMode: true,
