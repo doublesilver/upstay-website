@@ -34,6 +34,7 @@ import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
 import { useFocusTrap } from "@/components/use-focus-trap";
 import { apiFetch, errMsg, getHeaders } from "@/lib/admin-api";
+import { ErrorMessages } from "@/lib/error-messages";
 import { resolveImg } from "@/lib/image-url";
 import {
   getMainSlotConflicts,
@@ -753,7 +754,7 @@ export default function RemodelingAdminPage() {
         setCases(rows);
         originalTitlesRef.current = new Map(rows.map((c) => [c.id, c.title]));
       })
-      .catch((error) => flash(`불러오기에 실패했습니다: ${errMsg(error)}`))
+      .catch((error) => flash(`${ErrorMessages.loadFailed} (${errMsg(error)})`))
       .finally(() => setLoading(false));
   }, []);
 
@@ -882,10 +883,10 @@ export default function RemodelingAdminPage() {
           })),
         }),
       });
-      flash("순서가 변경되었습니다");
+      flash(ErrorMessages.saveSuccess);
       load();
     } catch (error) {
-      flash(`순서 변경에 실패했습니다: ${errMsg(error)}`);
+      flash(ErrorMessages.saveFailed(errMsg(error)));
       load();
     }
   };
@@ -905,9 +906,9 @@ export default function RemodelingAdminPage() {
         }),
       });
       load();
-      flash("새 박스가 추가되었습니다");
+      flash("새 사례가 추가되었습니다");
     } catch (error) {
-      flash(`추가에 실패했습니다: ${errMsg(error)}`);
+      flash(ErrorMessages.saveFailed(errMsg(error)));
     }
   };
 
@@ -920,9 +921,9 @@ export default function RemodelingAdminPage() {
       });
       setDeleting(null);
       load();
-      flash("삭제되었습니다");
+      flash(ErrorMessages.deleteSuccess);
     } catch (error) {
-      flash(`삭제에 실패했습니다: ${errMsg(error)}`);
+      flash(ErrorMessages.deleteFailed(errMsg(error)));
     }
   };
 
@@ -961,7 +962,7 @@ export default function RemodelingAdminPage() {
       });
     } catch (error) {
       setCases(prev);
-      flash(`메인 설정 변경에 실패했습니다: ${errMsg(error)}`);
+      flash(ErrorMessages.saveFailed(errMsg(error)));
     }
   };
 
@@ -1011,9 +1012,9 @@ export default function RemodelingAdminPage() {
       targets.forEach((item) => {
         originalTitlesRef.current.set(item.id, item.title);
       });
-      flash("저장되었습니다");
+      flash(ErrorMessages.saveSuccess);
     } catch (error) {
-      flash(`저장에 실패했습니다: ${errMsg(error)}`);
+      flash(ErrorMessages.saveFailed(errMsg(error)));
     } finally {
       setSavingCaseIds((prev) => {
         const next = new Set(prev);
@@ -1053,7 +1054,10 @@ export default function RemodelingAdminPage() {
         const batch = fileArray.slice(i, i + BATCH_SIZE);
         // 진행률 항상 표시 — 5장 이하라도 사용자가 stuck 인지 못 하도록.
         flash(
-          `업로드 중... ${i + 1}~${Math.min(i + BATCH_SIZE, fileArray.length)}/${fileArray.length}장 (sharp 변환 중, 잠시만)`,
+          ErrorMessages.uploadProgress(
+            Math.min(i + BATCH_SIZE, fileArray.length),
+            fileArray.length,
+          ),
         );
         const urls = await uploadFiles(batch);
 
@@ -1088,13 +1092,11 @@ export default function RemodelingAdminPage() {
 
     const failed = fileArray.length - success;
     if (success === fileArray.length) {
-      flash(`${success}장 업로드되었습니다`);
+      flash(ErrorMessages.uploadSuccess(success));
     } else if (success > 0) {
-      flash(
-        `${success}장 업로드됨, ${failed}장 실패${failedReason ? ` (${failedReason})` : ""}`,
-      );
+      flash(ErrorMessages.uploadPartial(success, failed, failedReason));
     } else {
-      flash(`업로드 실패${failedReason ? `: ${failedReason}` : ""}`);
+      flash(ErrorMessages.uploadAllFailed(failedReason));
     }
 
     load();
@@ -1128,9 +1130,9 @@ export default function RemodelingAdminPage() {
       });
       clearSectionChecks(caseId, type);
       load();
-      flash(`${ids.length}장 삭제되었습니다`);
+      flash(`사진 ${ids.length}장이 삭제되었어요.`);
     } catch (error) {
-      flash(`삭제에 실패했습니다: ${errMsg(error)}`);
+      flash(ErrorMessages.deleteFailed(errMsg(error)));
     }
   };
 
@@ -1155,9 +1157,9 @@ export default function RemodelingAdminPage() {
       clearSectionChecks(caseId, type);
       cancelSelectionMode(caseId, type);
       load();
-      flash(`${ids.length}장 삭제되었습니다`);
+      flash(`사진 ${ids.length}장이 삭제되었어요.`);
     } catch (error) {
-      flash(`삭제에 실패했습니다: ${errMsg(error)}`);
+      flash(ErrorMessages.deleteFailed(errMsg(error)));
     }
   };
 
@@ -1195,7 +1197,7 @@ export default function RemodelingAdminPage() {
       await saveImage({ id: imageId, slot_position: slot });
       load();
     } catch (error) {
-      flash(`슬롯 변경에 실패했습니다: ${errMsg(error)}`);
+      flash(ErrorMessages.saveFailed(errMsg(error)));
       load();
     }
   };
@@ -1237,10 +1239,10 @@ export default function RemodelingAdminPage() {
           })),
         }),
       });
-      flash("이미지 순서가 저장되었습니다");
+      flash(ErrorMessages.saveSuccess);
       load();
     } catch (error) {
-      flash(`이미지 순서 저장에 실패했습니다: ${errMsg(error)}`);
+      flash(ErrorMessages.saveFailed(errMsg(error)));
       load();
     }
   };
@@ -1433,13 +1435,13 @@ export default function RemodelingAdminPage() {
                 edit_settings: JSON.stringify(settings),
               });
               load();
-              flash("변경사항이 적용되었습니다");
+              flash("변경사항이 적용되었어요.");
             } catch (error) {
-              flash(`적용 실패: ${errMsg(error)}`);
+              flash(ErrorMessages.saveFailed(errMsg(error)));
             }
           }}
           onApplyAll={async (ids, getBlob, settings) => {
-            flash(`${ids.length}장 처리 중..`);
+            flash(`사진 ${ids.length}장에 적용하고 있어요. 잠시만 기다려 주세요.`);
             let success = 0;
             let failMsg = "";
             const concurrency = 3;
@@ -1471,10 +1473,10 @@ export default function RemodelingAdminPage() {
             await Promise.all(workers);
             load();
             if (success === ids.length) {
-              flash(`${success}장 전체 적용이 완료되었습니다`);
+              flash(`사진 ${success}장 전체에 적용되었어요.`);
             } else {
               flash(
-                `${success}/${ids.length}장 적용됨${failMsg ? ` (실패: ${failMsg})` : ""}`,
+                ErrorMessages.uploadPartial(success, ids.length - success, failMsg),
               );
             }
           }}
@@ -1498,9 +1500,9 @@ export default function RemodelingAdminPage() {
                 }),
               });
               load();
-              flash("사진이 삭제되었습니다");
+              flash(ErrorMessages.deleteSuccess);
             } catch (error) {
-              flash(`삭제 실패: ${errMsg(error)}`);
+              flash(ErrorMessages.deleteFailed(errMsg(error)));
             }
           }}
           onCancel={() => setEditorSection(null)}

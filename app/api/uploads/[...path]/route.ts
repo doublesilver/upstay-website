@@ -15,6 +15,7 @@ import crypto from "crypto";
 import sharp from "sharp";
 import { jwtVerify } from "jose";
 import { UPLOAD_DIR, DATA_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
+import { logError, logWarn } from "@/lib/log";
 
 const CACHE_DIR = path.join(DATA_DIR, "cache");
 const CACHE_MAX_BYTES = 500 * 1024 * 1024;
@@ -227,11 +228,10 @@ async function handleGet(
     } catch (e) {
       // ENOENT는 정상(기존 업로드는 사본 없음) — 아래 변환 fallback으로 진행.
       if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
-        console.warn(
-          "[uploads GET] precomputed stat 실패:",
+        logWarn("uploads", "precomputed stat 실패", {
           precomputedPath,
-          (e as Error).message,
-        );
+          err: (e as Error).message,
+        });
       }
     }
 

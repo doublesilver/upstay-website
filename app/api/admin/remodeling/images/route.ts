@@ -10,6 +10,8 @@ import {
   imagePostSchema,
   imageSlotSchema,
 } from "@/lib/admin-schemas";
+import { logError, logWarn } from "@/lib/log";
+import { ErrorMessages } from "@/lib/error-messages";
 
 export async function POST(req: NextRequest) {
   if (!(await verifyToken(req))) return unauthorized();
@@ -72,13 +74,17 @@ export async function POST(req: NextRequest) {
         },
         { status: 409 },
       );
-    console.error("images error:", e);
-    return Response.json({ error: "서버 오류" }, { status: 500 });
+    logError("admin", "images POST 실패", e, { case_id, type });
+    return Response.json(
+      { error: ErrorMessages.saveFailed() },
+      { status: 500 },
+    );
   }
 
   if (!insertResult.result.changes) {
+    logError("admin", "images POST 변경 없음", null, { case_id, type });
     return Response.json(
-      { error: "이미지 저장에 실패했습니다" },
+      { error: ErrorMessages.saveFailed("이미지 저장") },
       { status: 500 },
     );
   }
@@ -158,8 +164,11 @@ export async function PUT(req: NextRequest) {
           { status: 409 },
         );
       }
-      console.error("images error:", e);
-      return Response.json({ error: "서버 오류" }, { status: 500 });
+      logError("admin", "images PUT slot 실패", e, { id });
+      return Response.json(
+        { error: ErrorMessages.saveFailed() },
+        { status: 500 },
+      );
     }
 
     invalidatePublicCache();
@@ -234,8 +243,11 @@ export async function PUT(req: NextRequest) {
         { status: 409 },
       );
     }
-    console.error("images error:", e);
-    return Response.json({ error: "서버 오류" }, { status: 500 });
+    logError("admin", "images PUT 실패", e, { id });
+    return Response.json(
+      { error: ErrorMessages.saveFailed() },
+      { status: 500 },
+    );
   }
 
   invalidatePublicCache();
@@ -313,8 +325,11 @@ export async function DELETE(req: NextRequest) {
     if (msg === "CASE_MISMATCH") {
       return Response.json({ error: "case_id mismatch" }, { status: 403 });
     }
-    console.error("images DELETE error:", e);
-    return Response.json({ error: "서버 오류" }, { status: 500 });
+    logError("admin", "images DELETE 실패", e, { case_id, ids });
+    return Response.json(
+      { error: ErrorMessages.deleteFailed() },
+      { status: 500 },
+    );
   }
 
   // 파일 unlink는 트랜잭션 밖에서 best-effort.
@@ -328,17 +343,16 @@ export async function DELETE(req: NextRequest) {
         !resolved.startsWith(UPLOAD_DIR_RESOLVED + path.sep) &&
         resolved !== UPLOAD_DIR_RESOLVED
       ) {
-        console.warn("[images DELETE] traversal 차단:", url);
+        logWarn("admin", "images DELETE traversal 차단", { url });
         continue;
       }
       try {
         fs.unlinkSync(resolved);
       } catch (e) {
-        console.warn(
-          "[images DELETE] unlink 실패:",
+        logWarn("admin", "images DELETE unlink 실패", {
           resolved,
-          (e as Error).message,
-        );
+          err: (e as Error).message,
+        });
       }
       // precompute한 모든 사본 동반 삭제. 기존 업로드는 사본이
       // 없을 수 있어 ENOENT는 정상.
@@ -355,11 +369,10 @@ export async function DELETE(req: NextRequest) {
           fs.unlinkSync(resolved + suffix);
         } catch (e) {
           if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
-            console.warn(
-              "[images DELETE] 사본 unlink 실패:",
-              resolved + suffix,
-              (e as Error).message,
-            );
+            logWarn("admin", "images DELETE 사본 unlink 실패", {
+              path: resolved + suffix,
+              err: (e as Error).message,
+            });
           }
         }
       }

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
 import { invalidatePublicCache } from "@/lib/cache";
+import { logError } from "@/lib/log";
+import { ErrorMessages } from "@/lib/error-messages";
 
 const imagesReorderSchema = z.object({
   items: z
@@ -53,8 +55,11 @@ export async function POST(req: NextRequest) {
   try {
     tx(items);
   } catch (e) {
-    console.error("[images/reorder]", e);
-    return Response.json({ error: "서버 오류" }, { status: 500 });
+    logError("admin", "images/reorder 실패", e, { case_id, type });
+    return Response.json(
+      { error: ErrorMessages.saveFailed() },
+      { status: 500 },
+    );
   }
   invalidatePublicCache();
   return Response.json({ ok: true });

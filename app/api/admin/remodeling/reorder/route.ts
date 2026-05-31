@@ -3,6 +3,8 @@ import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { verifyToken, unauthorized } from "@/lib/auth";
 import { invalidatePublicCache } from "@/lib/cache";
+import { logError } from "@/lib/log";
+import { ErrorMessages } from "@/lib/error-messages";
 
 // 정수·범위 검증 + 배열 길이 상한. authenticated DoS(수만 row 쓰기) 차단.
 const reorderSchema = z.object({
@@ -39,8 +41,11 @@ export async function POST(req: NextRequest) {
   try {
     tx(items);
   } catch (e) {
-    console.error("[reorder]", e);
-    return Response.json({ error: "서버 오류" }, { status: 500 });
+    logError("admin", "remodeling reorder 실패", e);
+    return Response.json(
+      { error: ErrorMessages.saveFailed() },
+      { status: 500 },
+    );
   }
   invalidatePublicCache();
   return Response.json({ ok: true });
