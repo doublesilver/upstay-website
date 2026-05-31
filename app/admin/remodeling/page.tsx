@@ -1051,11 +1051,10 @@ export default function RemodelingAdminPage() {
     try {
       for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
         const batch = fileArray.slice(i, i + BATCH_SIZE);
-        if (fileArray.length > BATCH_SIZE) {
-          flash(
-            `업로드 중... ${i + 1}~${Math.min(i + BATCH_SIZE, fileArray.length)}/${fileArray.length}장`,
-          );
-        }
+        // 진행률 항상 표시 — 5장 이하라도 사용자가 stuck 인지 못 하도록.
+        flash(
+          `업로드 중... ${i + 1}~${Math.min(i + BATCH_SIZE, fileArray.length)}/${fileArray.length}장 (sharp 변환 중, 잠시만)`,
+        );
         const urls = await uploadFiles(batch);
 
         const results = await Promise.allSettled(
