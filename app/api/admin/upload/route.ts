@@ -67,32 +67,44 @@ async function optimize(buffer: Buffer, ext: string): Promise<Buffer> {
 
 // 업로드 직후 동일 디렉토리에 .webp / .avif 사본 생성.
 // 서빙 라우트가 Accept 헤더 보고 미리 만들어둔 파일을 바로 streaming하므로
-// 첫 요청부터 sharp 변환 없이 빠름. Railway/OCI CPU·디스크캐시 부담 감소.
-// admin은 .thumb.webp(480px), 사례 상세 메인은 .medium.webp(1280px) 요청.
-// 누락 시 admin·R2에서 404 엑박이라 4종 모두 항상 생성.
+// 첫 요청부터 sharp 변환 없이 빠름. OCI 1/8 OCPU + 1GB RAM 환경 보호.
+// admin은 .thumb.webp(480px), 사례 상세는 .medium.webp(1280px) 요청 — 둘 다 필수.
+// 누락 시 admin·R2에서 404 엑박.
+//
+// 직렬 처리로 변경한 이유: 4종 병렬 sharp는 한 요청당 200-400MB 메모리 일시 점유.
+// admin이 동시 5장 업로드하면 1-2GB 압박 → swap 진입 → 응답 지연 → Cloudflare 100s
+// timeout 도달 가능. 직렬화하면 한 시점에 하나의 sharp만 동작.
+// AVIF는 가장 무거우니(effort 4, 1-3s) 마지막에 백그라운드로 분리 — 다른 3종이
+// 디스크에 있어야 admin·R2 즉시 동작 가능.
 async function precomputeVariants(originalPath: string): Promise<void> {
   const sharpOpts = {
     limitInputPixels: 100_000_000,
     failOn: "truncated" as const,
   };
-  // 병렬로 4종 인코딩. AVIF effort 4(1-3s) + 사이즈 리사이즈는 더 빠름.
-  // 백그라운드 fire-and-forget이라 사용자 응답 지연 0.
-  await Promise.all([
-    sharp(originalPath, sharpOpts)
-      .webp({ quality: 80 })
-      .toFile(`${originalPath}.webp`),
+  // 1단계: thumb(가장 작음·가장 시급) 먼저
+  await sharp(originalPath, sharpOpts)
+    .resize(480, null, { withoutEnlargement: true })
+    .webp({ quality: 75 })
+    .toFile(`${originalPath}.thumb.webp`);
+  // 2단계: medium (사례 상세 메인)
+  await sharp(originalPath, sharpOpts)
+    .resize(1280, null, { withoutEnlargement: true })
+    .webp({ quality: 80 })
+    .toFile(`${originalPath}.medium.webp`);
+  // 3단계: full webp (라이트박스용)
+  await sharp(originalPath, sharpOpts)
+    .webp({ quality: 80 })
+    .toFile(`${originalPath}.webp`);
+  // 4단계: AVIF (가장 무거움) — 백그라운드 setImmediate로 분리해
+  // 호출자가 await에 의존해도 응답 차단 안 함.
+  setImmediate(() => {
     sharp(originalPath, sharpOpts)
       .avif({ quality: 80 })
-      .toFile(`${originalPath}.avif`),
-    sharp(originalPath, sharpOpts)
-      .resize(480, null, { withoutEnlargement: true })
-      .webp({ quality: 75 })
-      .toFile(`${originalPath}.thumb.webp`),
-    sharp(originalPath, sharpOpts)
-      .resize(1280, null, { withoutEnlargement: true })
-      .webp({ quality: 80 })
-      .toFile(`${originalPath}.medium.webp`),
-  ]);
+      .toFile(`${originalPath}.avif`)
+      .catch((e) =>
+        console.warn("[upload] AVIF 사본 실패:", (e as Error).message),
+      );
+  });
 }
 
 export async function POST(req: NextRequest) {
