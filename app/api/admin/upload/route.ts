@@ -8,7 +8,6 @@ import { verifyToken, unauthorized } from "@/lib/auth";
 import { UPLOAD_DIR } from "@/lib/paths";
 import { logInfo, logWarn, logError } from "@/lib/log";
 import { ErrorMessages } from "@/lib/error-messages";
-import { syncToR2, syncVariantsToR2 } from "@/lib/r2-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -72,13 +71,13 @@ async function optimize(buffer: Buffer, ext: string): Promise<Buffer> {
 // 서빙 라우트가 Accept 헤더 보고 미리 만들어둔 파일을 바로 streaming하므로
 // 첫 요청부터 sharp 변환 없이 빠름. OCI 1/8 OCPU + 1GB RAM 환경 보호.
 // admin은 .thumb.webp(480px), 사례 상세는 .medium.webp(1280px) 요청 — 둘 다 필수.
-// 누락 시 admin·R2에서 404 엑박.
+// 누락 시 admin에서 404 엑박.
 //
 // 직렬 처리로 변경한 이유: 4종 병렬 sharp는 한 요청당 200-400MB 메모리 일시 점유.
 // admin이 동시 5장 업로드하면 1-2GB 압박 → swap 진입 → 응답 지연 → Cloudflare 100s
 // timeout 도달 가능. 직렬화하면 한 시점에 하나의 sharp만 동작.
 // AVIF는 가장 무거우니(effort 4, 1-3s) 마지막에 백그라운드로 분리 — 다른 3종이
-// 디스크에 있어야 admin·R2 즉시 동작 가능.
+// 디스크에 있어야 admin이 즉시 서빙 가능.
 async function precomputeVariants(originalPath: string): Promise<void> {
   const start = Date.now();
   const filename = path.basename(originalPath);
@@ -124,15 +123,7 @@ async function precomputeVariants(originalPath: string): Promise<void> {
     });
     throw e;
   }
-  // 원본 + thumb + medium + webp 4종을 R2로 동기화. setImmediate로 분리해
-  // 응답 차단 안 함. img.upstay.co.kr Custom Domain이 이걸 서빙.
-  setImmediate(() => {
-    syncVariantsToR2(originalPath).catch((e) =>
-      logError("upload", "R2 variants sync 실패", e, { filename }),
-    );
-  });
   // AVIF (가장 무거움) — setImmediate로 분리해 응답 차단 안 함.
-  // 생성 완료 후 R2에도 동기화.
   setImmediate(() => {
     const tAvif = Date.now();
     sharp(originalPath, sharpOpts)
@@ -143,7 +134,6 @@ async function precomputeVariants(originalPath: string): Promise<void> {
           filename,
           ms: Date.now() - tAvif,
         });
-        return syncToR2(`${originalPath}.avif`, `${filename}.avif`);
       })
       .catch((e) =>
         logWarn("upload", "avif 백그라운드 실패", {
@@ -277,17 +267,11 @@ export async function POST(req: NextRequest) {
       sizeMB: sizeMB.toFixed(1),
       durationMs: Date.now() - fileStart,
     });
+    // gif는 variants를 만들지 않음 — 원본만 로컬 저장(origin 직접 서빙).
     if (ext !== ".gif") {
       precomputeVariants(savedPath).catch((e) =>
         logError("upload", "variants 생성 실패", e, { filename }),
       );
-    } else {
-      // gif는 variants를 만들지 않음 — 원본만 R2 sync.
-      setImmediate(() => {
-        syncToR2(savedPath, filename).catch((e) =>
-          logError("upload", "R2 gif sync 실패", e, { filename }),
-        );
-      });
     }
   }
 
