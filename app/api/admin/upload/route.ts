@@ -8,6 +8,7 @@ import { verifyToken, unauthorized } from "@/lib/auth";
 import { UPLOAD_DIR } from "@/lib/paths";
 import { logInfo, logWarn, logError } from "@/lib/log";
 import { ErrorMessages } from "@/lib/error-messages";
+import { syncToR2, syncVariantsToR2 } from "@/lib/r2-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -123,18 +124,27 @@ async function precomputeVariants(originalPath: string): Promise<void> {
     });
     throw e;
   }
+  // 원본 + thumb + medium + webp 4종을 R2로 동기화. setImmediate로 분리해
+  // 응답 차단 안 함. img.upstay.co.kr Custom Domain이 이걸 서빙.
+  setImmediate(() => {
+    syncVariantsToR2(originalPath).catch((e) =>
+      logError("upload", "R2 variants sync 실패", e, { filename }),
+    );
+  });
   // AVIF (가장 무거움) — setImmediate로 분리해 응답 차단 안 함.
+  // 생성 완료 후 R2에도 동기화.
   setImmediate(() => {
     const tAvif = Date.now();
     sharp(originalPath, sharpOpts)
       .avif({ quality: 80 })
       .toFile(`${originalPath}.avif`)
-      .then(() =>
+      .then(() => {
         logInfo("upload", "avif 백그라운드 완료", {
           filename,
           ms: Date.now() - tAvif,
-        }),
-      )
+        });
+        return syncToR2(`${originalPath}.avif`, `${filename}.avif`);
+      })
       .catch((e) =>
         logWarn("upload", "avif 백그라운드 실패", {
           filename,
@@ -271,6 +281,13 @@ export async function POST(req: NextRequest) {
       precomputeVariants(savedPath).catch((e) =>
         logError("upload", "variants 생성 실패", e, { filename }),
       );
+    } else {
+      // gif는 variants를 만들지 않음 — 원본만 R2 sync.
+      setImmediate(() => {
+        syncToR2(savedPath, filename).catch((e) =>
+          logError("upload", "R2 gif sync 실패", e, { filename }),
+        );
+      });
     }
   }
 
