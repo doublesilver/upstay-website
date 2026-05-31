@@ -6,6 +6,7 @@ import fs from "fs";
 import path from "path";
 import { UPLOAD_DIR_RESOLVED } from "@/lib/paths";
 import { caseCreateSchema, caseUpdateSchema } from "@/lib/admin-schemas";
+import { logInfo, logWarn } from "@/lib/log";
 
 export async function GET(req: NextRequest) {
   if (!(await verifyToken(req))) return unauthorized();
@@ -101,6 +102,7 @@ export async function DELETE(req: NextRequest) {
     )
     .all(id) as { image_url: string; image_url_wm: string }[];
   db.prepare("DELETE FROM remodeling_cases WHERE id=?").run(id);
+  logInfo("admin", "사례 삭제", { id, imageCount: images.length });
   for (const img of images) {
     for (const url of [img.image_url, img.image_url_wm]) {
       if (!url || !url.startsWith("/api/uploads/")) continue;
@@ -110,13 +112,16 @@ export async function DELETE(req: NextRequest) {
         !resolved.startsWith(UPLOAD_DIR_RESOLVED + path.sep) &&
         resolved !== UPLOAD_DIR_RESOLVED
       ) {
-        console.warn("[DELETE] path traversal 시도 차단:", url);
+        logWarn("admin", "path traversal 시도 차단", { url });
         continue;
       }
       try {
         fs.unlinkSync(resolved);
       } catch (e) {
-        console.warn("[DELETE] unlink 실패:", resolved, (e as Error).message);
+        logWarn("admin", "unlink 실패", {
+          resolved,
+          err: (e as Error).message,
+        });
       }
       // precompute한 모든 사본 동반 삭제.
       const VARIANT_SUFFIXES = [
@@ -132,11 +137,10 @@ export async function DELETE(req: NextRequest) {
           fs.unlinkSync(resolved + suffix);
         } catch (e) {
           if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
-            console.warn(
-              "[DELETE] 사본 unlink 실패:",
-              resolved + suffix,
-              (e as Error).message,
-            );
+            logWarn("admin", "사본 unlink 실패", {
+              path: resolved + suffix,
+              err: (e as Error).message,
+            });
           }
         }
       }

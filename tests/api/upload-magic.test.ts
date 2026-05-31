@@ -39,7 +39,9 @@ describe("/api/admin/upload magic number validation", () => {
     expect(res.status).toBe(400);
 
     const body = await res.json();
-    expect(body.error).toMatch(/일치하지 않습니다/);
+    // 친절 메시지(lib/error-messages.ts uploadFileBadType)로 변경됨.
+    // magic mismatch도 동일 메시지 — 사용자에겐 "사진 파일이 아닌 것 같다"로 통합.
+    expect(body.error).toMatch(/사진 파일이 아닌 것 같아요/);
   });
 
   test("rejects JPEG extension file containing PNG magic bytes with 400", async () => {
@@ -66,7 +68,9 @@ describe("/api/admin/upload magic number validation", () => {
     expect(res.status).toBe(400);
 
     const body = await res.json();
-    expect(body.error).toMatch(/일치하지 않습니다/);
+    // 친절 메시지(lib/error-messages.ts uploadFileBadType)로 변경됨.
+    // magic mismatch도 동일 메시지 — 사용자에겐 "사진 파일이 아닌 것 같다"로 통합.
+    expect(body.error).toMatch(/사진 파일이 아닌 것 같아요/);
   });
 
   test("rejects upload without valid token with 401", async () => {

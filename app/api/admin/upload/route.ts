@@ -6,6 +6,8 @@ import path from "path";
 import sharp from "sharp";
 import { verifyToken, unauthorized } from "@/lib/auth";
 import { UPLOAD_DIR } from "@/lib/paths";
+import { logInfo, logWarn, logError } from "@/lib/log";
+import { ErrorMessages } from "@/lib/error-messages";
 
 export const dynamic = "force-dynamic";
 
@@ -77,68 +79,126 @@ async function optimize(buffer: Buffer, ext: string): Promise<Buffer> {
 // AVIF는 가장 무거우니(effort 4, 1-3s) 마지막에 백그라운드로 분리 — 다른 3종이
 // 디스크에 있어야 admin·R2 즉시 동작 가능.
 async function precomputeVariants(originalPath: string): Promise<void> {
+  const start = Date.now();
+  const filename = path.basename(originalPath);
   const sharpOpts = {
     limitInputPixels: 100_000_000,
     failOn: "truncated" as const,
   };
-  // 1단계: thumb(가장 작음·가장 시급) 먼저
-  await sharp(originalPath, sharpOpts)
-    .resize(480, null, { withoutEnlargement: true })
-    .webp({ quality: 75 })
-    .toFile(`${originalPath}.thumb.webp`);
-  // 2단계: medium (사례 상세 메인)
-  await sharp(originalPath, sharpOpts)
-    .resize(1280, null, { withoutEnlargement: true })
-    .webp({ quality: 80 })
-    .toFile(`${originalPath}.medium.webp`);
-  // 3단계: full webp (라이트박스용)
-  await sharp(originalPath, sharpOpts)
-    .webp({ quality: 80 })
-    .toFile(`${originalPath}.webp`);
-  // 4단계: AVIF (가장 무거움) — 백그라운드 setImmediate로 분리해
-  // 호출자가 await에 의존해도 응답 차단 안 함.
+  try {
+    const tThumb = Date.now();
+    await sharp(originalPath, sharpOpts)
+      .resize(480, null, { withoutEnlargement: true })
+      .webp({ quality: 75 })
+      .toFile(`${originalPath}.thumb.webp`);
+    logInfo("upload", "thumb 완료", {
+      filename,
+      ms: Date.now() - tThumb,
+    });
+
+    const tMedium = Date.now();
+    await sharp(originalPath, sharpOpts)
+      .resize(1280, null, { withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toFile(`${originalPath}.medium.webp`);
+    logInfo("upload", "medium 완료", {
+      filename,
+      ms: Date.now() - tMedium,
+    });
+
+    const tWebp = Date.now();
+    await sharp(originalPath, sharpOpts)
+      .webp({ quality: 80 })
+      .toFile(`${originalPath}.webp`);
+    logInfo("upload", "webp 완료", { filename, ms: Date.now() - tWebp });
+
+    logInfo("upload", "variants 3종 완료 (avif는 백그라운드)", {
+      filename,
+      totalMs: Date.now() - start,
+    });
+  } catch (e) {
+    logError("upload", "variants 처리 중단", e, {
+      filename,
+      totalMs: Date.now() - start,
+    });
+    throw e;
+  }
+  // AVIF (가장 무거움) — setImmediate로 분리해 응답 차단 안 함.
   setImmediate(() => {
+    const tAvif = Date.now();
     sharp(originalPath, sharpOpts)
       .avif({ quality: 80 })
       .toFile(`${originalPath}.avif`)
+      .then(() =>
+        logInfo("upload", "avif 백그라운드 완료", {
+          filename,
+          ms: Date.now() - tAvif,
+        }),
+      )
       .catch((e) =>
-        console.warn("[upload] AVIF 사본 실패:", (e as Error).message),
+        logWarn("upload", "avif 백그라운드 실패", {
+          filename,
+          err: (e as Error).message,
+        }),
       );
   });
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await verifyToken(req))) return unauthorized();
+  const reqStart = Date.now();
+  if (!(await verifyToken(req))) {
+    logWarn("upload", "인증 실패", { ip: req.headers.get("cf-connecting-ip") });
+    return unauthorized();
+  }
 
   if (!existsSync(UPLOAD_DIR)) {
     await mkdir(UPLOAD_DIR, { recursive: true });
+    logInfo("upload", "UPLOAD_DIR 생성", { dir: UPLOAD_DIR });
   }
 
-  const formData = await req.formData();
+  let formData: FormData;
+  try {
+    formData = await req.formData();
+  } catch (e) {
+    logError("upload", "formData 파싱 실패", e);
+    return Response.json(
+      { error: ErrorMessages.uploadAllFailed("파일을 읽지 못했습니다") },
+      { status: 400 },
+    );
+  }
   const files = formData.getAll("files") as File[];
 
   if (files.length === 0) {
-    return Response.json({ error: "No files" }, { status: 400 });
+    return Response.json({ error: "사진을 선택해주세요" }, { status: 400 });
   }
 
-  // 1/8 OCPU + 1GB RAM 환경 보호 — 한 요청에 너무 많은 파일이 오면
-  // 20MB × N + sharp 변환 동시성으로 OOM 가능. admin 클라이언트도 5장 batch.
   const MAX_FILES_PER_REQUEST = 20;
   if (files.length > MAX_FILES_PER_REQUEST) {
     return Response.json(
-      {
-        error: `한 번에 최대 ${MAX_FILES_PER_REQUEST}개까지 업로드 가능합니다`,
-      },
+      { error: ErrorMessages.uploadTooManyFiles(MAX_FILES_PER_REQUEST) },
       { status: 400 },
     );
   }
 
+  const totalBytes = files.reduce((s, f) => s + f.size, 0);
+  logInfo("upload", "요청 시작", {
+    count: files.length,
+    totalMB: (totalBytes / 1024 / 1024).toFixed(1),
+  });
+
   const saved: string[] = [];
 
   for (const file of files) {
+    const fileStart = Date.now();
+    const sizeMB = file.size / 1024 / 1024;
+
     if (file.size > 20 * 1024 * 1024) {
+      logWarn("upload", "파일 크기 초과", {
+        filename: file.name,
+        sizeMB: sizeMB.toFixed(1),
+      });
       return Response.json(
-        { error: `${file.name} exceeds 20MB` },
+        { error: ErrorMessages.uploadFileTooLarge(file.name, Math.ceil(sizeMB)) },
         { status: 400 },
       );
     }
@@ -146,57 +206,78 @@ export async function POST(req: NextRequest) {
     const ext = path.extname(file.name).toLowerCase() || ".jpg";
     const ALLOWED_EXT = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
     if (!ALLOWED_EXT.includes(ext)) {
+      logWarn("upload", "허용되지 않는 확장자", {
+        filename: file.name,
+        ext,
+      });
       return Response.json(
-        { error: `${file.name}: 허용되지 않는 파일 형식` },
+        { error: ErrorMessages.uploadFileBadType(file.name) },
         { status: 400 },
       );
     }
     const buffer = Buffer.from(await file.arrayBuffer());
     if (!checkMagic(buffer, ext)) {
+      logWarn("upload", "magic number 불일치", {
+        filename: file.name,
+        ext,
+      });
       return Response.json(
-        { error: `${file.name}: 파일 내용이 확장자와 일치하지 않습니다` },
+        { error: ErrorMessages.uploadFileBadType(file.name) },
         { status: 400 },
       );
     }
-    // 픽셀 사전 측정 — 압축률 높인 거대 이미지(예: 200MP를 18MB JPEG로)가
-    // file.size 가드를 통과해도 sharp 디코딩에서 ~수백 MB 메모리 점유로 OOM 유도 가능.
-    // gif는 sharp 최적화를 건너뛰는 경로라 메타만 살핀다.
-    const MAX_PIXELS = 100_000_000; // 100MP (iPhone 48MP·갤럭시 200MP의 안전 한도)
+    const MAX_PIXELS = 100_000_000;
     try {
       const meta = await sharp(buffer, { failOn: "none" }).metadata();
       const pixels = (meta.width ?? 0) * (meta.height ?? 0);
       if (pixels > MAX_PIXELS) {
+        logWarn("upload", "픽셀 한도 초과", {
+          filename: file.name,
+          pixels,
+          dim: `${meta.width}x${meta.height}`,
+        });
         return Response.json(
-          { error: `${file.name}: 이미지 해상도가 너무 큽니다 (최대 100MP)` },
+          { error: ErrorMessages.uploadPixelTooLarge(file.name) },
           { status: 400 },
         );
       }
-    } catch {
-      // metadata 자체가 실패하면 후속 optimize에서 처리. 여기선 게이트 통과.
+    } catch (e) {
+      logWarn("upload", "metadata 측정 실패 (계속 진행)", {
+        filename: file.name,
+        err: (e as Error).message,
+      });
     }
     let optimizedBuffer: Buffer;
     try {
       optimizedBuffer = await optimize(buffer, ext);
     } catch (e) {
-      console.warn(
-        "[upload] sharp 최적화 실패, 원본 저장:",
-        (e as Error).message,
-      );
+      logWarn("upload", "sharp 최적화 실패, 원본 저장", {
+        filename: file.name,
+        err: (e as Error).message,
+      });
       optimizedBuffer = buffer;
     }
     const filename = `${Date.now()}-${randomBytes(8).toString("hex")}${ext}`;
     const savedPath = path.join(UPLOAD_DIR, filename);
     await writeFile(savedPath, optimizedBuffer);
     saved.push(filename);
-    // 응답 후 백그라운드로 WebP/AVIF 사본 생성. 다음 사용자가 첫 요청부터
-    // sharp 변환 없이 정적 서빙 받게 함. fire-and-forget이라 실패는 콘솔만.
-    // gif는 sharp 단일프레임 한계로 제외.
+    logInfo("upload", "1장 저장 완료", {
+      filename,
+      original: file.name,
+      sizeMB: sizeMB.toFixed(1),
+      durationMs: Date.now() - fileStart,
+    });
     if (ext !== ".gif") {
       precomputeVariants(savedPath).catch((e) =>
-        console.warn("[upload] WebP/AVIF 사본 생성 실패:", (e as Error).message),
+        logError("upload", "variants 생성 실패", e, { filename }),
       );
     }
   }
+
+  logInfo("upload", "요청 완료", {
+    count: saved.length,
+    durationMs: Date.now() - reqStart,
+  });
 
   return Response.json({
     files: saved,
