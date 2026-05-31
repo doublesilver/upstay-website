@@ -5,6 +5,9 @@ import { buildingManagementItems } from "@/lib/content";
 export const metadata: Metadata = {
   title: "건물관리",
   description: "수선유지 및 하자보수",
+  alternates: {
+    canonical: "/building-management",
+  },
 };
 
 export default function BuildingManagementPage() {

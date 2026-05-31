@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ProtectedImage } from "@/components/protected-image";
 import Link from "next/link";
 import { Container } from "@/components/container";
@@ -5,6 +6,13 @@ import { getAllCases } from "@/lib/home-data";
 import { blurDataURL } from "@/lib/shimmer";
 import { CasePrefetchTrigger } from "@/components/case-prefetch-trigger";
 import { resolveImg } from "@/lib/image-url";
+
+export const metadata: Metadata = {
+  title: "리모델링 사례",
+  alternates: {
+    canonical: "/remodeling",
+  },
+};
 
 // force-dynamic — 빌드 시점 DB 의존 회귀 방지 (page.tsx와 동일 사유)
 export const dynamic = "force-dynamic";
@@ -65,6 +73,9 @@ export default function RemodelingPage() {
                             quality={70}
                             placeholder="blur"
                             blurDataURL={blurDataURL()}
+                            {...(i < 3 && j === 0
+                              ? { priority: true, fetchPriority: "high" }
+                              : { loading: "lazy" })}
                           />
                         </div>
                       ))}
