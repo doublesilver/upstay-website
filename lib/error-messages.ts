@@ -76,6 +76,9 @@ export const ErrorMessages = {
 // HTTP status code를 친절 메시지로 매핑.
 export function friendlyError(status: number, detail?: string): string {
   switch (status) {
+    case 0:
+      // XHR network failure(단절·CORS·DNS)는 status 0으로 들어온다.
+      return ErrorMessages.networkError;
     case 401:
       return ErrorMessages.sessionExpired;
     case 403:
