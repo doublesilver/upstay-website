@@ -152,6 +152,7 @@ export default function AnnouncementsAdminPage() {
           팝업창
         </h1>
         <button
+          type="button"
           onClick={() => setCreatingNew(true)}
           disabled={creatingNew}
           className="bg-[#111] text-white rounded-xl px-5 py-2.5 text-[14px] font-semibold hover:bg-[#333] active:scale-[0.98] transition-all disabled:opacity-40"

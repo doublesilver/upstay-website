@@ -7,9 +7,8 @@ export const AUTH_COOKIE = "upstay_admin_token";
 // origin 검증 + rate limit + 단일 사용자라 실제 위험 증가는 제한적.
 const MAX_AGE_SECONDS = 60 * 60 * 24;
 
-// 테스트에서 동일한 시크릿으로 JWT를 서명하기 위해 export.
-// 운영 코드는 process.env.JWT_SECRET을 직접 읽지 않고 getSecretBytes()를 통한다.
-export const JWT_SECRET = process.env.JWT_SECRET ?? "";
+// JWT_SECRET은 export하지 않는다 — 운영 코드는 getSecretBytes()로, 테스트는
+// process.env.JWT_SECRET을 직접 읽어 시크릿이 모듈 export 표면에 노출되지 않게 한다(검수 L-3).
 
 function getAdminId(): string {
   const v = process.env.ADMIN_ID;

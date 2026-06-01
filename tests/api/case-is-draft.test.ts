@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { SignJWT } from "jose";
-import { JWT_SECRET } from "../../lib/auth";
 import { NextRequest } from "next/server";
 import { setupTempDataDir } from "../api-helpers";
 import { caseUpdateSchema } from "../../lib/admin-schemas";
@@ -11,7 +10,9 @@ let token: string;
 
 beforeAll(async () => {
   setupTempDataDir();
-  const secret = new TextEncoder().encode(JWT_SECRET);
+  // JWT_SECRET은 lib/auth에서 export하지 않는다(보안). setupTempDataDir이 주입한
+  // process.env에서 직접 읽는다.
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
   token = await new SignJWT({ role: "admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("1h")

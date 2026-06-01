@@ -140,16 +140,16 @@ const DEFAULT_SETTINGS: EditSettings = {
 
 const ANCHOR_INSET = 0.01;
 
-const POS_GRID: { label: string; anchor: WmAnchor }[] = [
-  { label: "↖", anchor: "tl" },
-  { label: "↑", anchor: "t" },
-  { label: "↗", anchor: "tr" },
-  { label: "←", anchor: "l" },
-  { label: "•", anchor: "c" },
-  { label: "→", anchor: "r" },
-  { label: "↙", anchor: "bl" },
-  { label: "↓", anchor: "b" },
-  { label: "↘", anchor: "br" },
+const POS_GRID: { label: string; anchor: WmAnchor; aria: string }[] = [
+  { label: "↖", anchor: "tl", aria: "왼쪽 위" },
+  { label: "↑", anchor: "t", aria: "가운데 위" },
+  { label: "↗", anchor: "tr", aria: "오른쪽 위" },
+  { label: "←", anchor: "l", aria: "왼쪽 가운데" },
+  { label: "•", anchor: "c", aria: "정중앙" },
+  { label: "→", anchor: "r", aria: "오른쪽 가운데" },
+  { label: "↙", anchor: "bl", aria: "왼쪽 아래" },
+  { label: "↓", anchor: "b", aria: "가운데 아래" },
+  { label: "↘", anchor: "br", aria: "오른쪽 아래" },
 ];
 
 function posFromAnchor(
@@ -618,7 +618,7 @@ export function ImageEditModal({
             className="text-[16px] font-bold text-[#111]"
           >
             사진 편집
-            <span className="text-[12px] font-medium text-[#999] ml-1">
+            <span className="text-[12px] font-medium text-[#767676] ml-1">
               {sectionLabel}
             </span>
           </h3>
@@ -801,6 +801,8 @@ export function ImageEditModal({
                         <button
                           key={item.label}
                           type="button"
+                          aria-label={`워터마크 위치: ${item.aria}`}
+                          aria-pressed={active}
                           onClick={() =>
                             setSettings((prev) => {
                               const aspect = logoImg
@@ -832,7 +834,7 @@ export function ImageEditModal({
                               : "bg-[#F7F7F7] text-[#666] hover:bg-[#EBEBEB]"
                           }`}
                         >
-                          {item.label}
+                          <span aria-hidden="true">{item.label}</span>
                         </button>
                       );
                     })}

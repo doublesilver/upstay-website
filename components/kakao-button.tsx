@@ -10,12 +10,15 @@ export function KakaoButton() {
   const [showKakaoInfo, setShowKakaoInfo] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyBtnRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const handleTabTrap = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
     if (!showKakaoInfo) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // 트리거 버튼은 항상 마운트된 상태라 setup 시점에 노드를 캡처해 cleanup에서 사용.
+    const trigger = triggerRef.current;
     // 모달 열림과 동시에 첫 focusable 요소로 포커스 이동 (WCAG 2.4.3 Focus Order)
     copyBtnRef.current?.focus();
     const handleKey = (e: KeyboardEvent) => {
@@ -25,6 +28,9 @@ export function KakaoButton() {
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", handleKey);
+      // 모달이 닫히면 트리거 버튼으로 포커스 복귀 (WCAG 2.4.3) — 키보드 사용자가
+      // 닫은 뒤에도 문서 시작이 아니라 원위치에서 탐색을 이어가게.
+      trigger?.focus();
     };
   }, [showKakaoInfo]);
 
@@ -46,6 +52,7 @@ export function KakaoButton() {
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setShowKakaoInfo(true)}
         aria-label="카카오톡 문의"
