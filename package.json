@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "node tests/e2e/upload-preview-dup.e2e.mjs",
+    "test:e2e:layout": "node tests/e2e/upload-layout-stable.e2e.mjs",
     "backup": "bash scripts/backup.sh"
   },
   "dependencies": {
