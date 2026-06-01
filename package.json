@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "node tests/e2e/upload-preview-dup.e2e.mjs",
     "backup": "bash scripts/backup.sh"
   },
   "dependencies": {
@@ -35,6 +36,7 @@
     "@types/react-dom": "^19.1.2",
     "eslint": "^9.25.0",
     "eslint-config-next": "^15.5.3",
+    "playwright": "^1.60.0",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "vitest": "^4.1.4"

@@ -57,6 +57,8 @@ function UploadCard({
 
   return (
     <div
+      data-testid="upload-queue-card"
+      data-upload-status={item.status}
       className={`relative w-[120px] h-[90px] rounded-lg overflow-hidden shrink-0 border transition-all ${
         isError ? "border-red-400 ring-2 ring-red-300" : "border-[#111]"
       }`}
