@@ -32,10 +32,19 @@ import {
 import Image from "next/image";
 import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
+import { UploadQueue } from "@/components/admin/upload-queue";
 import { useFocusTrap } from "@/components/use-focus-trap";
 import { apiFetch, errMsg, getHeaders } from "@/lib/admin-api";
 import { ErrorMessages } from "@/lib/error-messages";
 import { resolveImg } from "@/lib/image-url";
+import { xhrUploadFile } from "@/lib/xhr-upload";
+import {
+  type UploadItem,
+  countByStatus,
+  createUploadItem,
+  runWithConcurrency,
+  transition,
+} from "@/lib/upload-queue";
 import {
   getMainSlotConflicts,
   nextTopSortOrder,
@@ -62,6 +71,9 @@ interface RemodelingCase {
   created_at: string;
   images: CaseImage[];
 }
+
+// 업로드 항목이 없는 섹션에 매 렌더마다 새 []를 만들지 않도록 공유하는 빈 배열.
+const EMPTY_UPLOAD_ITEMS: UploadItem[] = [];
 
 function getImagesByType(images: CaseImage[], type: "before" | "after") {
   return images
@@ -268,12 +280,15 @@ function ImageSection({
   type,
   images,
   uploading,
+  uploadItems,
   checkedIds,
   selectionMode,
   onOpenEdit,
   onOpenImage,
   onToggleCheck,
   onBulkUpload,
+  onRetryUpload,
+  onDismissUpload,
   onBulkDeleteAll,
   onDeleteSelected,
   onToggleSelectionMode,
@@ -284,6 +299,7 @@ function ImageSection({
   type: "before" | "after";
   images: CaseImage[];
   uploading?: boolean;
+  uploadItems: UploadItem[];
   checkedIds: Set<number>;
   selectionMode: boolean;
   onOpenEdit: (caseId: number, type: "before" | "after") => void;
@@ -297,6 +313,16 @@ function ImageSection({
     caseId: number,
     type: "before" | "after",
     files: FileList,
+  ) => void;
+  onRetryUpload: (
+    caseId: number,
+    type: "before" | "after",
+    itemId: string,
+  ) => void;
+  onDismissUpload: (
+    caseId: number,
+    type: "before" | "after",
+    itemId: string,
   ) => void;
   onBulkDeleteAll: (caseId: number, type: "before" | "after") => void;
   onDeleteSelected: (caseId: number, type: "before" | "after") => void;
@@ -398,14 +424,23 @@ function ImageSection({
       </div>
 
       <div className="border border-[#111] rounded-lg p-3 bg-[#FAFAFA]">
+        {/* 업로드 중인 카드(미리보기·진행률·처리중·재시도) — 갤러리 위에 노출. */}
+        <UploadQueue
+          items={uploadItems}
+          onRetry={(itemId) => onRetryUpload(caseId, type, itemId)}
+          onDismiss={(itemId) => onDismissUpload(caseId, type, itemId)}
+        />
         {images.length === 0 ? (
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="w-full py-8 border-2 border-dashed border-[#111] rounded-xl text-[13px] text-[#666] hover:border-[#555] hover:text-[#111] transition-all bg-white"
-          >
-            클릭하여 {label} 이미지를 업로드해 주세요
-          </button>
+          // 등록된 이미지가 없고 업로드 중인 항목도 없을 때만 안내 버튼.
+          uploadItems.length === 0 && (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="w-full py-8 border-2 border-dashed border-[#111] rounded-xl text-[13px] text-[#666] hover:border-[#555] hover:text-[#111] transition-all bg-white"
+            >
+              클릭하여 {label} 이미지를 업로드해 주세요
+            </button>
+          )
         ) : (
           <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
             {images.map((image, i) => (
@@ -451,6 +486,7 @@ function SortableCase({
   uploading,
   saving,
   getChecked,
+  getUploadItems,
   isSelectionMode,
   onOpenEdit,
   onOpenImage,
@@ -460,6 +496,8 @@ function SortableCase({
   onTitleChange,
   onRegister,
   onBulkUpload,
+  onRetryUpload,
+  onDismissUpload,
   onBulkDeleteAll,
   onDeleteSelected,
   onToggleSelectionMode,
@@ -473,6 +511,7 @@ function SortableCase({
   uploading?: boolean;
   saving?: boolean;
   getChecked: (type: "before" | "after") => Set<number>;
+  getUploadItems: (type: "before" | "after") => UploadItem[];
   isSelectionMode: (type: "before" | "after") => boolean;
   onOpenEdit: (caseId: number, type: "before" | "after") => void;
   onOpenImage: (
@@ -493,6 +532,16 @@ function SortableCase({
     caseId: number,
     type: "before" | "after",
     files: FileList,
+  ) => void;
+  onRetryUpload: (
+    caseId: number,
+    type: "before" | "after",
+    itemId: string,
+  ) => void;
+  onDismissUpload: (
+    caseId: number,
+    type: "before" | "after",
+    itemId: string,
   ) => void;
   onBulkDeleteAll: (caseId: number, type: "before" | "after") => void;
   onDeleteSelected: (caseId: number, type: "before" | "after") => void;
@@ -537,6 +586,7 @@ function SortableCase({
             type="before"
             images={beforeImages}
             uploading={uploading}
+            uploadItems={getUploadItems("before")}
             checkedIds={getChecked("before")}
             selectionMode={isSelectionMode("before")}
             onOpenEdit={onOpenEdit}
@@ -545,6 +595,8 @@ function SortableCase({
               onToggleCheck(item.id, "before", imageId)
             }
             onBulkUpload={onBulkUpload}
+            onRetryUpload={onRetryUpload}
+            onDismissUpload={onDismissUpload}
             onBulkDeleteAll={onBulkDeleteAll}
             onDeleteSelected={onDeleteSelected}
             onToggleSelectionMode={() =>
@@ -561,6 +613,7 @@ function SortableCase({
             type="after"
             images={afterImages}
             uploading={uploading}
+            uploadItems={getUploadItems("after")}
             checkedIds={getChecked("after")}
             selectionMode={isSelectionMode("after")}
             onOpenEdit={onOpenEdit}
@@ -569,6 +622,8 @@ function SortableCase({
               onToggleCheck(item.id, "after", imageId)
             }
             onBulkUpload={onBulkUpload}
+            onRetryUpload={onRetryUpload}
+            onDismissUpload={onDismissUpload}
             onBulkDeleteAll={onBulkDeleteAll}
             onDeleteSelected={onDeleteSelected}
             onToggleSelectionMode={() =>
@@ -701,6 +756,12 @@ export default function RemodelingAdminPage() {
     new Set(),
   );
   const [collapsedCases, setCollapsedCases] = useState<Set<number>>(new Set());
+  // 업로드 큐 — 섹션(caseId:type)별 독립. 각 항목이 상태머신을 따라 카드로 렌더된다.
+  const [uploadQueues, setUploadQueues] = useState<Map<string, UploadItem[]>>(
+    new Map(),
+  );
+  // 진행 중인 XHR — 언마운트 시 abort, objectURL 해제 대상 추적.
+  const xhrMapRef = useRef<Map<string, XMLHttpRequest>>(new Map());
   const deleteCancelBtnRef = useRef<HTMLButtonElement>(null);
   const handleDeleteTabTrap = useFocusTrap<HTMLDivElement>();
 
@@ -804,6 +865,23 @@ export default function RemodelingAdminPage() {
   }, [dirtyCount]);
 
   useEffect(load, [load]);
+
+  // 언마운트 시 진행 중 XHR abort + 모든 objectURL 해제 (메모리 누수 방지).
+  // 의존성 없는 1회 등록 — uploadQueuesRef로 최신 큐를 cleanup 시점에 읽는다.
+  const uploadQueuesRef = useRef(uploadQueues);
+  uploadQueuesRef.current = uploadQueues;
+  useEffect(() => {
+    const xhrMap = xhrMapRef.current;
+    return () => {
+      xhrMap.forEach((xhr) => xhr.abort());
+      xhrMap.clear();
+      uploadQueuesRef.current.forEach((items) =>
+        items.forEach((it) => {
+          if (it.localUrl.startsWith("blob:")) URL.revokeObjectURL(it.localUrl);
+        }),
+      );
+    };
+  }, []);
 
   useEffect(() => {
     if (deleting === null) return;
@@ -1027,6 +1105,169 @@ export default function RemodelingAdminPage() {
     }
   };
 
+  // 업로드 큐의 한 항목을 상태머신 전이로 갱신하는 헬퍼.
+  const updateQueueItem = useCallback(
+    (
+      sectionKeyStr: string,
+      itemId: string,
+      t: Parameters<typeof transition>[1],
+    ) => {
+      setUploadQueues((prev) => {
+        const items = prev.get(sectionKeyStr);
+        if (!items) return prev;
+        const nextItems = items.map((it) =>
+          it.id === itemId ? transition(it, t) : it,
+        );
+        const next = new Map(prev);
+        next.set(sectionKeyStr, nextItems);
+        return next;
+      });
+    },
+    [],
+  );
+
+  // 새로 done된 이미지를 전체 load() 없이 갤러리에 즉시 끼워넣는다 (점진 반영).
+  // 서버 POST가 돌려준 imageId·match_order로 CaseImage를 합성.
+  const insertImageOptimistic = useCallback(
+    (
+      caseId: number,
+      type: "before" | "after",
+      imageId: number,
+      matchOrder: number,
+      imageUrl: string,
+    ) => {
+      setCases((prev) =>
+        prev.map((c) => {
+          if (c.id !== caseId) return c;
+          if (c.images.some((img) => img.id === imageId)) return c; // 멱등
+          const newImage: CaseImage = {
+            id: imageId,
+            type,
+            match_order: matchOrder,
+            is_starred: 0,
+            slot_position: 0,
+            image_url: imageUrl,
+            image_url_wm: "",
+            edit_settings: null,
+          };
+          return { ...c, images: [...c.images, newImage] };
+        }),
+      );
+    },
+    [],
+  );
+
+  // 단일 항목 업로드 파이프라인: uploading(%) → processing → done | error.
+  // XHR 업로드 성공 시 곧바로 장별로 DB 등록(POST)까지 마치고 갤러리에 즉시 반영.
+  const uploadOneItem = useCallback(
+    async (sectionKeyStr: string, caseId: number, type: "before" | "after") => {
+      // pending 1개를 "원자적으로" 집어 즉시 uploading으로 전이한다.
+      // setState 업데이터는 동기 실행되므로, 동시 3개 worker가 같은 항목을
+      // 중복 claim하는 race를 한 updater 안에서 차단한다.
+      let claimed: UploadItem | undefined;
+      setUploadQueues((prev) => {
+        const items = prev.get(sectionKeyStr);
+        if (!items) return prev;
+        const found = items.find((it) => it.status === "pending");
+        if (!found) return prev;
+        claimed = found;
+        const nextItems = items.map((it) =>
+          it.id === found.id ? transition(it, { kind: "start" }) : it,
+        );
+        const next = new Map(prev);
+        next.set(sectionKeyStr, nextItems);
+        return next;
+      });
+      const item = claimed;
+      if (!item) return;
+
+      try {
+        const { url } = await xhrUploadFile(item.file, {
+          onProgress: (pct) =>
+            updateQueueItem(sectionKeyStr, item.id, {
+              kind: "progress",
+              progress: pct,
+            }),
+          onUploadComplete: () =>
+            updateQueueItem(sectionKeyStr, item.id, { kind: "processing" }),
+          onStart: (xhr) => xhrMapRef.current.set(item.id, xhr),
+        });
+
+        // 장별 DB 등록 — match_order는 서버가 MAX+1로 안전하게 정한다.
+        const res = await apiFetch("/api/admin/remodeling/images", {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            case_id: caseId,
+            type,
+            image_url: url,
+            is_starred: 0,
+          }),
+        });
+        const data = (await res.json()) as {
+          id: number;
+          match_order: number;
+        };
+
+        updateQueueItem(sectionKeyStr, item.id, {
+          kind: "done",
+          serverUrl: url,
+          imageId: data.id,
+        });
+        // 완료된 것부터 하나씩 갤러리에 반영.
+        insertImageOptimistic(caseId, type, data.id, data.match_order, url);
+      } catch (error) {
+        updateQueueItem(sectionKeyStr, item.id, {
+          kind: "error",
+          error: errMsg(error),
+        });
+      } finally {
+        xhrMapRef.current.delete(item.id);
+      }
+    },
+    [updateQueueItem, insertImageOptimistic],
+  );
+
+  // 새로 추가된 pending 항목들을 동시성 3으로 처리한다.
+  // 서버 sharp 메모리 보호를 위해 동시 3장으로 제한(기존 직렬화 이유 계승).
+  const drainQueue = useCallback(
+    async (sectionKeyStr: string, caseId: number, type: "before" | "after") => {
+      let pendingCount = 0;
+      setUploadQueues((prev) => {
+        pendingCount =
+          prev.get(sectionKeyStr)?.filter((it) => it.status === "pending")
+            .length ?? 0;
+        return prev;
+      });
+      if (pendingCount === 0) return;
+
+      setUploading(true);
+      // runner는 큐에서 매번 다음 pending 1개를 집어 처리한다(uploadOneItem 내부).
+      await runWithConcurrency(
+        Array.from({ length: pendingCount }),
+        3,
+        () => uploadOneItem(sectionKeyStr, caseId, type),
+      );
+      setUploading(false);
+
+      // 사이클 종료 요약 토스트 — 성공/실패 집계.
+      setUploadQueues((prev) => {
+        const items = prev.get(sectionKeyStr);
+        if (items) {
+          const c = countByStatus(items);
+          if (c.settled) {
+            if (c.error === 0) flash(ErrorMessages.uploadSuccess(c.done));
+            else if (c.done > 0)
+              flash(ErrorMessages.uploadPartial(c.done, c.error));
+            else flash(ErrorMessages.uploadAllFailed());
+          }
+        }
+        return prev;
+      });
+    },
+    [uploadOneItem],
+  );
+
   const handleBulkUpload = async (
     caseId: number,
     type: "before" | "after",
@@ -1035,75 +1276,96 @@ export default function RemodelingAdminPage() {
     const fileArray = Array.from(files);
     if (fileArray.length === 0) return;
 
-    const caseData = cases.find((item) => item.id === caseId);
-    const existing = caseData ? getImagesByType(caseData.images, type) : [];
-    const maxOrder = existing.reduce(
-      (max, image) => Math.max(max, image.match_order),
-      0,
+    const key = `${caseId}:${type}`;
+    // 선택 즉시 로컬 미리보기 카드 생성(pending) — 사용자가 바로 결과를 본다.
+    const newItems = fileArray.map((f) =>
+      createUploadItem(f, (file) => URL.createObjectURL(file)),
     );
+    setUploadQueues((prev) => {
+      const next = new Map(prev);
+      const existing = prev.get(key) ?? [];
+      next.set(key, [...existing, ...newItems]);
+      return next;
+    });
 
-    setUploading(true);
-
-    let success = 0;
-    let failedReason = "";
-    // 최신 폰 사진은 장당 5~10MB라 한 번에 보내면 next 미들웨어 100MB 한도나
-    // Cloudflare 100MB request body 한도에 걸리기 쉽다. 5장씩 batch로 끊어
-    // 순차 업로드해서 실패율을 낮춘다. 진행 상황은 토스트로 노출.
-    const BATCH_SIZE = 5;
-    let nextOrder = maxOrder;
-
-    try {
-      for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
-        const batch = fileArray.slice(i, i + BATCH_SIZE);
-        // 진행률 항상 표시 — 5장 이하라도 사용자가 stuck 인지 못 하도록.
-        flash(
-          ErrorMessages.uploadProgress(
-            Math.min(i + BATCH_SIZE, fileArray.length),
-            fileArray.length,
-          ),
-        );
-        const urls = await uploadFiles(batch);
-
-        const results = await Promise.allSettled(
-          urls.map((url: string, index: number) =>
-            apiFetch("/api/admin/remodeling/images", {
-              method: "POST",
-              headers: getHeaders(),
-              body: JSON.stringify({
-                case_id: caseId,
-                type,
-                match_order: nextOrder + index + 1,
-                image_url: url,
-                is_starred: 0,
-              }),
-            }),
-          ),
-        );
-        nextOrder += batch.length;
-        success += results.filter((r) => r.status === "fulfilled").length;
-        const firstFail = results.find((r) => r.status === "rejected") as
-          | PromiseRejectedResult
-          | undefined;
-        if (firstFail && !failedReason)
-          failedReason = errMsg(firstFail.reason);
-      }
-    } catch (error) {
-      if (!failedReason) failedReason = errMsg(error);
-    }
-
-    setUploading(false);
-
-    const failed = fileArray.length - success;
-    if (success === fileArray.length) {
-      flash(ErrorMessages.uploadSuccess(success));
-    } else if (success > 0) {
-      flash(ErrorMessages.uploadPartial(success, failed, failedReason));
-    } else {
-      flash(ErrorMessages.uploadAllFailed(failedReason));
-    }
-
-    load();
+    await drainQueue(key, caseId, type);
   };
+
+  // 개별 재시도 — 실패 항목을 pending으로 되돌리고 다시 큐를 흘린다.
+  const handleRetryUpload = useCallback(
+    (caseId: number, type: "before" | "after", itemId: string) => {
+      const key = `${caseId}:${type}`;
+      updateQueueItem(key, itemId, { kind: "retry" });
+      void drainQueue(key, caseId, type);
+    },
+    [updateQueueItem, drainQueue],
+  );
+
+  // 실패 항목을 목록에서 제거 + objectURL 해제.
+  const handleDismissUpload = useCallback(
+    (caseId: number, type: "before" | "after", itemId: string) => {
+      const key = `${caseId}:${type}`;
+      setUploadQueues((prev) => {
+        const items = prev.get(key);
+        if (!items) return prev;
+        const removed = items.find((it) => it.id === itemId);
+        if (removed?.localUrl.startsWith("blob:"))
+          URL.revokeObjectURL(removed.localUrl);
+        const next = new Map(prev);
+        next.set(
+          key,
+          items.filter((it) => it.id !== itemId),
+        );
+        return next;
+      });
+    },
+    [],
+  );
+
+  // done 항목 정리: 갤러리에 반영됐으니 큐에서 빼고 objectURL 해제.
+  // 진행 중·실패가 없을 때(모두 settled & error 0) 호출해 카드를 비운다.
+  const cleanupDoneItems = useCallback(
+    (caseId: number, type: "before" | "after") => {
+      const key = `${caseId}:${type}`;
+      setUploadQueues((prev) => {
+        const items = prev.get(key);
+        if (!items) return prev;
+        const remaining = items.filter((it) => {
+          if (it.status === "done") {
+            if (it.localUrl.startsWith("blob:"))
+              URL.revokeObjectURL(it.localUrl);
+            return false;
+          }
+          return true;
+        });
+        const next = new Map(prev);
+        if (remaining.length === 0) next.delete(key);
+        else next.set(key, remaining);
+        return next;
+      });
+    },
+    [],
+  );
+
+  // 큐가 모두 settled & 실패 0이면 잠깐 보여준 뒤 done 카드를 정리.
+  // (실패가 있으면 사용자가 재시도/제거할 때까지 유지)
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    uploadQueues.forEach((items, key) => {
+      const c = countByStatus(items);
+      if (c.settled && c.error === 0 && c.done > 0) {
+        const [caseIdStr, type] = key.split(":");
+        const caseId = Number(caseIdStr);
+        timers.push(
+          setTimeout(
+            () => cleanupDoneItems(caseId, type as "before" | "after"),
+            1500,
+          ),
+        );
+      }
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [uploadQueues, cleanupDoneItems]);
 
   const handleBulkDeleteAll = async (
     caseId: number,
@@ -1296,6 +1558,9 @@ export default function RemodelingAdminPage() {
                 getChecked={(type) =>
                   checkedMap.get(sectionKey(item.id, type)) ?? new Set()
                 }
+                getUploadItems={(type) =>
+                  uploadQueues.get(`${item.id}:${type}`) ?? EMPTY_UPLOAD_ITEMS
+                }
                 isSelectionMode={(type) => isSelectionMode(item.id, type)}
                 onOpenEdit={(caseId, type) =>
                   setEditorSection({ caseId, type })
@@ -1309,6 +1574,8 @@ export default function RemodelingAdminPage() {
                 onTitleChange={handleTitleChange}
                 onRegister={handleRegister}
                 onBulkUpload={handleBulkUpload}
+                onRetryUpload={handleRetryUpload}
+                onDismissUpload={handleDismissUpload}
                 onBulkDeleteAll={handleBulkDeleteAll}
                 onDeleteSelected={handleDeleteSelected}
                 onToggleSelectionMode={toggleSelectionMode}
