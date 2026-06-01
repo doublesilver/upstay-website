@@ -13,10 +13,12 @@ export const metadata: Metadata = {
   },
 };
 
-// force-dynamic — 빌드 시점 DB(데모 시드)로 prerender되는 회귀 방지.
-// 로컬 빌드 → OCI rsync 패턴이라 빌드 시점 DB가 production 실 DB와 다름.
-// 매 요청 OCI DB 조회 + Cloudflare HTML 5분 cache로 origin 부담 보호.
-export const dynamic = "force-dynamic";
+// ISR 전환(검수 H-2) — list/detail과 동일하게 60초 재검증. force-dynamic은
+// 홈만 매 요청 OCI DB를 때려(동일 데이터인데) origin에 불필요한 부담이었다.
+// 빌드 시점 DB(로컬 데모 시드)로 prerender되더라도, 첫 배포 후 60초 내 런타임에서
+// 실 DB로 재생성되어 production 데이터로 수렴한다(빈 화면으로 굳는 회귀 없음).
+// admin 저장 시 revalidatePath("/")로 즉시 갱신(invalidatePublicCache).
+export const revalidate = 60;
 
 export default function HomePage() {
   return (
