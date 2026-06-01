@@ -3,10 +3,16 @@ import { DetailGallery } from "./detail-gallery";
 import { getDb } from "@/lib/db";
 import { notFound } from "next/navigation";
 
-// force-dynamic — 로컬 빌드 시점 DB(데모 시드 case 1-3)로 prerender되어
-// production 실 DB(case 13+)와 어긋나는 회귀 방지. 매 요청 OCI DB 조회 +
-// Cloudflare cache로 origin 부담 보호.
-export const dynamic = "force-dynamic";
+// ISR 전환. force-dynamic을 제거해 CF 캐시 + Link prefetch를 복원(클릭 즉시 전환).
+// generateStaticParams가 빈 배열을 반환 → 빌드 시 정적 prerender 0개.
+// 따라서 로컬 빌드의 데모 시드 DB(case 1-3)가 production 실 DB와 어긋나
+// 빈 페이지로 굳는 회귀(2026-05-25)가 원천 차단된다. dynamicParams 기본값(true)이라
+// 모든 사례 경로는 런타임 첫 요청 시 OCI DB를 읽어 ISR로 생성·캐시된다.
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  return [];
+}
 
 export default async function RemodelingDetailPage({
   params,
