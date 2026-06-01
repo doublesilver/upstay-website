@@ -32,7 +32,7 @@ import {
 import Image from "next/image";
 import { ImageEditModal } from "@/components/admin/image-edit-modal";
 import { Toast } from "@/components/admin/toast";
-import { UploadQueue } from "@/components/admin/upload-queue";
+import { UploadCard, UploadQueueSummary } from "@/components/admin/upload-queue";
 import { useFocusTrap } from "@/components/use-focus-trap";
 import { apiFetch, errMsg, getHeaders } from "@/lib/admin-api";
 import { ErrorMessages } from "@/lib/error-messages";
@@ -423,24 +423,23 @@ function ImageSection({
       </div>
 
       <div className="border border-[#111] rounded-lg p-3 bg-[#FAFAFA]">
-        {/* 업로드 중인 카드(미리보기·진행률·처리중·재시도) — 갤러리 위에 노출. */}
-        <UploadQueue
-          items={uploadItems}
-          onRetry={(itemId) => onRetryUpload(caseId, type, itemId)}
-          onDismiss={(itemId) => onDismissUpload(caseId, type, itemId)}
-        />
-        {images.length === 0 ? (
+        {images.length === 0 && uploadItems.length === 0 ? (
           // 등록된 이미지가 없고 업로드 중인 항목도 없을 때만 안내 버튼.
-          uploadItems.length === 0 && (
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="w-full py-8 border-2 border-dashed border-[#111] rounded-xl text-[13px] text-[#666] hover:border-[#555] hover:text-[#111] transition-all bg-white"
-            >
-              클릭하여 {label} 이미지를 업로드해 주세요
-            </button>
-          )
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="w-full py-8 border-2 border-dashed border-[#111] rounded-xl text-[13px] text-[#666] hover:border-[#555] hover:text-[#111] transition-all bg-white"
+          >
+            클릭하여 {label} 이미지를 업로드해 주세요
+          </button>
         ) : (
+          // ★ 레이아웃 출렁임 수정 핵심: 갤러리 썸네일과 진행 중 업로드 카드를 "하나의
+          //   그리드"에 함께 그린다. 갤러리(이미 완료된 것)를 먼저, 진행 중 카드를 뒤에 둔다.
+          //   한 카드가 done되면 insertImageOptimistic이 그 이미지를 갤러리 "끝"에 붙이고
+          //   removeQueueItem이 큐에서 즉시 뺀다 → 갤러리의 새 마지막 슬롯 위치 = 방금
+          //   그 카드가 있던 화면 위치. 그래서 카드는 영역을 옮기지 않고 제자리에서 내용만
+          //   썸네일로 바뀐다(layout shift 없음). 중복(26장)도 없다: 한 이미지가 큐와 갤러리에
+          //   동시에 그려지지 않으므로(removeQueueItem이 보장).
           <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
             {images.map((image, i) => (
               <ImageThumb
@@ -456,8 +455,19 @@ function ImageSection({
                 }
               />
             ))}
+            {uploadItems.map((item) => (
+              <UploadCard
+                key={item.id}
+                item={item}
+                onRetry={(itemId) => onRetryUpload(caseId, type, itemId)}
+                onDismiss={(itemId) => onDismissUpload(caseId, type, itemId)}
+              />
+            ))}
           </div>
         )}
+        {/* 진행 요약(텍스트) — aria-live. ★ 그리드 "아래"에 둔다: 나타났다 사라질 때
+            위쪽 카드들을 밀지 않아 layout shift를 만들지 않게. */}
+        {uploadItems.length > 0 && <UploadQueueSummary items={uploadItems} />}
       </div>
     </div>
   );

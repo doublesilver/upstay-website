@@ -35,7 +35,7 @@ function statusLabel(item: UploadItem): string {
   }
 }
 
-function UploadCard({
+export function UploadCard({
   item,
   onRetry,
   onDismiss,
@@ -134,48 +134,35 @@ function UploadCard({
   );
 }
 
-export function UploadQueue({
-  items,
-  onRetry,
-  onDismiss,
-}: {
-  items: UploadItem[];
-  onRetry: (id: string) => void;
-  onDismiss: (id: string) => void;
-}) {
-  if (items.length === 0) return null;
-
+// 업로드 진행 요약(텍스트 한 줄)만 담당. ★ 레이아웃 출렁임 수정 이후, 업로드
+// "카드"는 갤러리 썸네일과 같은 그리드(ImageSection)에 인라인으로 그려진다 — 카드가
+// 큐 영역↔갤러리 영역을 오가지 않게 해 layout shift를 없애기 위함. 따라서 여기선
+// 카드 목록을 더 이상 그리지 않고, aria-live 요약 줄만 남긴다.
+//
+// 요약 줄은 진행 중에만 보이고 사라지는데, 나타났다 사라질 때 아래 그리드를 밀어
+// 세로 들썩임을 만들지 않도록 항상 같은 높이(min-h)를 차지하게 둔다(빈 줄도 자리 유지).
+export function UploadQueueSummary({ items }: { items: UploadItem[] }) {
   const counts = countByStatus(items);
   const pct = overallProgress(items);
 
-  // 모두 done이면 굳이 큐를 더 보일 필요 없음 — 부모가 정리 타이밍에 비운다.
-  const summary = counts.settled
-    ? counts.error > 0
-      ? `업로드 완료 — 성공 ${counts.done}장, 실패 ${counts.error}장`
-      : `사진 ${counts.done}장이 모두 올라갔어요.`
-    : `사진 업로드 중... ${counts.done}/${counts.total}장 (${pct}%)`;
+  // 진행 중인 항목이 하나도 없으면 빈 요약(자리만 유지) — 세로 출렁임 방지.
+  const summary =
+    items.length === 0
+      ? ""
+      : counts.settled
+        ? counts.error > 0
+          ? `업로드 완료 — 성공 ${counts.done}장, 실패 ${counts.error}장`
+          : `사진 ${counts.done}장이 모두 올라갔어요.`
+        : `사진 업로드 중... ${counts.done}/${counts.total}장 (${pct}%)`;
 
   return (
-    <div className="mb-3">
-      {/* 진행 요약 — 스크린리더가 변화를 읽도록 aria-live. */}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="text-[12px] text-[#555] mb-2"
-      >
-        {summary}
-      </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
-        {items.map((item) => (
-          <UploadCard
-            key={item.id}
-            item={item}
-            onRetry={onRetry}
-            onDismiss={onDismiss}
-          />
-        ))}
-      </div>
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className="text-[12px] text-[#555] mt-2 min-h-[18px]"
+    >
+      {summary}
     </div>
   );
 }
