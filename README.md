@@ -7,8 +7,7 @@
 [![Tailwind](https://img.shields.io/badge/Tailwind-4.x-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-3.46+-003B57?logo=sqlite)](https://www.sqlite.org/)
 [![OCI](https://img.shields.io/badge/Deploy-Oracle%20Cloud-F80000?logo=oracle)](https://www.oracle.com/cloud/)
-[![Cloudflare](https://img.shields.io/badge/CDN-Cloudflare-F38020?logo=cloudflare)](https://www.cloudflare.com/)
-[![R2](https://img.shields.io/badge/Images-R2-F38020?logo=cloudflare)](https://developers.cloudflare.com/r2/)
+[![Cloudflare](https://img.shields.io/badge/Proxy-Cloudflare-F38020?logo=cloudflare)](https://www.cloudflare.com/)
 [![License](https://img.shields.io/badge/License-Private-red.svg)]()
 
 ---
@@ -54,13 +53,13 @@ mindmap
       OCI / Standalone Build + systemd
       Caddy / TLS · 리버스 프록시
       SQLite / better-sqlite3 + WAL
-      Cloudflare R2 / 이미지 CDN
-      Cloudflare / DNS + Tiered Cache
+      이미지 / origin 직접 서빙 (/api/uploads)
+      Cloudflare / DNS proxy + HTML/이미지 캐시
 ```
 
 업스테이 사이트는 **외주 단일 개발자 환경**을 전제로 설계되었습니다.
 
-- ✅ 빠른 데모 사이클 (force-dynamic + 60s ISR)
+- ✅ 빠른 데모 사이클 (전 공개 페이지 60s ISR)
 - ✅ 단일 SQLite + Volume mount (Postgres 불필요)
 - ✅ 관리자가 텍스트/이미지/공지를 직접 편집
 - ✅ 별표 시스템으로 메인 노출 4장 큐레이션
@@ -76,13 +75,12 @@ flowchart TB
         Admin[관리자<br/>대표님]
     end
 
-    subgraph CDN["☁️ Cloudflare"]
+    subgraph CDN["☁️ Cloudflare (proxy)"]
         DNS[DNS<br/>upstay.co.kr]
-        Tiered[Tiered Cache<br/>Smart Topology]
-        R2[("R2 bucket<br/>img.upstay.co.kr<br/>9849 파일")]
+        Tiered[Tiered Cache<br/>HTML + /api/uploads 이미지]
     end
 
-    subgraph OCI["☁️ OCI agora VM (1/8 OCPU, 오사카)"]
+    subgraph OCI["☁️ OCI arm-big VM (오사카)"]
         Caddy["Caddy<br/>TLS + 리버스 프록시"]
         subgraph App["Next.js 16 Standalone<br/>(systemd: upstay.service:3001)"]
             MW["middleware.ts<br/>JWT verify edge"]
@@ -112,8 +110,7 @@ flowchart TB
     AdminRoute --> API
     API --> DB
     API --> Uploads
-    Uploads -->|cron 5min sync| R2
-    Visitor -->|img.upstay.co.kr| R2
+    Visitor -->|/api/uploads/* 이미지| Caddy
 
     Repo -->|머지 + rsync| OCI
 ```
@@ -125,7 +122,8 @@ flowchart TB
 | SQLite + Volume mount                           | 외주 환경에서 Postgres 운영 부담 회피, 단일 admin이라 동시성 충돌 없음 |
 | Standalone build                                | Docker 단일 이미지 + 빠른 cold start                                   |
 | middleware JWT 검증                             | Defense-in-depth (라우트 핸들러 추가 검증)                             |
-| `force-dynamic` (사례 리스트) + `revalidate=60` | admin 변경 즉시 반영 vs 캐시 효율 trade-off                            |
+| 전 공개 페이지 `revalidate=60` ISR + admin 저장 시 `revalidatePath` | 캐시 효율(매 요청 DB 회피)과 admin 변경 즉시 반영을 동시 달성 |
+| 이미지 origin 직접 서빙 (`/api/uploads/*`) + Cloudflare 캐시 | R2/외부 CDN 없이 origin이 webp 단일 표현으로 결정적 서빙, CF가 URL당 캐시 1개 |
 
 ---
 
@@ -168,9 +166,9 @@ flowchart LR
 
 | Zone  | URL                    | 역할                                                   | 렌더링               | 주요 파일                                                                             |
 | ----- | ---------------------- | ------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------------------- |
-| **1** | `/`                    | 메인 — 사례 카드 3개 + 서비스 섹션 + 공지 팝업         | revalidate 60s       | `app/page.tsx`<br/>`components/home-client.tsx`<br/>`components/service-sections.tsx` |
-| **2** | `/remodeling`          | 사례 리스트 (전체보기 → 상세)                          | force-dynamic        | `app/remodeling/page.tsx`                                                             |
-| **3** | `/remodeling/[id]`     | 사례 상세 — 갤러리 + 설명 박스                         | revalidate 60s + ISR | `app/remodeling/[id]/page.tsx`<br/>`detail-gallery.tsx`                               |
+| **1** | `/`                    | 메인 — 사례 카드 3개 + 서비스 섹션 + 공지 팝업         | ISR revalidate 60s   | `app/page.tsx`<br/>`components/home-client.tsx`<br/>`components/service-sections.tsx` |
+| **2** | `/remodeling`          | 사례 리스트 (전체보기 → 상세)                          | ISR revalidate 60s   | `app/remodeling/page.tsx`                                                             |
+| **3** | `/remodeling/[id]`     | 사례 상세 — 갤러리 + 설명 박스                         | ISR revalidate 60s (generateStaticParams 빈 배열 → 빌드 prerender 0) | `app/remodeling/[id]/page.tsx`<br/>`detail-gallery.tsx`                               |
 | **4** | (모달)                 | 라이트박스 — BEFORE/AFTER 동시 + 썸네일 strip          | client-side          | `LightboxColumn`, `LightboxThumbStrip`                                                |
 | **5** | `/admin/remodeling`    | 사진등록 — 사례 CRUD + 이미지 + 별표(slot) + 편집 모달 | client-side          | `app/admin/remodeling/page.tsx`<br/>`components/admin/image-edit-modal.tsx`           |
 | **6** | `/admin/announcements` | 팝업창 — 공지 인라인 편집 + B/· toolbar                | client-side          | `app/admin/announcements/page.tsx`                                                    |
@@ -203,9 +201,9 @@ sequenceDiagram
     N-->>U: SSR HTML (revalidate 60s)
 
     U->>N: GET /remodeling
-    N->>DB: getAllCases() (force-dynamic)
+    N->>DB: getAllCases() (ISR 60s)
     DB-->>N: 모든 사례
-    N-->>U: SSR HTML (캐시 X)
+    N-->>U: SSR HTML (revalidate 60s)
 ```
 
 ### 별표(slot_position) vs 드래그(match_order)
@@ -323,8 +321,7 @@ flowchart LR
         Vitest["vitest<br/>단위 테스트"]
         ESLint["ESLint"]
         Systemd["systemd<br/>upstay.service"]
-        Caddy2["Caddy<br/>TLS + proxy"]
-        R2["Cloudflare R2<br/>이미지 CDN"]
+        Caddy2["Caddy<br/>TLS + proxy + 이미지 캐시 헤더"]
     end
 
     Frontend --> Backend
@@ -479,7 +476,7 @@ npm start
 | `JWT_SECRET` | ✅ | - | JWT 서명 키 (**32자 이상**) |
 | `DATA_DIR` | ⚪ | `./data` | DB + 업로드 저장소 (OCI: `/home/ubuntu/upstay/data`) |
 | `PUBLIC_ORIGIN` | ⚪ | - | CSRF origin allowlist 쉼표 구분 (예: `https://upstay.co.kr,https://www.upstay.co.kr`) |
-| `NEXT_PUBLIC_IMAGE_HOST` | ⚪ | - | 이미지 외부 CDN host (예: `https://img.upstay.co.kr` — R2 분리 시). 빌드 타임 inline, 변경 후 재빌드 필수 |
+| `NEXT_PUBLIC_IMAGE_HOST` | ⚪ | (비움) | 이미지 외부 CDN host prefix. **현재 미사용 — 반드시 비워둘 것.** 값을 넣으면 origin 직접 서빙(`/api/uploads/*`)을 우회해 신규 사진이 깨진다(과거 R2 분리 잔재) |
 | `SEED_DEMO` | ⚪ | - | `1`이면 데모 데이터 시드 |
 
 ### JWT_SECRET 생성
@@ -498,35 +495,32 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ## ☁️ OCI 배포
 
 > 2026-05-24부터 Oracle Cloud Infrastructure(OCI Always Free) 단독 운영. 이전 Railway 환경은 폐기됨.
-> 이미지는 Cloudflare R2(`img.upstay.co.kr`)로 분리 서빙되어 origin OCI는 HTML/JS/관리자만 처리.
+> 이미지는 origin(OCI)이 `/api/uploads/*`로 직접 서빙하고 Cloudflare가 그 응답을 캐시한다. 별도 이미지 CDN(R2) 없음.
 
 ```mermaid
 flowchart LR
-    Dev["💻 로컬 개발"] -->|git push main| GH["GitHub"]
+    Dev["💻 로컬 개발"] -->|git push| GH["GitHub"]
     GH -->|머지| Main["main branch"]
-    Main -->|rsync| OCI["☁️ OCI VM<br/>agora (오사카)"]
+    Main -->|rsync| OCI["☁️ OCI VM<br/>arm-big (오사카)"]
     OCI -->|systemd: upstay.service| App["Next.js 16 standalone<br/>:3001"]
     App -->|/api/uploads or admin| Origin["origin OCI"]
-    App -->|/_next, HTML, JS| User["👤 User"]
-    User -->|이미지| R2["Cloudflare R2<br/>img.upstay.co.kr"]
+    App -->|/_next, HTML, JS, 이미지| User["👤 User"]
     OCI -->|local FS| SQLite[("SQLite<br/>/home/ubuntu/upstay/data/<br/>upstay.db + uploads")]
-    OCI -->|cron 5min sync| R2sync["rclone copy → R2"]
 ```
 
 ### 운영 정보
 
 | 항목 | 값 |
 |---|---|
-| SSH 명령 | `ssh upstay` (또는 `ssh -i ~/.ssh/oci_agora_key ubuntu@161.33.19.104`) |
-| VM | agora VM 공유 (오사카, ap-osaka-1, 1/8 OCPU + 1GB) |
+| SSH 명령 | `ssh upstay` (또는 `ssh -i ~/.ssh/oci_agora_key ubuntu@161.33.11.11`) |
+| VM | arm-big VM (오사카, ap-osaka-1, ARM A1 4 OCPU + 24GB) |
 | 코드 위치 | `~/upstay/` |
 | 서비스 | systemd `upstay.service`, port 3001 |
 | 데이터 | `/home/ubuntu/upstay/data/` (SQLite + uploads) |
-| 환경변수 | `/etc/upstay/env` (`ADMIN_ID`, `ADMIN_PW`, `JWT_SECRET`, `DATA_DIR`, `NEXT_PUBLIC_IMAGE_HOST`) |
-| 도메인 | upstay.co.kr → Cloudflare (proxy) → 161.33.19.104 |
-| 이미지 host | `https://img.upstay.co.kr` (Cloudflare R2, 무료 10GB) |
+| 환경변수 | `/etc/upstay/env` (`ADMIN_ID`, `ADMIN_PW`, `JWT_SECRET`, `DATA_DIR`) |
+| 도메인 | upstay.co.kr → Cloudflare (proxy) → 161.33.11.11 |
+| 이미지 서빙 | origin 직접 (`/api/uploads/*`, Caddy가 `Cache-Control` 부여 + Cloudflare 캐시). 별도 CDN 없음 |
 | 인증서 | Caddy + Let's Encrypt 자동 갱신 |
-| 자동 sync | cron 5분 마다 `rclone copy /home/ubuntu/upstay/data/uploads r2:upstay-uploads` |
 
 ### 배포 순서 (코드 변경 후)
 
@@ -538,12 +532,12 @@ git checkout main && git pull origin main
 # 2. OCI로 rsync (worktree 또는 main 디렉토리에서)
 rsync -avz --exclude={'.git','node_modules','.next','data','.claude'} \
   -e "ssh -i ~/.ssh/oci_agora_key" \
-  ./ ubuntu@161.33.19.104:~/upstay/
+  ./ ubuntu@161.33.11.11:~/upstay/
 
 # 3. OCI에서 빌드 + 재시작
+#    ⚠️ NEXT_PUBLIC_IMAGE_HOST는 절대 설정하지 말 것 — 설정 시 신규 사진이 깨진다(R2 잔재).
 ssh upstay 'cd ~/upstay && \
-  NODE_OPTIONS="--max-old-space-size=512" \
-  NEXT_PUBLIC_IMAGE_HOST="https://img.upstay.co.kr" \
+  NODE_OPTIONS="--max-old-space-size=4096" \
   npm run build && \
   cp -r .next/static .next/standalone/.next/ && \
   cp -r public .next/standalone/ && \
@@ -729,7 +723,7 @@ launchctl load ~/Library/LaunchAgents/com.upstay.backup.plist
 ```bash
 tar xzf ~/upstay-backups/upstay-20260428-030000.tar.gz
 # data/ 디렉토리 추출
-# OCI: rsync로 ubuntu@161.33.19.104:~/upstay/data/에 업로드
+# OCI: rsync로 ubuntu@161.33.11.11:~/upstay/data/에 업로드
 ```
 
 ---

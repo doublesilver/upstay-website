@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ProtectedImage } from "@/components/protected-image";
 import Link from "next/link";
 import { Container } from "@/components/container";
@@ -6,8 +7,17 @@ import { blurDataURL } from "@/lib/shimmer";
 import { CasePrefetchTrigger } from "@/components/case-prefetch-trigger";
 import { resolveImg } from "@/lib/image-url";
 
-// force-dynamic — 빌드 시점 DB 의존 회귀 방지 (page.tsx와 동일 사유)
-export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "리모델링 사례",
+  alternates: {
+    canonical: "/remodeling",
+  },
+};
+
+// ISR 전환 — force-dynamic을 제거해 CF 캐시 + prefetch 복원. 60초마다 재검증.
+// 빈 DB 회귀 방지: 빌드 시 생성된 정적 페이지도 첫 배포 후 60초 내 런타임에서
+// 실 DB로 재생성되며, 상세([id])는 generateStaticParams 빈 배열로 빌드 prerender 0개.
+export const revalidate = 60;
 
 export default function RemodelingPage() {
   const cases = getAllCases();
@@ -65,6 +75,9 @@ export default function RemodelingPage() {
                             quality={70}
                             placeholder="blur"
                             blurDataURL={blurDataURL()}
+                            {...(i < 3 && j === 0
+                              ? { priority: true, fetchPriority: "high" }
+                              : { loading: "lazy" })}
                           />
                         </div>
                       ))}

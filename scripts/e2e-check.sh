@@ -9,7 +9,7 @@
 # 5. /admin/* 인증 보호 (인증 없으면 redirect)
 # 6. /api/admin/* 인증 보호 (401)
 # 7. 입력 검증 가드 (path traversal, null byte, 확장자)
-# 8. R2 이미지 응답 + cf-cache 상태
+# 8. 이미지 origin 직접 서빙 (/api/uploads/*) 응답 + 캐시 헤더
 # 9. 로그인 rate limit (5회 후 429)
 # 10. (선택) admin credentials로 mutation API 호출
 #
@@ -20,7 +20,6 @@
 set -uo pipefail
 
 BASE="${BASE_URL:-https://upstay.co.kr}"
-IMG_HOST="${IMG_HOST:-https://img.upstay.co.kr}"
 PASS=0
 FAIL=0
 WARNINGS=0
@@ -49,7 +48,7 @@ assert_code() {
 
 echo "=========================================="
 echo " UPSTAY E2E 검사 시작 — $(date +%H:%M:%S)"
-echo " BASE=$BASE  IMG_HOST=$IMG_HOST"
+echo " BASE=$BASE"
 echo "=========================================="
 
 # public 페이지는 직접 200이거나 Cloudflare가 캐시 응답.
@@ -90,10 +89,11 @@ for h in "content-security-policy" "strict-transport-security" "x-frame-options"
   if echo "$headers" | grep -iq "^$h:"; then ok "$h"; else fail "$h 누락"; fi
 done
 
-if echo "$headers" | grep -i "content-security-policy" | grep -iq "img-src.*$IMG_HOST"; then
-  ok "CSP img-src에 $IMG_HOST 포함"
+# 이미지는 origin 직접 서빙(/api/uploads/*)이라 img-src 'self'면 충분.
+if echo "$headers" | grep -i "content-security-policy" | grep -iq "img-src[^;]*'self'"; then
+  ok "CSP img-src에 'self' 포함 (origin 직접 서빙)"
 else
-  fail "CSP img-src에 $IMG_HOST 미포함 — R2 이미지 차단됨"
+  fail "CSP img-src에 'self' 미포함 — origin 이미지 차단됨"
 fi
 
 section "4. HTML 메타"
@@ -121,16 +121,29 @@ if [ "$null_code" = "400" ] || [ "$null_code" = "404" ]; then ok "null byte 차�
 ext_code=$(curl_code "$BASE/api/uploads/test.exe")
 if [ "$ext_code" = "404" ]; then ok "확장자 차단 ($ext_code)"; else fail "확장자 차단 — expected 404, got $ext_code"; fi
 
-section "7. R2 이미지"
-# 변수 expansion + escape 회피 위해 hostname을 inline string으로 직접 사용.
-sample_img=$(curl -sL "$BASE/remodeling" -H 'User-Agent: e2e-check' | grep -oE 'https://img\.upstay\.co\.kr/[^"]+\.webp' | head -1)
-if [ -n "$sample_img" ]; then
+section "7. 이미지 origin 직접 서빙 (/api/uploads/*)"
+# 이미지는 R2/외부 CDN 없이 origin이 /api/uploads/* 로 직접 서빙. Cloudflare가 그 응답을 캐시.
+# HTML에서 /api/uploads/*.webp 경로(상대) 추출 → 절대 URL로 검증.
+sample_path=$(curl -sL "$BASE/remodeling" -H 'User-Agent: e2e-check' | grep -oE '/api/uploads/[^"]+\.webp' | head -1)
+if [ -n "$sample_path" ]; then
+  sample_img="$BASE$sample_path"
   img_code=$(curl_code "$sample_img")
-  if [ "$img_code" = "200" ]; then ok "R2 이미지 200 ($sample_img)"; else fail "R2 이미지 $img_code"; fi
-  cf_cache=$(curl_header "$sample_img" | grep -i "cf-cache-status:" | tr -d '\r' | awk '{print $2}')
-  if [ "$cf_cache" = "HIT" ] || [ "$cf_cache" = "MISS" ]; then ok "R2 cf-cache: $cf_cache"; else warn "R2 cf-cache: $cf_cache (HIT 권장, Cache Rule 미설정?)"; fi
+  if [ "$img_code" = "200" ]; then ok "origin 이미지 200 ($sample_path)"; else fail "origin 이미지 $img_code ($sample_path)"; fi
+  img_headers=$(curl_header "$sample_img")
+  # 협상 제거(H-1) 회귀 감시: 응답에 Vary가 없어야 한다(CDN 캐시 분리·avif 강제 방지).
+  if echo "$img_headers" | grep -iq "^vary:.*accept"; then
+    fail "이미지 응답에 Vary:Accept 잔존 — 협상 제거(H-1) 회귀. avif 강제 위험"
+  else
+    ok "이미지 응답에 Vary:Accept 없음 (협상 제거 정상)"
+  fi
+  # content-type은 요청 확장자 그대로(webp). avif로 변환되면 안 됨.
+  ct=$(echo "$img_headers" | grep -i "^content-type:" | tr -d '\r' | awk '{print $2}')
+  if echo "$ct" | grep -iq "image/webp"; then ok "이미지 content-type: $ct (webp 단일 고정)"; else warn "이미지 content-type: $ct (webp 예상)"; fi
+  if echo "$img_headers" | grep -iq "^cache-control:.*immutable"; then ok "이미지 Cache-Control immutable"; else warn "이미지 Cache-Control immutable 누락"; fi
+  cf_cache=$(echo "$img_headers" | grep -i "cf-cache-status:" | tr -d '\r' | awk '{print $2}')
+  [ -n "$cf_cache" ] && ok "cf-cache: $cf_cache" || warn "cf-cache 헤더 없음 (CF proxy 미경유?)"
 else
-  warn "샘플 R2 이미지 URL 못 찾음 (HTML에 img-src 없음?)"
+  warn "샘플 이미지 URL 못 찾음 (/remodeling HTML에 /api/uploads 없음?)"
 fi
 
 section "8. 로그인 rate limit (5회 시도 후 429 검증)"

@@ -173,6 +173,8 @@ export function DetailGallery({
 
   return (
     <div className="h-full min-h-0 flex flex-col gap-2 md:gap-3">
+      {/* 검수 H-6 — 상세 페이지에 헤딩 구조 부여(스크린리더가 사례 제목 파악). 시각적으론 숨김. */}
+      <h1 className="sr-only">{title || "리모델링 사례"}</h1>
       {(beforeImages.length > 0 || afterImages.length > 0) && (
         <div className="flex-1 min-h-0 lg:max-h-[min(770px,calc(37.5vw+170px))] border border-[#111] rounded-xl p-2 md:p-3 bg-[#F1F8E9] flex flex-col landscape:flex-row lg:flex-row gap-2 md:gap-3">
           {beforeImages.length > 0 && (
@@ -485,15 +487,36 @@ function GallerySection({
 }) {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  // 데스크탑(lg≥1024px)에선 라이트박스 진입이 없다. 그런데 이미지 컨테이너에 role=button·
+  // tabIndex=0가 그대로 남아 탭 정지점은 되는데 Enter/Space는 무반응이었다(검수 H-7).
+  // 데스크탑에선 버튼 시맨틱을 조건부로 제거해 "동작 없는 버튼" 모순을 없앤다.
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
   // 모바일 라이트박스 진입을 키보드로도 가능하게 (Enter/Space). WCAG 2.1.1.
   const tryOpen = (currentTarget: HTMLElement) => {
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(min-width: 1024px)").matches
-    )
-      return;
+    if (isDesktop) return;
     onOpenLightbox(currentTarget);
   };
+  // role=button·tabIndex·aria-label·키보드 핸들러는 모바일(라이트박스 동작 존재)에서만.
+  const interactiveProps = isDesktop
+    ? {}
+    : {
+        role: "button" as const,
+        tabIndex: 0,
+        "aria-label": "사진 크게보기",
+        onKeyDown: (e: ReactKeyboardEvent<HTMLDivElement>) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            tryOpen(e.currentTarget);
+          }
+        },
+      };
   // 활성 사진 로딩 중 신호. 1/8 OCPU + 한국 PoP miss 시 30초+ 걸릴 수 있어
   // 빈 흰 박스만 보면 사용자가 "고장" 인식. 스피너로 "로딩 중" 명시.
   const [loading, setLoading] = useState(true);
@@ -527,16 +550,8 @@ function GallerySection({
                 containerRef.current = el;
                 triggerRef.current = el;
               }}
-              role="button"
-              tabIndex={0}
-              aria-label="사진 크게보기"
+              {...interactiveProps}
               onClick={(e) => tryOpen(e.currentTarget)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  tryOpen(e.currentTarget);
-                }
-              }}
               onMouseMove={(e) => {
                 const el = tooltipRef.current;
                 if (!el) return;

@@ -5,6 +5,9 @@ import { rentalManagementItems } from "@/lib/content";
 export const metadata: Metadata = {
   title: "임대관리",
   description: "임대 운영 전반 관리",
+  alternates: {
+    canonical: "/rental-management",
+  },
 };
 
 export default function RentalManagementPage() {

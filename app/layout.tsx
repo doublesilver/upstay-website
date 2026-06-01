@@ -29,9 +29,8 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.koreanName}`,
   },
   description: siteConfig.description,
-  alternates: {
-    canonical: "/",
-  },
+  // canonical은 루트에서 고정하지 않는다 — 여기 두면 모든 하위 페이지가
+  // canonical "/"로 상속돼 상세·섹션이 홈으로 색인 병합된다. 페이지별 지정.
   robots: {
     index: true,
     follow: true,
