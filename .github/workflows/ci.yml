@@ -1,0 +1,52 @@
+name: CI
+
+# §15.2 표준 파이프라인 — lint → typecheck → test → build.
+# 하나라도 실패하면 머지·배포가 차단된다(2차 방어선; 1차는 로컬 pre-push hook).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 같은 브랜치에 새 push가 오면 진행 중인 이전 실행을 취소(러너 절약).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # better-sqlite3는 네이티브 모듈이라 설치 시 현재 Node ABI에 맞춰 빌드/리빌드돼야 한다.
+      # npm ci가 prebuild를 받지 못하면 빌드하도록 build-essential/python을 보장.
+      - name: Install build toolchain (better-sqlite3 native)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential python3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          # 빌드 시 env-validation을 통과시키기 위한 더미 값(실제 시크릿 아님).
+          # 정적 prerender 단계에서만 쓰이고 런타임은 서버의 실 env를 사용.
+          JWT_SECRET: ci-dummy-secret-minimum-length-32-characters
+          ADMIN_ID: ci-admin
+          ADMIN_PW: ci-admin-pw
+          PUBLIC_ORIGIN: https://upstay.co.kr
+          NODE_ENV: production
