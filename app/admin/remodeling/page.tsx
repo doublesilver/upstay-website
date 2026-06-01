@@ -42,7 +42,6 @@ import {
   type UploadItem,
   countByStatus,
   createUploadItem,
-  runWithConcurrency,
   transition,
 } from "@/lib/upload-queue";
 import {
@@ -760,8 +759,27 @@ export default function RemodelingAdminPage() {
   const [uploadQueues, setUploadQueues] = useState<Map<string, UploadItem[]>>(
     new Map(),
   );
+  // ★ React 19는 setState 업데이터를 동기 실행을 보장하지 않는다(배치·StrictMode 이중호출).
+  //   따라서 큐의 "읽기"는 항상 이 ref(동기적 source of truth)에서 한다.
+  //   "쓰기"는 mutateQueues()가 ref와 setState를 한 번에 갱신한다.
+  const uploadQueuesRef = useRef<Map<string, UploadItem[]>>(uploadQueues);
+  // ★ H-2: 전역 drain이 도는 중인지 나타내는 플래그. drain은 한 번에 하나만 돈다.
+  //   업로드 중 추가 선택·다중 섹션·재시도가 들어와도 이미 도는 drain이 새 pending을
+  //   집어 처리하므로 동시 XHR이 전역 3을 절대 넘지 않는다(sharp 메모리·OCI origin 보호).
+  const drainingRef = useRef(false);
   // 진행 중인 XHR — 언마운트 시 abort, objectURL 해제 대상 추적.
   const xhrMapRef = useRef<Map<string, XMLHttpRequest>>(new Map());
+
+  // 큐의 단일 변이 지점 — ref(동기)와 setState(렌더)를 함께 갱신한다.
+  // updater는 부수효과 없는 순수 함수여야 한다(StrictMode 이중호출 안전).
+  const mutateQueues = useCallback(
+    (updater: (prev: Map<string, UploadItem[]>) => Map<string, UploadItem[]>) => {
+      const next = updater(uploadQueuesRef.current);
+      uploadQueuesRef.current = next;
+      setUploadQueues(next);
+    },
+    [],
+  );
   const deleteCancelBtnRef = useRef<HTMLButtonElement>(null);
   const handleDeleteTabTrap = useFocusTrap<HTMLDivElement>();
 
@@ -868,8 +886,6 @@ export default function RemodelingAdminPage() {
 
   // 언마운트 시 진행 중 XHR abort + 모든 objectURL 해제 (메모리 누수 방지).
   // 의존성 없는 1회 등록 — uploadQueuesRef로 최신 큐를 cleanup 시점에 읽는다.
-  const uploadQueuesRef = useRef(uploadQueues);
-  uploadQueuesRef.current = uploadQueues;
   useEffect(() => {
     const xhrMap = xhrMapRef.current;
     return () => {
@@ -1112,7 +1128,7 @@ export default function RemodelingAdminPage() {
       itemId: string,
       t: Parameters<typeof transition>[1],
     ) => {
-      setUploadQueues((prev) => {
+      mutateQueues((prev) => {
         const items = prev.get(sectionKeyStr);
         if (!items) return prev;
         const nextItems = items.map((it) =>
@@ -1123,7 +1139,7 @@ export default function RemodelingAdminPage() {
         return next;
       });
     },
-    [],
+    [mutateQueues],
   );
 
   // 새로 done된 이미지를 전체 load() 없이 갤러리에 즉시 끼워넣는다 (점진 반영).
@@ -1157,30 +1173,44 @@ export default function RemodelingAdminPage() {
     [],
   );
 
-  // 단일 항목 업로드 파이프라인: uploading(%) → processing → done | error.
-  // XHR 업로드 성공 시 곧바로 장별로 DB 등록(POST)까지 마치고 갤러리에 즉시 반영.
-  const uploadOneItem = useCallback(
-    async (sectionKeyStr: string, caseId: number, type: "before" | "after") => {
-      // pending 1개를 "원자적으로" 집어 즉시 uploading으로 전이한다.
-      // setState 업데이터는 동기 실행되므로, 동시 3개 worker가 같은 항목을
-      // 중복 claim하는 race를 한 updater 안에서 차단한다.
-      let claimed: UploadItem | undefined;
-      setUploadQueues((prev) => {
-        const items = prev.get(sectionKeyStr);
-        if (!items) return prev;
+  // 전역 큐에서 pending 1개를 "원자적으로" 집어 uploading으로 전이하고 어느 섹션의
+  // 무엇인지 함께 돌려준다. 섹션 무관하게 스캔하므로 전역 풀이 모든 섹션을 함께 처리한다.
+  // 읽기·쓰기 모두 mutateQueues(ref 동기 갱신) 안에서 한 번에 끝내므로, 동시 worker가
+  // 같은 항목을 중복 claim하는 race가 없다(ref가 즉시 반영되어 다음 claim은 못 본다).
+  const claimNextPendingGlobal = useCallback(():
+    | { sectionKey: string; caseId: number; type: "before" | "after"; item: UploadItem }
+    | undefined => {
+    let result:
+      | { sectionKey: string; caseId: number; type: "before" | "after"; item: UploadItem }
+      | undefined;
+    mutateQueues((prev) => {
+      for (const [sectionKey, items] of prev) {
         const found = items.find((it) => it.status === "pending");
-        if (!found) return prev;
-        claimed = found;
+        if (!found) continue;
+        const [caseIdStr, type] = sectionKey.split(":");
+        result = {
+          sectionKey,
+          caseId: Number(caseIdStr),
+          type: type as "before" | "after",
+          item: found,
+        };
         const nextItems = items.map((it) =>
           it.id === found.id ? transition(it, { kind: "start" }) : it,
         );
         const next = new Map(prev);
-        next.set(sectionKeyStr, nextItems);
+        next.set(sectionKey, nextItems);
         return next;
-      });
-      const item = claimed;
-      if (!item) return;
+      }
+      return prev;
+    });
+    return result;
+  }, [mutateQueues]);
 
+  // 단일 항목 업로드 파이프라인: uploading(%) → processing → done | error.
+  // XHR 업로드 성공 시 곧바로 장별로 DB 등록(POST)까지 마치고 갤러리에 즉시 반영.
+  const uploadOneItem = useCallback(
+    async (item: UploadItem, caseId: number, type: "before" | "after") => {
+      const sectionKeyStr = `${caseId}:${type}`;
       try {
         const { url } = await xhrUploadFile(item.file, {
           onProgress: (pct) =>
@@ -1204,10 +1234,24 @@ export default function RemodelingAdminPage() {
             is_starred: 0,
           }),
         });
-        const data = (await res.json()) as {
-          id: number;
-          match_order: number;
-        };
+
+        // ★ H-3: POST는 성공(2xx)인데 응답 본문 파싱이 실패하는 부분성공 케이스.
+        // 서버엔 이미 등록됐으므로 "실패"로 단정하면 유령 불일치가 생긴다.
+        // 파싱 실패는 별도 메시지로 분리해 "이미 등록됐을 수 있으니 새로고침 확인"을 안내하고,
+        // 갤러리 정합성은 load()로 서버 진실과 다시 맞춘다.
+        let data: { id: number; match_order: number };
+        try {
+          data = (await res.json()) as { id: number; match_order: number };
+        } catch {
+          updateQueueItem(sectionKeyStr, item.id, {
+            kind: "error",
+            error:
+              "사진은 서버에 올라갔는데 화면 반영 정보를 받지 못했어요. 새로고침(F5)하면 등록 여부를 확인할 수 있습니다.",
+          });
+          // 서버엔 등록됐을 수 있으니 갤러리를 서버 진실로 재동기화.
+          load();
+          return;
+        }
 
         updateQueueItem(sectionKeyStr, item.id, {
           kind: "done",
@@ -1225,48 +1269,65 @@ export default function RemodelingAdminPage() {
         xhrMapRef.current.delete(item.id);
       }
     },
-    [updateQueueItem, insertImageOptimistic],
+    [updateQueueItem, insertImageOptimistic, load],
   );
 
-  // 새로 추가된 pending 항목들을 동시성 3으로 처리한다.
-  // 서버 sharp 메모리 보호를 위해 동시 3장으로 제한(기존 직렬화 이유 계승).
-  const drainQueue = useCallback(
-    async (sectionKeyStr: string, caseId: number, type: "before" | "after") => {
-      let pendingCount = 0;
-      setUploadQueues((prev) => {
-        pendingCount =
-          prev.get(sectionKeyStr)?.filter((it) => it.status === "pending")
-            .length ?? 0;
-        return prev;
-      });
-      if (pendingCount === 0) return;
+  // ★ H-2 + 치명 수정: 전역 동시성 풀 1개(총 3 worker)가 모든 섹션의 pending을 처리한다.
+  //   drain은 한 번에 하나만 돈다(drainingRef boolean). 업로드 중 추가 선택·다중 섹션·재시도가
+  //   들어와도 이미 도는 drain이 ref에서 새 pending을 계속 집어 처리하므로 동시 XHR이 전역 3을
+  //   넘지 않는다.
+  //   pending 판단·claim을 모두 uploadQueuesRef(동기 source of truth)에서 하므로, React 19에서
+  //   setState 업데이터의 동기 실행을 잘못 가정해 업로드가 시작조차 안 되던 결함을 제거한다.
+  const drainQueue = useCallback(async () => {
+    // 이미 drain이 돌고 있으면 새 pending은 그 drain이 알아서 집어간다(중복 drain 방지).
+    if (drainingRef.current) return;
 
-      setUploading(true);
-      // runner는 큐에서 매번 다음 pending 1개를 집어 처리한다(uploadOneItem 내부).
-      await runWithConcurrency(
-        Array.from({ length: pendingCount }),
-        3,
-        () => uploadOneItem(sectionKeyStr, caseId, type),
-      );
-      setUploading(false);
+    const anyPending = Array.from(uploadQueuesRef.current.values()).some(
+      (items) => items.some((it) => it.status === "pending"),
+    );
+    if (!anyPending) return;
 
-      // 사이클 종료 요약 토스트 — 성공/실패 집계.
-      setUploadQueues((prev) => {
-        const items = prev.get(sectionKeyStr);
-        if (items) {
-          const c = countByStatus(items);
-          if (c.settled) {
-            if (c.error === 0) flash(ErrorMessages.uploadSuccess(c.done));
-            else if (c.done > 0)
-              flash(ErrorMessages.uploadPartial(c.done, c.error));
-            else flash(ErrorMessages.uploadAllFailed());
-          }
+    drainingRef.current = true;
+    setUploading(true);
+
+    // 이번 drain이 손댄 섹션 — 종료 후 섹션별 요약 토스트 대상.
+    const touched = new Set<string>();
+    try {
+      // 전역 worker 3개가 큐가 빌 때까지 ref에서 다음 pending을 계속 집어 처리한다.
+      const worker = async () => {
+        for (;;) {
+          const next = claimNextPendingGlobal();
+          if (!next) return;
+          touched.add(next.sectionKey);
+          await uploadOneItem(next.item, next.caseId, next.type);
         }
-        return prev;
-      });
-    },
-    [uploadOneItem],
-  );
+      };
+      await Promise.all([worker(), worker(), worker()]);
+    } finally {
+      drainingRef.current = false;
+      setUploading(false);
+    }
+
+    // 사이클 종료 요약 토스트 — ref(동기 진실)에서 섹션별로 집계해 reducer 밖에서 flash(H-1).
+    let totalDone = 0;
+    let totalError = 0;
+    let settledSections = 0;
+    for (const sectionKey of touched) {
+      const items = uploadQueuesRef.current.get(sectionKey);
+      if (!items) continue;
+      const c = countByStatus(items);
+      if (!c.settled) continue;
+      settledSections += 1;
+      totalDone += c.done;
+      totalError += c.error;
+    }
+    if (settledSections > 0) {
+      if (totalError === 0) flash(ErrorMessages.uploadSuccess(totalDone));
+      else if (totalDone > 0)
+        flash(ErrorMessages.uploadPartial(totalDone, totalError));
+      else flash(ErrorMessages.uploadAllFailed());
+    }
+  }, [claimNextPendingGlobal, uploadOneItem]);
 
   const handleBulkUpload = async (
     caseId: number,
@@ -1281,36 +1342,42 @@ export default function RemodelingAdminPage() {
     const newItems = fileArray.map((f) =>
       createUploadItem(f, (file) => URL.createObjectURL(file)),
     );
-    setUploadQueues((prev) => {
+    mutateQueues((prev) => {
       const next = new Map(prev);
       const existing = prev.get(key) ?? [];
       next.set(key, [...existing, ...newItems]);
       return next;
     });
 
-    await drainQueue(key, caseId, type);
+    // 전역 풀이 모든 섹션을 함께 처리한다. 이미 도는 drain이 있으면 즉시 반환되고,
+    // 방금 추가한 pending은 그 drain이 알아서 집어간다(동시 XHR 전역 3 유지).
+    await drainQueue();
   };
 
   // 개별 재시도 — 실패 항목을 pending으로 되돌리고 다시 큐를 흘린다.
+  // drainQueue가 전역 동시성 풀을 공유하므로 재시도도 동시 XHR 3 한도를 지킨다(H-2).
   const handleRetryUpload = useCallback(
     (caseId: number, type: "before" | "after", itemId: string) => {
       const key = `${caseId}:${type}`;
       updateQueueItem(key, itemId, { kind: "retry" });
-      void drainQueue(key, caseId, type);
+      void drainQueue();
     },
     [updateQueueItem, drainQueue],
   );
 
   // 실패 항목을 목록에서 제거 + objectURL 해제.
+  // 해제(부수효과)는 reducer 밖에서 한다 — updater는 순수하게 유지(H-1 원칙).
   const handleDismissUpload = useCallback(
     (caseId: number, type: "before" | "after", itemId: string) => {
       const key = `${caseId}:${type}`;
-      setUploadQueues((prev) => {
+      const removed = uploadQueuesRef.current
+        .get(key)
+        ?.find((it) => it.id === itemId);
+      if (removed?.localUrl.startsWith("blob:"))
+        URL.revokeObjectURL(removed.localUrl);
+      mutateQueues((prev) => {
         const items = prev.get(key);
         if (!items) return prev;
-        const removed = items.find((it) => it.id === itemId);
-        if (removed?.localUrl.startsWith("blob:"))
-          URL.revokeObjectURL(removed.localUrl);
         const next = new Map(prev);
         next.set(
           key,
@@ -1319,32 +1386,32 @@ export default function RemodelingAdminPage() {
         return next;
       });
     },
-    [],
+    [mutateQueues],
   );
 
   // done 항목 정리: 갤러리에 반영됐으니 큐에서 빼고 objectURL 해제.
   // 진행 중·실패가 없을 때(모두 settled & error 0) 호출해 카드를 비운다.
+  // 해제(부수효과)는 reducer 밖에서 — ref에서 done 항목을 골라 먼저 revoke한다(H-1).
   const cleanupDoneItems = useCallback(
     (caseId: number, type: "before" | "after") => {
       const key = `${caseId}:${type}`;
-      setUploadQueues((prev) => {
-        const items = prev.get(key);
-        if (!items) return prev;
-        const remaining = items.filter((it) => {
-          if (it.status === "done") {
-            if (it.localUrl.startsWith("blob:"))
-              URL.revokeObjectURL(it.localUrl);
-            return false;
-          }
-          return true;
-        });
+      const items = uploadQueuesRef.current.get(key);
+      if (!items) return;
+      for (const it of items) {
+        if (it.status === "done" && it.localUrl.startsWith("blob:"))
+          URL.revokeObjectURL(it.localUrl);
+      }
+      mutateQueues((prev) => {
+        const cur = prev.get(key);
+        if (!cur) return prev;
+        const remaining = cur.filter((it) => it.status !== "done");
         const next = new Map(prev);
         if (remaining.length === 0) next.delete(key);
         else next.set(key, remaining);
         return next;
       });
     },
-    [],
+    [mutateQueues],
   );
 
   // 큐가 모두 settled & 실패 0이면 잠깐 보여준 뒤 done 카드를 정리.

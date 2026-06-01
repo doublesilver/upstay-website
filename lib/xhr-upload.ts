@@ -32,6 +32,9 @@ export function xhrUploadFile(
 
     xhr.open("POST", "/api/admin/upload");
     xhr.withCredentials = true; // 쿠키(JWT) 동봉 — apiFetch credentials:"include"와 정합.
+    // 무한 대기 방지(L-4). 한 장당 1요청 + sharp 변환 직렬 처리 여유까지 고려한 2분.
+    // 초과 시 ontimeout → 친절 메시지(uploadTimeout) + 재시도 가능.
+    xhr.timeout = 120_000;
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && handlers.onProgress) {
