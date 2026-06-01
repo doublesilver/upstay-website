@@ -14,10 +14,10 @@ const MIME: Record<string, string> = {
   ".gif": "image/gif",
 };
 
-// OCI 1/8 OCPU origin 보호 — 동시 image 요청을 N개로 제한.
-// 사용자 페이지는 R2(img.upstay.co.kr) 직접 서빙이라 이 라우트는 거의 admin 트래픽만 처리.
+// arm-big origin 보호 — 동시 image 요청을 N개로 제한.
+// 모든 업로드 이미지는 이 라우트가 직접 서빙한다(R2 제거됨, 검수 H-1).
 // admin은 인증된 신뢰 트래픽 + 사례 카드 N장 동시 fetch 패턴이라 semaphore 건너뜀.
-// 익명 트래픽(R2 fallback, 외부 봇)만 24개 동시 제한.
+// 익명 트래픽(외부 봇 등)만 24개 동시 제한.
 const MAX_CONCURRENT = 24;
 const SLOT_TIMEOUT_MS = 15_000;
 let activeRequests = 0;

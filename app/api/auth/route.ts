@@ -16,7 +16,7 @@ function clientIp(req: NextRequest): string {
   const cfIp = req.headers.get("cf-connecting-ip");
   if (cfIp) return cfIp.trim();
 
-  // x-forwarded-for는 클라이언트가 임의로 prepend 할 수 있는 헤더다. 프록시(Railway/Cloudflare)는
+  // x-forwarded-for는 클라이언트가 임의로 prepend 할 수 있는 헤더다. 프록시(Cloudflare/Caddy)는
   // 자기가 본 IP를 끝에 append 하므로 "마지막" 값이 신뢰 가능한 실제 클라이언트 IP.
   // 첫 번째를 쓰면 공격자가 매 요청마다 다른 IP를 헤더에 박아 rate-limit 우회 가능.
   // 단 Cloudflare 환경에선 마지막 = Cloudflare edge IP라 모든 요청이 같은 IP로 보임 →

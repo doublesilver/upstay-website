@@ -64,8 +64,10 @@ const nextConfig: NextConfig = {
         source: "/watermark.png",
         headers: [
           {
+            // 워터마크 이미지는 자체 사이트 canvas 합성에만 쓰이므로 전체 공개(*) 대신
+            // 자사 origin으로 제한. tainted canvas 우회 가능성 차단(검수 M-7).
             key: "Access-Control-Allow-Origin",
-            value: "*",
+            value: "https://upstay.co.kr",
           },
           {
             key: "Cache-Control",
@@ -91,7 +93,7 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
-          // HSTS — Railway/Cloudflare가 HTTPS를 강제하지만 앱 레벨에서도 선언해
+          // HSTS — Cloudflare/Caddy가 HTTPS를 강제하지만 앱 레벨에서도 선언해
           // 브라우저가 캐싱하도록 한다. SSL stripping 다운그레이드 공격 방어.
           {
             key: "Strict-Transport-Security",
@@ -100,6 +102,12 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            // 사용하지 않는 강력 기능(카메라·마이크·위치)을 명시 차단. 서드파티
+            // 스크립트가 끼어들어도 권한을 못 얻게 하는 방어선(검수 L-4).
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
           },
           {
             key: "Content-Security-Policy",
