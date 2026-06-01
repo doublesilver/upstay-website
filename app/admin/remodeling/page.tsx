@@ -606,7 +606,7 @@ function SortableCase({
             type="button"
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing text-[#999] hover:text-[#111] transition-colors shrink-0 p-1"
+            className="cursor-grab active:cursor-grabbing text-[#767676] hover:text-[#111] transition-colors shrink-0 p-1"
             aria-label="드래그하여 순서 변경" title="드래그하여 순서를 변경합니다"
           >
             <GripVertical size={18} />
@@ -623,6 +623,7 @@ function SortableCase({
         {collapsed ? (
           <button
             type="button"
+            aria-expanded={false}
             onClick={onToggleCollapse}
             className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
           >
@@ -644,6 +645,7 @@ function SortableCase({
                 <button
                   key={value}
                   type="button"
+                  aria-pressed={active}
                   onClick={() => onToggleMain(item.id, active ? 0 : value)}
                   className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
                     active
@@ -658,6 +660,7 @@ function SortableCase({
 
             <button
               type="button"
+              aria-expanded={true}
               onClick={onToggleCollapse}
               className="px-3 py-1.5 rounded-lg text-[12px] font-medium bg-white text-[#666] border border-[#111] hover:border-[#999] hover:text-[#111] transition-all"
             >
