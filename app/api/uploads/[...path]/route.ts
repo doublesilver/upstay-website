@@ -1,55 +1,10 @@
 import { NextRequest } from "next/server";
-import {
-  stat,
-  mkdir,
-  readFile,
-  writeFile,
-  realpath,
-  readdir,
-  unlink,
-} from "fs/promises";
-import { createReadStream, existsSync } from "fs";
+import { stat, realpath } from "fs/promises";
+import { createReadStream } from "fs";
 import { Readable } from "stream";
 import path from "path";
-import crypto from "crypto";
-import sharp from "sharp";
 import { jwtVerify } from "jose";
-import { UPLOAD_DIR, DATA_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
-import { logError, logWarn } from "@/lib/log";
-
-const CACHE_DIR = path.join(DATA_DIR, "cache");
-const CACHE_MAX_BYTES = 500 * 1024 * 1024;
-const CACHE_MAX_FILES = 5000;
-
-async function cleanupCache(dir: string, maxBytes: number, maxFiles: number) {
-  let entries: { file: string; mtime: number; size: number }[];
-  try {
-    const names = await readdir(dir);
-    entries = await Promise.all(
-      names.map(async (name) => {
-        const file = path.join(dir, name);
-        const s = await stat(file);
-        return { file, mtime: s.mtimeMs, size: s.size };
-      }),
-    );
-  } catch {
-    return;
-  }
-
-  entries.sort((a, b) => a.mtime - b.mtime);
-
-  let totalBytes = entries.reduce((sum, e) => sum + e.size, 0);
-  let totalFiles = entries.length;
-
-  for (const entry of entries) {
-    if (totalBytes <= maxBytes && totalFiles <= maxFiles) break;
-    try {
-      await unlink(entry.file);
-      totalBytes -= entry.size;
-      totalFiles -= 1;
-    } catch {}
-  }
-}
+import { UPLOAD_DIR, UPLOAD_DIR_RESOLVED } from "@/lib/paths";
 
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -196,93 +151,13 @@ async function handleGet(
   if (!fileStat.isFile()) {
     return new Response("Not found", { status: 404 });
   }
-  const accept = req.headers.get("accept") ?? "";
 
-  let targetFormat: "avif" | "webp" | null = null;
-  if (ext !== ".gif") {
-    if (accept.includes("image/avif")) {
-      targetFormat = "avif";
-    } else if (accept.includes("image/webp") && ext !== ".webp") {
-      targetFormat = "webp";
-    }
-  }
-
-  if (targetFormat) {
-    // 1순위: 업로드 시점에 미리 만들어둔 .webp / .avif 사본 (Upload route의 precomputeVariants).
-    // 첫 요청부터 sharp 변환 없이 정적 streaming — Railway CPU 0, 응답 <50ms.
-    const precomputedPath = `${resolvedPath}.${targetFormat}`;
-    try {
-      const precomputedStat = await stat(precomputedPath);
-      if (precomputedStat.isFile()) {
-        const stream = createReadStream(precomputedPath);
-        const webStream = Readable.toWeb(stream) as ReadableStream;
-        return new Response(webStream, {
-          headers: {
-            "Content-Type": `image/${targetFormat}`,
-            "Content-Length": String(precomputedStat.size),
-            "Cache-Control": "public, max-age=31536000, immutable",
-            Vary: "Accept",
-          },
-        });
-      }
-    } catch (e) {
-      // ENOENT는 정상(기존 업로드는 사본 없음) — 아래 변환 fallback으로 진행.
-      if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
-        logWarn("uploads", "precomputed stat 실패", {
-          precomputedPath,
-          err: (e as Error).message,
-        });
-      }
-    }
-
-    // 2순위: 기존 업로드용 fallback — sha1 해시 키로 변환 캐시 (변환 후 디스크 저장).
-    try {
-      await mkdir(CACHE_DIR, { recursive: true });
-
-      const cacheKey = crypto
-        .createHash("sha1")
-        .update(`${resolvedPath}:${fileStat.mtimeMs}:${targetFormat}`)
-        .digest("hex");
-      const cachePath = path.join(CACHE_DIR, `${cacheKey}.${targetFormat}`);
-
-      let buffer: Buffer;
-      if (existsSync(cachePath)) {
-        buffer = await readFile(cachePath);
-      } else {
-        const sharpOpts = {
-          // 업로드 게이트(100MP)와 동일 한도. 업로드된 파일은 이미 2048px로 다운스케일돼
-          // 4MP 이내가 정상이지만 gif 등 원본 저장 경로를 위한 약간의 여유.
-          limitInputPixels: 100_000_000,
-          failOn: "truncated" as const,
-        };
-        buffer =
-          targetFormat === "avif"
-            ? await sharp(resolvedPath, sharpOpts)
-                .avif({ quality: 80 })
-                .toBuffer()
-            : await sharp(resolvedPath, sharpOpts)
-                .webp({ quality: 80 })
-                .toBuffer();
-        await writeFile(cachePath, buffer);
-        if (Math.random() < 0.01)
-          cleanupCache(CACHE_DIR, CACHE_MAX_BYTES, CACHE_MAX_FILES).catch(
-            () => {},
-          );
-      }
-
-      return new Response(new Uint8Array(buffer), {
-        headers: {
-          "Content-Type": `image/${targetFormat}`,
-          "Content-Length": String(buffer.length),
-          "Cache-Control": "public, max-age=31536000, immutable",
-          Vary: "Accept",
-        },
-      });
-    } catch {
-      // 변환 실패 시 원본 서빙으로 폴백
-    }
-  }
-
+  // Accept 협상(avif/webp) 제거 — CDN(Cloudflare)이 Vary:Accept를 무시하고 avif를
+  // URL당 단일 캐시로 굳혀, avif 미지원(Safari14–15·일부 인앱) 브라우저에서 상세
+  // 갤러리 이미지가 깨졌다(검수 H-1). .thumb.webp/.medium.webp는 이미 포맷 확정 URL이라
+  // 협상 이득이 없다. 요청된 확장자 그대로 결정적 단일 표현으로 서빙하고, Vary 헤더도
+  // 보내지 않아 CDN이 URL당 캐시 1개만 갖게 한다(arm-big Caddy의 header_up -Accept /
+  // header_down -Vary 와 origin을 일원화).
   const contentType = MIME[ext] ?? "application/octet-stream";
   const nodeStream = createReadStream(resolvedPath);
   const webStream = Readable.toWeb(nodeStream) as ReadableStream;
@@ -292,7 +167,6 @@ async function handleGet(
       "Content-Type": contentType,
       "Content-Length": String(fileStat.size),
       "Cache-Control": "public, max-age=31536000, immutable",
-      Vary: "Accept",
     },
   });
 }
