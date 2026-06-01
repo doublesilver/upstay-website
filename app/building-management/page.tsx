@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/building-management",
   },
+  openGraph: {
+    title: "건물관리 | 업스테이",
+    description: "수선유지 및 하자보수 — 건물 가치를 지키는 전문 관리",
+    url: "/building-management",
+    type: "website",
+  },
 };
 
 export default function BuildingManagementPage() {

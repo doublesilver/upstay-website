@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Container } from "@/components/container";
 import { DetailGallery } from "./detail-gallery";
 import { getDb } from "@/lib/db";
@@ -12,6 +13,44 @@ export const revalidate = 60;
 
 export async function generateStaticParams() {
   return [];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const numId = Number(id);
+  if (!Number.isFinite(numId)) return {};
+
+  const db = getDb();
+  const caseRow = db
+    .prepare(
+      "SELECT id, title FROM remodeling_cases WHERE id = ? AND is_draft = 0",
+    )
+    .get(numId) as { id: number; title: string } | undefined;
+  if (!caseRow) return {};
+
+  // 사례 제목이 카테고리를 길게 나열하면 <title>이 60자를 넘어 SERP에서 잘린다.
+  // og/공유엔 전체 제목, 검색 <title>엔 60자 클램프로 분리.
+  const fullTitle = caseRow.title?.trim() || "리모델링 사례";
+  const seoTitle =
+    fullTitle.length > 60 ? `${fullTitle.slice(0, 57)}…` : fullTitle;
+  const description = `${fullTitle} — 업스테이 리모델링 시공 사례 (Before/After)`;
+  const path = `/remodeling/${caseRow.id}`;
+
+  return {
+    title: seoTitle,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      title: `${fullTitle} | 업스테이`,
+      description,
+      url: path,
+      type: "article",
+    },
+  };
 }
 
 export default async function RemodelingDetailPage({

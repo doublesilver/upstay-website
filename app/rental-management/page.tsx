@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/rental-management",
   },
+  openGraph: {
+    title: "임대관리 | 업스테이",
+    description: "임대 운영 전반 관리 — 공실 최소화와 안정적 수익 운영",
+    url: "/rental-management",
+    type: "website",
+  },
 };
 
 export default function RentalManagementPage() {

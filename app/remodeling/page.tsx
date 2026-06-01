@@ -9,8 +9,15 @@ import { resolveImg } from "@/lib/image-url";
 
 export const metadata: Metadata = {
   title: "리모델링 사례",
+  description: "업스테이가 시공한 리모델링 Before/After 사례 모음",
   alternates: {
     canonical: "/remodeling",
+  },
+  openGraph: {
+    title: "리모델링 사례 | 업스테이",
+    description: "업스테이가 시공한 리모델링 Before/After 사례 모음",
+    url: "/remodeling",
+    type: "website",
   },
 };
 
@@ -25,6 +32,11 @@ export default function RemodelingPage() {
   return (
     <Container className="pt-8 pb-12 md:pt-16 md:pb-16">
       <h1 className="sr-only">리모델링 사례</h1>
+      {cases.length === 0 ? (
+        <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl py-12 text-center text-[13px] md:text-[14px] text-[#555]">
+          등록된 사례를 준비 중입니다.
+        </div>
+      ) : (
       <div className="bg-[#F1F8E9] border border-[#111111] rounded-xl px-3 md:px-4 py-1 flex flex-col gap-1">
         {cases.map((c, i) => {
           const befores = c.before_images?.length
@@ -119,6 +131,7 @@ export default function RemodelingPage() {
           );
         })}
       </div>
+      )}
     </Container>
   );
 }
